@@ -9,6 +9,7 @@ on:
       - 'patch_dashboard_overview_v4.py'
       - 'patch_dashboard_sources_v5.py'
       - 'patch_dashboard_telegram_publish_v6.py'
+      - 'patch_dashboard_content_ideas_v7.py'
 
 permissions:
   contents: write
@@ -28,6 +29,8 @@ jobs:
         run: python patch_dashboard_sources_v5.py
       - name: Patch Telegram publishing controls
         run: python patch_dashboard_telegram_publish_v6.py
+      - name: Patch Verification and Content Ideas
+        run: python patch_dashboard_content_ideas_v7.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
@@ -42,6 +45,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Refresh Telegram publishing dashboard"
+            git commit -m "Refresh Verification and Content Ideas dashboard"
             git push
           fi
