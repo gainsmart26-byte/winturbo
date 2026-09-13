@@ -96,3 +96,6 @@ s = s.replace(old_render, new_render)
 
 p.write_text(s)
 print('dashboard.html patched')
+
+# Apply the v3 patch as part of the existing workflow trigger.
+exec(Path('patch_dashboard_v3.py').read_text())
