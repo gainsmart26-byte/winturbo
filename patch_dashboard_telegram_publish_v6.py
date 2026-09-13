@@ -7,7 +7,7 @@ s=p.read_text()
 s=s.replace('<button id="copyPost" class="primary">Copy Post</button>', '<button id="publishTelegram" class="primary">Post to Telegram</button><button id="copyPost" class="ghost">Copy Post</button>', 1)
 
 # Add Telegram publishing status card to Data Quality.
-quality_card='''<div class="card" style="margin-bottom:13px"><div class="sectionHead"><div><h3>Telegram Publishing</h3><div class="muted small">Approved AI drafts can be published directly to a connected Telegram channel.</div></div><span id="telegramPublishStatus" class="pill orange">NOT CONNECTED</span></div><div class="grid4"><div><div class="k">Publishing Accounts</div><div id="telegramPublishingAccounts" class="v" style="font-size:19px">0</div></div><div><div class="k">Publish Mode</div><div class="v" style="font-size:19px">Manual Approval</div><div class="subv">Nothing posts automatically without clicking Post to Telegram</div></div><div><div class="k">Backend</div><div class="v" style="font-size:19px">Supabase Edge Function</div><div class="subv">Bot token stays server-side</div></div><div><div class="k">Queue</div><div class="v" style="font-size:19px">Tracked</div><div class="subv">Draft, published and failed states are stored</div></div></div></div>'''
+quality_card='''<div class="card" style="margin-bottom:13px"><div class="sectionHead"><div><h3>Telegram Publishing</h3><div class="muted small">Approved AI drafts can be published directly to a connected Telegram channel.</div></div><span id="telegramPublishStatus" class="pill orange">NOT CONNECTED</span></div><div class="grid4"><div><div class="k">Publishing Accounts</div><div id="telegramPublishingAccounts" class="v" style="font-size:19px">0</div></div><div><div class="k">Publish Mode</div><div class="v" style="font-size:19px">Manual Approval</div><div class="subv">Nothing posts automatically without clicking Post to Telegram</div></div><div><div class="k">Permission Check</div><div id="telegramPermissionDetail" class="v" style="font-size:17px">Not verified</div><div class="subv">Bot auth · channel · admin · can post</div></div><div><div class="k">Connection Test</div><button id="verifyTelegramConnection" class="primary">Verify Telegram Connection</button><div id="telegramVerifyMessage" class="subv" style="margin-top:8px">Uses secure server-side bot token</div></div></div></div>'''
 s=s.replace('<div class="card" style="margin-bottom:13px"><div class="sectionHead"><div><h3>Likely to Be Successful — AI Intelligence</h3>', quality_card+'<div class="card" style="margin-bottom:13px"><div class="sectionHead"><div><h3>Likely to Be Successful — AI Intelligence</h3>',1)
 
 # Track publishing accounts and load them with the dashboard.
@@ -17,6 +17,26 @@ s=s.replace('loadSources(),loadSuccess()]);', 'loadSources(),loadSuccess(),loadP
 
 # Publish the currently generated/edited text after explicit user approval.
 publish_js=r'''
+async function verifyTelegramConnection(){
+  const btn=$('verifyTelegramConnection');
+  if(!btn)return;
+  const old=btn.textContent;btn.disabled=true;btn.textContent='Verifying…';
+  try{
+    const account=allPublishingAccounts[0];
+    const channel='@'+String(account?.username||'winturboplay').replace(/^@/,'');
+    const{data,error}=await sb.functions.invoke('publish-telegram',{body:{action:'verify_channel',channel}});
+    if(error)throw error;
+    const checks=data?.checks||{};
+    const ok=!!data?.connected;
+    if($('telegramPermissionDetail'))$('telegramPermissionDetail').textContent=`Bot ${checks.bot_authenticated?'✓':'✕'} · Channel ${checks.channel_resolved?'✓':'✕'} · Admin ${checks.is_admin?'✓':'✕'} · Can post ${checks.can_post?'✓':'✕'}`;
+    if($('telegramVerifyMessage'))$('telegramVerifyMessage').textContent=ok?`Connected as @${data?.bot?.username||'bot'} to ${data?.channel||channel}`:(data?.error||'Telegram permissions are incomplete.');
+    if($('telegramPublishStatus')){$('telegramPublishStatus').textContent=ok?'CONNECTED':'PERMISSION REQUIRED';$('telegramPublishStatus').className='pill '+(ok?'':'orange')}
+    await loadPublishingAccounts();
+  }catch(e){
+    if($('telegramPermissionDetail'))$('telegramPermissionDetail').textContent='Verification failed';
+    if($('telegramVerifyMessage'))$('telegramVerifyMessage').textContent=e?.message||String(e);
+  }finally{btn.disabled=false;btn.textContent=old}
+}
 async function publishGeneratedToTelegram(){
   const btn=$('publishTelegram');
   const text=$('generatedPost').value.trim();
@@ -39,6 +59,7 @@ async function publishGeneratedToTelegram(){
     btn.disabled=false;btn.textContent=old;
   }
 }
+if($('verifyTelegramConnection'))$('verifyTelegramConnection').onclick=verifyTelegramConnection;
 if($('publishTelegram'))$('publishTelegram').onclick=publishGeneratedToTelegram;
 '''
 s=s.replace("$('regeneratePost').onclick=()=>{const x=window.lastGenerationRequest;if(x)generatePost(x.i,x.channel,$('regeneratePost'))};", "$('regeneratePost').onclick=()=>{const x=window.lastGenerationRequest;if(x)generatePost(x.i,x.channel,$('regeneratePost'))};\n"+publish_js,1)
