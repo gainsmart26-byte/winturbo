@@ -15,6 +15,7 @@ on:
       - 'patch_dashboard_content_runtime_v10.py'
       - 'patch_dashboard_content_autogen_v11.py'
       - 'patch_dashboard_image_engine_v12.py'
+      - 'patch_dashboard_quality_dedupe_v13.py'
 
 permissions:
   contents: write
@@ -46,6 +47,8 @@ jobs:
         run: python patch_dashboard_content_autogen_v11.py
       - name: Add selectable image generation engine
         run: python patch_dashboard_image_engine_v12.py
+      - name: Remove duplicate Data Quality evidence cards
+        run: python patch_dashboard_quality_dedupe_v13.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
@@ -60,6 +63,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Add ChatGPT or Higgsfield image generation option"
+            git commit -m "Clean duplicate Data Quality evidence cards"
             git push
           fi
