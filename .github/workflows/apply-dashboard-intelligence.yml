@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/apply-dashboard-intelligence.yml'
       - 'patch_dashboard_intelligence.py'
+      - 'patch_dashboard_v3.py'
 
 permissions:
   contents: write
@@ -16,7 +17,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Patch dashboard
         run: python patch_dashboard_intelligence.py
+      - name: Upload generated dashboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-dashboard
+          path: dashboard.html
       - name: Commit dashboard update
+        continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
