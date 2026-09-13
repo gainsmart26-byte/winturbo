@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/apply-dashboard-intelligence.yml'
+      - 'patch_dashboard_intelligence.py'
 
 permissions:
   contents: write
@@ -23,6 +24,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Add 7-day success intelligence and 30-minute growth refresh"
+            git commit -m "Refresh evidence-based dashboard analytics"
             git push
           fi
