@@ -6,6 +6,7 @@ on:
       - '.github/workflows/apply-dashboard-intelligence.yml'
       - 'patch_dashboard_intelligence.py'
       - 'patch_dashboard_v3.py'
+      - 'patch_dashboard_overview_v4.py'
 
 permissions:
   contents: write
@@ -15,8 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Patch dashboard
+      - name: Patch base dashboard intelligence
         run: python patch_dashboard_intelligence.py
+      - name: Patch growth and AI intelligence
+        run: python patch_dashboard_v3.py
+      - name: Patch executive overview analytics
+        run: python patch_dashboard_overview_v4.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
@@ -31,6 +36,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Refresh evidence-based dashboard analytics"
+            git commit -m "Refresh executive and evidence-based dashboard analytics"
             git push
           fi
