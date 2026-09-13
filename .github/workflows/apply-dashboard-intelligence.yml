@@ -20,6 +20,7 @@ on:
       - 'patch_dashboard_dom_normalizer_v15.py'
       - 'patch_dashboard_section_isolation_v15.py'
       - 'patch_dashboard_remove_monitored_sources_v17.py'
+      - 'patch_dashboard_final_declutter_v18.py'
 
 permissions:
   contents: write
@@ -61,6 +62,8 @@ jobs:
         run: python patch_dashboard_section_isolation_v15.py
       - name: Remove Monitored Data Sources from Data Quality
         run: python patch_dashboard_remove_monitored_sources_v17.py
+      - name: Final declutter of Quality Verification and Content Ideas
+        run: python patch_dashboard_final_declutter_v18.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
@@ -75,6 +78,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Remove Monitored Data Sources from Data Quality"
+            git commit -m "Declutter final dashboard sections"
             git push
           fi
