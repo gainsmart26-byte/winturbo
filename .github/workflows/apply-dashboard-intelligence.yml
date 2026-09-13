@@ -12,6 +12,7 @@ on:
       - 'patch_dashboard_content_ideas_v7.py'
       - 'patch_dashboard_higgsfield_v8.py'
       - 'patch_dashboard_dedupe_v9.py'
+      - 'patch_dashboard_content_runtime_v10.py'
 
 permissions:
   contents: write
@@ -37,6 +38,8 @@ jobs:
         run: python patch_dashboard_higgsfield_v8.py
       - name: Remove duplicate dashboard sections
         run: python patch_dashboard_dedupe_v9.py
+      - name: Repair Content Ideas runtime
+        run: python patch_dashboard_content_runtime_v10.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
@@ -51,6 +54,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Remove duplicate Verification and Content Ideas sections"
+            git commit -m "Repair Content Ideas ChatGPT runtime"
             git push
           fi
