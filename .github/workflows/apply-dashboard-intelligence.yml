@@ -14,6 +14,7 @@ on:
       - 'patch_dashboard_dedupe_v9.py'
       - 'patch_dashboard_content_runtime_v10.py'
       - 'patch_dashboard_content_autogen_v11.py'
+      - 'patch_dashboard_image_engine_v12.py'
 
 permissions:
   contents: write
@@ -43,6 +44,8 @@ jobs:
         run: python patch_dashboard_content_runtime_v10.py
       - name: Automate Content Ideas creative generation
         run: python patch_dashboard_content_autogen_v11.py
+      - name: Add selectable image generation engine
+        run: python patch_dashboard_image_engine_v12.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
@@ -57,6 +60,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Automate Content Ideas media generation and ready-to-post preview"
+            git commit -m "Add ChatGPT or Higgsfield image generation option"
             git push
           fi
