@@ -1,72 +1,21 @@
-name: Apply WinTurbo dashboard intelligence patch
+name: Build WinTurbo dashboard
 
 on:
   push:
     paths:
       - '.github/workflows/apply-dashboard-intelligence.yml'
-      - 'patch_dashboard_intelligence.py'
-      - 'patch_dashboard_v3.py'
-      - 'patch_dashboard_overview_v4.py'
-      - 'patch_dashboard_sources_v5.py'
-      - 'patch_dashboard_telegram_publish_v6.py'
-      - 'patch_dashboard_content_ideas_v7.py'
-      - 'patch_dashboard_higgsfield_v8.py'
-      - 'patch_dashboard_dedupe_v9.py'
-      - 'patch_dashboard_content_runtime_v10.py'
-      - 'patch_dashboard_content_autogen_v11.py'
-      - 'patch_dashboard_image_engine_v12.py'
-      - 'patch_dashboard_quality_dedupe_v13.py'
-      - 'patch_dashboard_layout_repair_v14.py'
-      - 'patch_dashboard_dom_normalizer_v15.py'
-      - 'patch_dashboard_section_isolation_v15.py'
-      - 'patch_dashboard_remove_monitored_sources_v17.py'
-      - 'patch_dashboard_final_declutter_v18.py'
-      - 'patch_dashboard_visibility_firewall_v19.py'
+      - 'patch_dashboard_redesign_v20.py'
 
 permissions:
   contents: write
 
 jobs:
-  patch-dashboard:
+  build-dashboard:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Patch base dashboard intelligence
-        run: python patch_dashboard_intelligence.py
-      - name: Patch growth and AI intelligence
-        run: python patch_dashboard_v3.py
-      - name: Patch executive overview analytics
-        run: python patch_dashboard_overview_v4.py
-      - name: Patch source-aware dashboard experience
-        run: python patch_dashboard_sources_v5.py
-      - name: Patch Telegram publishing controls
-        run: python patch_dashboard_telegram_publish_v6.py
-      - name: Patch Verification and Content Ideas
-        run: python patch_dashboard_content_ideas_v7.py
-      - name: Patch direct Higgsfield generation
-        run: python patch_dashboard_higgsfield_v8.py
-      - name: Remove duplicate dashboard sections
-        run: python patch_dashboard_dedupe_v9.py
-      - name: Repair Content Ideas runtime
-        run: python patch_dashboard_content_runtime_v10.py
-      - name: Automate Content Ideas creative generation
-        run: python patch_dashboard_content_autogen_v11.py
-      - name: Add selectable image generation engine
-        run: python patch_dashboard_image_engine_v12.py
-      - name: Remove duplicate Data Quality evidence cards
-        run: python patch_dashboard_quality_dedupe_v13.py
-      - name: Repair final three section layout
-        run: python patch_dashboard_layout_repair_v14.py
-      - name: Normalize dashboard section DOM
-        run: python patch_dashboard_dom_normalizer_v15.py
-      - name: Isolate Verification and Content Ideas
-        run: python patch_dashboard_section_isolation_v15.py
-      - name: Remove Monitored Data Sources from Data Quality
-        run: python patch_dashboard_remove_monitored_sources_v17.py
-      - name: Final declutter of Quality Verification and Content Ideas
-        run: python patch_dashboard_final_declutter_v18.py
-      - name: Install section visibility firewall
-        run: python patch_dashboard_visibility_firewall_v19.py
+      - name: Apply clean dashboard redesign
+        run: python patch_dashboard_redesign_v20.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
@@ -81,6 +30,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Enforce isolated dashboard sections"
+            git commit -m "Redesign dashboard and isolate sections"
             git push
           fi
