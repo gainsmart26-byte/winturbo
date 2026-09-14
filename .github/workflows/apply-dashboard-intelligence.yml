@@ -14,6 +14,7 @@ on:
       - 'patch_dashboard_content_generator_v27.py'
       - 'patch_dashboard_discord_sources_v28.py'
       - 'patch_dashboard_entity_categories_v29.py'
+      - 'patch_dashboard_add_source_fix_v30.py'
 
 permissions:
   contents: write
@@ -43,6 +44,8 @@ jobs:
         run: python patch_dashboard_discord_sources_v28.py
       - name: Add influencer and company entity categories
         run: python patch_dashboard_entity_categories_v29.py
+      - name: Fix Add Data Source modal and save bindings
+        run: python patch_dashboard_add_source_fix_v30.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
