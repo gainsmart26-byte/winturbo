@@ -16,6 +16,7 @@ on:
       - 'patch_dashboard_entity_categories_v29.py'
       - 'patch_dashboard_add_source_fix_v30.py'
       - 'patch_dashboard_quality_actions_v31.py'
+      - 'patch_dashboard_media_routing_v32.py'
 
 permissions:
   contents: write
@@ -49,6 +50,8 @@ jobs:
         run: python patch_dashboard_add_source_fix_v30.py
       - name: Expand quality recommendations and approval actions
         run: python patch_dashboard_quality_actions_v31.py
+      - name: Fix media provider routing
+        run: python patch_dashboard_media_routing_v32.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
@@ -63,6 +66,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Connect dashboard to live intelligence data"
+            git commit -m "Route images to ChatGPT and videos to Higgsfield"
             git push
           fi
