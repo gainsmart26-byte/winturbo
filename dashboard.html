@@ -213,6 +213,31 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 .audienceMeta{flex:1}.audienceValue{text-align:right;font-weight:850}.overviewSourceGroup{margin-bottom:14px}.overviewSourceGroup h4{margin:0 0 7px;color:#b9ffc9}.trendItem{padding:11px 0;border-bottom:1px solid var(--line)}.trendItem:last-child{border-bottom:0}.trendTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.trendText{margin-top:6px}.aiLearn{padding:11px 0;border-bottom:1px solid var(--line)}.aiLearn:last-child{border-bottom:0}
 
 
+/* Quality-only components are never visible outside the quality section. */
+main.main > section.section:not(#quality) .qualityHero,
+main.main > section.section:not(#quality) .qualitySummary,
+main.main > section.section:not(#quality) .qualityMetric,
+main.main > section.section:not(#quality) .qualityGrid,
+main.main > section.section:not(#quality) .qualityPanel,
+main.main > section.section:not(#quality) .qualityRecommendations,
+main.main > section.section:not(#quality) #aiRecommendations,
+main.main > section.section:not(#quality) #qualityRules,
+main.main > section.section:not(#quality) #qualitySources{display:none!important}
+@media(max-width:1150px){#quality .qualitySummary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){#quality .qualitySummary,#quality .qualityGrid{grid-template-columns:1fr}}
+
+
+
+/* WINTURBO_APPROVAL_V25_CSS */
+.statusRejected{color:#ff9b9b}.approvalMeta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:10px 0}.approvalMeta div{background:#09100b;border:1px solid var(--line);border-radius:9px;padding:8px}.approvalMeta b{display:block;font-size:11px}.approvalMeta span{font-size:10px;color:var(--muted)}
+
+
+/* WINTURBO_EXECUTIVE_V26_CSS */
+.audienceRow,.overviewSourceRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.audienceRow:last-child,.overviewSourceRow:last-child{border-bottom:0}.audienceRank{width:30px;font-weight:900;color:var(--green)}
+.audienceMeta{flex:1}.audienceValue{text-align:right;font-weight:850}.overviewSourceGroup{margin-bottom:14px}.overviewSourceGroup h4{margin:0 0 7px;color:#b9ffc9}.trendItem{padding:11px 0;border-bottom:1px solid var(--line)}.trendItem:last-child{border-bottom:0}.trendTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.trendText{margin-top:6px}.aiLearn{padding:11px 0;border-bottom:1px solid var(--line)}.aiLearn:last-child{border-bottom:0}
+
+
 /* WINTURBO_REDESIGN_V20_CSS */
 :root{--bg:#070a08;--panel:#101611;--panel2:#0c120e;--line:#233027;--text:#f5f7f5;--muted:#8fa097;--green:#42e36c;--orange:#ff9d2e;--red:#ff6666;--blue:#67b7ff;--shadow:0 16px 42px rgba(0,0,0,.22)}
 body{background:radial-gradient(circle at 72% -15%,rgba(66,227,108,.08),transparent 32%),var(--bg)}
@@ -303,11 +328,19 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 #quality .v31Status{margin-top:7px;font-size:11px;color:var(--muted)}
 @media(max-width:900px){#quality .v31RecGrid{grid-template-columns:1fr}#quality .v31RecMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+/* WINTURBO_MEDIA_ROUTING_V32_CSS */
+.mediaRoutingBox{padding:12px;border:1px solid var(--line);background:#09100b;border-radius:12px}
+.mediaRoutingRow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #1d2820}
+.mediaRoutingRow:last-of-type{border-bottom:0}.mediaRoutingRow b{color:#e9fff0}
+#contentIdeas select#ideaEngine{display:none!important}
+
 </style>
 </head>
 <body>
 <div id="login" class="login"><div class="loginBox"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><p class="muted">Creative Intelligence Dashboard</p><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Password"><button id="loginBtn" class="primary" style="width:100%;margin-top:8px">Log in</button><p id="msg" class="muted small"></p></div></div>
 <div id="app" class="shell hide"><aside class="sidebar"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><div class="muted small">Creative Intelligence Dashboard</div><div class="nav"><button class="on" data-s="overview">◉ Overview</button><button data-s="growth">↗ Growth Analytics</button><button data-s="creative">✦ Creative Explorer</button><button data-s="telegramSources">✈ Telegram Sources</button><button data-s="otherSources">◎ Instagram & Web</button><button data-s="discordSources">◈ Discord Sources</button><button data-s="timing">◷ Posting Intelligence</button><button data-s="quality">✓ Data Quality & AI</button><button data-s="verification">✓ Verification</button><button data-s="contentIdeas">✦ Content Ideas</button></div><button id="logout" class="ghost" style="width:100%;margin-top:24px">Log out</button></aside><main class="main"><div class="topbar"><div><h1 id="title" style="margin:0">Executive Overview</h1><div class="muted">Observed public competitor intelligence</div></div><div class="toolbar"><select id="accountFilter"><option value="all">All monitored accounts</option></select><select id="entityCategoryFilter"><option value="all">All categories</option><option value="influencer">Influencers</option><option value="company">Companies</option></select><button id="addSourceBtn" class="primary">+ Add Data Source</button><button id="refresh" class="ghost">Refresh data</button></div></div>
+
 
 
 
@@ -370,6 +403,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="creative" class="section"><div class="grid4"><div class="card"><div class="k">Posts Ingested</div><div id="posts" class="v">—</div></div><div class="card"><div class="k">Observed Views</div><div id="views" class="v">—</div></div><div class="card"><div class="k">Competitors With Posts</div><div id="postAccounts" class="v">—</div></div><div class="card"><div class="k">Top Creative</div><div id="topCreative" class="v" style="font-size:18px">—</div><div id="topCreativeSub" class="subv">—</div></div></div><div class="card"><h3>Cross-Competitor Creative Leaderboard</h3><div class="tableWrap"><table><thead><tr><th>Rank</th><th>Competitor</th><th>Post</th><th>Hook</th><th>Theme</th><th>Format</th><th>Views</th><th>View Rate</th><th>Score</th><th>Published</th></tr></thead><tbody id="creativeBody"></tbody></table></div></div></section>
 
 
@@ -396,6 +430,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="timing" class="section">
   <div class="sectionHead"><div><h2>Posting Intelligence</h2><div class="muted small">When competitors post, how much content appears in each hour, and which windows generate the strongest observed performance.</div></div><span class="pill">7-DAY INTELLIGENCE</span></div>
   <div class="grid4">
@@ -415,6 +450,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
@@ -449,6 +485,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
+
 
 
 
@@ -480,7 +517,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
   </div>
   <div class="grid2">
     <div class="card"><div class="sectionHead"><div><h3 style="margin:0">ChatGPT Content Generation</h3><div class="muted small">Server-side OpenAI copy generation for Content Ideas.</div></div><span class="pill">READY</span></div><div class="subv">Creates original Telegram and Instagram copy from your brief.</div></div>
-    <div class="card"><div class="sectionHead"><div><h3 style="margin:0">Media Generation</h3><div class="muted small">OpenAI image generation and Higgsfield image/video generation.</div></div><span class="pill">READY</span></div><div class="subv">Image engine can be selected in Content Ideas. Video generation uses Higgsfield.</div></div>
+    <div class="card"><div class="sectionHead"><div><h3 style="margin:0">Media Generation</h3><div class="muted small">OpenAI image generation and ChatGPT image/video generation.</div></div><span class="pill">READY</span></div><div class="subv">Image engine can be selected in Content Ideas. Video generation uses Higgsfield.</div></div>
   </div>
 </section>
 <section id="contentIdeas" class="section">
@@ -491,14 +528,20 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
       <div class="grid2"><div><div class="k">Content Type</div><select id="ideaType"><option value="idea">Idea</option><option value="topic">Topic</option><option value="keywords">Keywords</option><option value="event">Event</option><option value="link">Site Link</option></select></div><div><div class="k">Primary Platform</div><select id="ideaPlatform"><option value="telegram">Telegram</option><option value="instagram">Instagram</option></select></div><div><div class="k">Content For</div><select id="ideaTargetCategory"><option value="company">Company Channel</option><option value="influencer">Influencer Channel</option></select></div></div>
       <div class="k" style="margin-top:12px">Idea / Topic / Keywords / Event / Link</div><textarea id="ideaInput" style="min-height:110px" placeholder="Example: IPL weekend match, fastest withdrawal experience, 24×7 support, first-deposit offer, or paste a website link"></textarea>
       <div class="grid2"><div><div class="k">Tone</div><select id="ideaTone"><option>Premium & confident</option><option>Gen Z & energetic</option><option>Trust-led</option><option>Short & urgent</option><option>Informative</option></select></div><div><div class="k">Creative Format</div><select id="ideaFormat"><option value="text">Text Only</option><option value="image">Image Post</option><option value="reel">Reel</option><option value="video">Short Video</option></select></div></div>
-      <div style="margin-top:12px"><div class="k">Image Engine</div><select id="imageEngine"><option value="openai">ChatGPT / OpenAI Image</option><option value="higgsfield">Higgsfield Image</option></select><div id="imageEngineHelp" class="subv">Used for Image Post generation and as the source image for Video / Reel generation.</div></div>
-      <div id="ideaEngineWrap" style="margin-top:12px"><div class="k">Creative Engine</div><select id="ideaEngine"><option value="higgsfield">Higgsfield</option><option value="openai">OpenAI Image</option></select></div>
+      <div style="margin-top:12px"><div class="k">Image Provider</div><select id="imageEngine"><option value="openai">ChatGPT / ChatGPT Image</option><option value="higgsfield">ChatGPT Image</option></select><div id="imageEngineHelp" class="subv">Used for Image Post generation and as the source image for Video / Reel generation.</div></div>
+      <div id="ideaEngineWrap" class="mediaRoutingBox" style="margin-top:12px">
+      <div class="k">Creative Routing</div>
+      <div class="mediaRoutingRow"><span>🖼️ Images</span><b>ChatGPT Image</b><span class="pill">FIXED</span></div>
+      <div class="mediaRoutingRow"><span>🎬 Reels & Videos</span><b>Higgsfield</b><span class="pill blue">FIXED</span></div>
+      <div class="muted small" style="margin-top:7px">Image generation always uses the ChatGPT image API. Video generation always uses Higgsfield.</div>
+    </div>
       <button id="generateIdeaContent" class="primary" style="width:100%;margin-top:12px">Generate with ChatGPT</button><div id="ideaStatus" class="subv" style="margin-top:8px">The selected creative format will be generated automatically after the copy.</div>
     </div>
     <div class="card"><h3>2. AI Draft</h3><textarea id="ideaDraft" style="min-height:240px" placeholder="Generated content will appear here. You can edit it before publishing."></textarea><div class="modalActions" style="justify-content:flex-start"><button id="copyIdeaDraft" class="ghost">Copy Draft</button><button id="regenerateIdeaContent" class="ghost">Regenerate All</button></div><div style="margin-top:16px;border-top:1px solid var(--line);padding-top:14px"><div class="sectionHead"><div><h3 style="margin:0">Generated Creative</h3><div id="higgsfieldGenerationStatus" class="subv">Waiting for generation.</div></div><span id="creativeFormatBadge" class="pill blue">IMAGE</span></div><div id="higgsfieldPreview" style="margin-top:10px"></div></div></div>
   </div>
   <div class="card" style="margin-top:14px"><div class="sectionHead"><div><h3 style="margin:0">3. Ready to Post</h3><div class="muted small">Final copy and generated media shown together for approval.</div></div><span class="pill">READY WORKSPACE</span></div><div class="grid2"><div><div class="k">Post Content</div><div id="readyPostCopy" style="white-space:pre-wrap;min-height:180px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#0b100d" class="small muted">Generate content to preview the final post.</div></div><div><div class="k">Creative</div><div id="readyPostMedia" style="min-height:180px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#0b100d;display:grid;place-items:center" class="small muted">Generated image or video will appear here.</div></div></div><input id="ideaMediaUrl" type="hidden"><input id="ideaSourceImageUrl" type="hidden"><textarea id="higgsfieldPrompt" class="hide"></textarea><div class="modalActions" style="justify-content:flex-start;margin-top:14px"><button id="publishIdeaTelegram" class="primary">Post to Telegram</button><button id="publishIdeaInstagram" class="ghost" disabled>Post to Instagram · Connect Meta First</button><button id="regenerateCreativeOnly" class="ghost">Regenerate Creative</button></div><div id="ideaPublishStatus" class="subv" style="margin-top:8px">Nothing is posted until you approve it.</div></div>
 </section>
+
 
 
 
@@ -524,6 +567,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
   <div class="sectionHead" style="margin-top:24px"><div><h3>Failed</h3><div class="muted small">Items that could not be published.</div></div></div>
   <div id="approvalFailedCards" class="approvalGrid"><div class="muted">Loading failed content…</div></div>
 </section>
+
 
 
 
@@ -1321,16 +1365,16 @@ function recommendationRows(){const posts=filterByHandle(allCreative).filter(r=>
 function renderRecommendations(){const rows=recommendationRows();if(!rows.length){$('recommendations').innerHTML='<div class="muted">Not enough data for this selection yet.</div>';return}$('recommendations').innerHTML=rows.map((r,i)=>`<div class="recCard"><div class="recTop"><div><div class="k">Recommended Slot</div><h4>${esc(r.time)}</h4></div><div class="confidence ${r.confidence}">${r.confidence} confidence</div></div><div class="recMeta"><span class="pill blue">${esc(r.theme)}</span><span class="pill orange">${esc(r.media)}</span><span class="pill">Score ${r.score.toFixed(1)}</span></div><div class="recLine"><b>What to post:</b> ${esc(r.theme)} content in ${esc(r.media)} format.</div><div class="recLine"><b>Hook direction:</b> ${esc(String(r.hook).slice(0,110))}</div><div class="recLine"><b>AI behavior:</b> Create original content with a similar successful structure, not copied wording.</div><div class="recLine small muted">Evidence: ${r.sample} posts · ${r.competitors} competitor(s) · ${fmt.format(Math.round(r.avg))} avg views · ${fmt.format(Math.round(r.top))} top views.</div><div class="recActions"><button class="mini" onclick="generatePost(${i},'Instagram',this)">Generate Instagram Post</button><button class="mini" onclick="generatePost(${i},'Telegram',this)">Generate Telegram Post</button></div></div>`).join('');window.currentRecommendations=rows}
 async function generatePost(i,channel,button){const r=(window.currentRecommendations||[])[i];if(!r)return;window.lastGenerationRequest={i,channel};const selected=$('accountFilter').selectedOptions[0]?.text||'All monitored accounts';$('postModalTitle').textContent=`${channel} AI Draft · ${selected}`;$('postModalSub').textContent='Generating fresh copy from observed winning patterns…';$('generatedPost').value='Generating with AI…';$('postModal').classList.remove('hide');const old=button?.textContent;if(button){button.disabled=true;button.textContent='Generating…'}const evidence=(r.evidence||[]).map(p=>({account_name:p.account_name,handle:p.handle,post_text:p.post_text,hook:p.hook,views:p.views,creative_score:p.creative_score}));const recommendation={best_time_ist:r.time,theme:r.theme,media_type:r.media,hook_direction:r.hook,cta_direction:'Use a clear action-led CTA that accurately matches the destination.',avg_views:Math.round(r.avg),avg_creative_score:Number(r.score.toFixed(1)),confidence:r.confidence};try{const{data,error}=await sb.functions.invoke('generate-social-post',{body:{platform:channel.toLowerCase(),recommendation,evidence}});if(error)throw error;if(data?.error)throw new Error(data.error);$('generatedPost').value=data?.text||'No content returned.';$('postModalSub').textContent=`Fresh ${channel} copy generated by AI from ${evidence.length} matching observed posts. Click Regenerate for another variation.`}catch(e){$('generatedPost').value=`AI generation is not available yet. ${e?.message||'Please check the server-side OpenAI configuration.'}`;$('postModalSub').textContent='The protected AI service needs a valid server-side OpenAI API key.'}finally{if(button){button.disabled=false;button.textContent=old}}}
 async function generateSuccessPost(i,channel,button){const r=(window.successRows||[])[i];if(!r)return;const old=button?.textContent;if(button){button.disabled=true;button.textContent='Generating…'}$('postModalTitle').textContent=`${channel} AI Draft · ${r.account_name||'Recommendation'}`;$('postModalSub').textContent='Generating fresh copy from this observed success pattern…';$('generatedPost').value='Generating with AI…';$('postModal').classList.remove('hide');const recommendation={best_time_ist:r.posted_at?timeFmt(r.posted_at):'Use the strongest observed timing window',theme:r.theme||'General',media_type:r.media_type||'image',hook_direction:r.hook||r.post_text||'Direct attention-grabbing opening',cta_direction:'Use a clear, accurate action-led CTA.',avg_views:r.views||null,avg_creative_score:r.success_likelihood_score||null,confidence:r.confidence||'Medium'};const evidence=[{account_name:r.account_name,handle:r.handle,post_text:r.post_text,hook:r.hook,views:r.views,creative_score:r.success_likelihood_score}];try{const{data,error}=await sb.functions.invoke('generate-social-post',{body:{platform:channel.toLowerCase(),recommendation,evidence}});if(error)throw error;if(data?.error)throw new Error(data.error);$('generatedPost').value=data?.text||'No content returned.';$('postModalSub').textContent=`Fresh ${channel} copy generated from this success pattern.`}catch(e){$('generatedPost').value=`AI generation is not available yet. ${e?.message||'Please check the server-side AI configuration.'}`}finally{if(button){button.disabled=false;button.textContent=old}}}
-function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='Higgsfield Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
+function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='ChatGPT Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
 async function generateSuccessPost(i,channel,button){const r=(window.successRows||[])[i];if(!r)return;const old=button?.textContent;if(button){button.disabled=true;button.textContent='Generating…'}$('postModalTitle').textContent=`${channel} AI Draft · ${r.account_name||'Recommendation'}`;$('postModalSub').textContent='Generating fresh copy from this observed success pattern…';$('generatedPost').value='Generating with AI…';$('postModal').classList.remove('hide');const recommendation={best_time_ist:r.posted_at?timeFmt(r.posted_at):'Use the strongest observed timing window',theme:r.theme||'General',media_type:r.media_type||'image',hook_direction:r.hook||r.post_text||'Direct attention-grabbing opening',cta_direction:'Use a clear, accurate action-led CTA.',avg_views:r.views||null,avg_creative_score:r.success_likelihood_score||null,confidence:r.confidence||'Medium'};const evidence=[{account_name:r.account_name,handle:r.handle,post_text:r.post_text,hook:r.hook,views:r.views,creative_score:r.success_likelihood_score}];try{const{data,error}=await sb.functions.invoke('generate-social-post',{body:{platform:channel.toLowerCase(),recommendation,evidence}});if(error)throw error;if(data?.error)throw new Error(data.error);$('generatedPost').value=data?.text||'No content returned.';$('postModalSub').textContent=`Fresh ${channel} copy generated from this success pattern.`}catch(e){$('generatedPost').value=`AI generation is not available yet. ${e?.message||'Please check the server-side AI configuration.'}`}finally{if(button){button.disabled=false;button.textContent=old}}}
-function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='Higgsfield Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
+function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='ChatGPT Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
 async function generateSuccessPost(i,channel,button){const r=(window.successRows||[])[i];if(!r)return;const old=button?.textContent;if(button){button.disabled=true;button.textContent='Generating…'}$('postModalTitle').textContent=`${channel} AI Draft · ${r.account_name||'Recommendation'}`;$('postModalSub').textContent='Generating fresh copy from this observed success pattern…';$('generatedPost').value='Generating with AI…';$('postModal').classList.remove('hide');const recommendation={best_time_ist:r.posted_at?timeFmt(r.posted_at):'Use the strongest observed timing window',theme:r.theme||'General',media_type:r.media_type||'image',hook_direction:r.hook||r.post_text||'Direct attention-grabbing opening',cta_direction:'Use a clear, accurate action-led CTA.',avg_views:r.views||null,avg_creative_score:r.success_likelihood_score||null,confidence:r.confidence||'Medium'};const evidence=[{account_name:r.account_name,handle:r.handle,post_text:r.post_text,hook:r.hook,views:r.views,creative_score:r.success_likelihood_score}];try{const{data,error}=await sb.functions.invoke('generate-social-post',{body:{platform:channel.toLowerCase(),recommendation,evidence}});if(error)throw error;if(data?.error)throw new Error(data.error);$('generatedPost').value=data?.text||'No content returned.';$('postModalSub').textContent=`Fresh ${channel} copy generated from this success pattern.`}catch(e){$('generatedPost').value=`AI generation is not available yet. ${e?.message||'Please check the server-side AI configuration.'}`}finally{if(button){button.disabled=false;button.textContent=old}}}
-function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='Higgsfield Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
+function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='ChatGPT Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
 async function generateSuccessPost(i,channel,button){const r=(window.successRows||[])[i];if(!r)return;const old=button?.textContent;if(button){button.disabled=true;button.textContent='Generating…'}$('postModalTitle').textContent=`${channel} AI Draft · ${r.account_name||'Recommendation'}`;$('postModalSub').textContent='Generating fresh copy from this observed success pattern…';$('generatedPost').value='Generating with AI…';$('postModal').classList.remove('hide');const recommendation={best_time_ist:r.posted_at?timeFmt(r.posted_at):'Use the strongest observed timing window',theme:r.theme||'General',media_type:r.media_type||'image',hook_direction:r.hook||r.post_text||'Direct attention-grabbing opening',cta_direction:'Use a clear, accurate action-led CTA.',avg_views:r.views||null,avg_creative_score:r.success_likelihood_score||null,confidence:r.confidence||'Medium'};const evidence=[{account_name:r.account_name,handle:r.handle,post_text:r.post_text,hook:r.hook,views:r.views,creative_score:r.success_likelihood_score}];try{const{data,error}=await sb.functions.invoke('generate-social-post',{body:{platform:channel.toLowerCase(),recommendation,evidence}});if(error)throw error;if(data?.error)throw new Error(data.error);$('generatedPost').value=data?.text||'No content returned.';$('postModalSub').textContent=`Fresh ${channel} copy generated from this success pattern.`}catch(e){$('generatedPost').value=`AI generation is not available yet. ${e?.message||'Please check the server-side AI configuration.'}`}finally{if(button){button.disabled=false;button.textContent=old}}}
-function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='Higgsfield Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
+function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='ChatGPT Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
 async function generateSuccessPost(i,channel,button){const r=(window.successRows||[])[i];if(!r)return;const old=button?.textContent;if(button){button.disabled=true;button.textContent='Generating…'}$('postModalTitle').textContent=`${channel} AI Draft · ${r.account_name||'Recommendation'}`;$('postModalSub').textContent='Generating fresh copy from this observed success pattern…';$('generatedPost').value='Generating with AI…';$('postModal').classList.remove('hide');const recommendation={best_time_ist:r.posted_at?timeFmt(r.posted_at):'Use the strongest observed timing window',theme:r.theme||'General',media_type:r.media_type||'image',hook_direction:r.hook||r.post_text||'Direct attention-grabbing opening',cta_direction:'Use a clear, accurate action-led CTA.',avg_views:r.views||null,avg_creative_score:r.success_likelihood_score||null,confidence:r.confidence||'Medium'};const evidence=[{account_name:r.account_name,handle:r.handle,post_text:r.post_text,hook:r.hook,views:r.views,creative_score:r.success_likelihood_score}];try{const{data,error}=await sb.functions.invoke('generate-social-post',{body:{platform:channel.toLowerCase(),recommendation,evidence}});if(error)throw error;if(data?.error)throw new Error(data.error);$('generatedPost').value=data?.text||'No content returned.';$('postModalSub').textContent=`Fresh ${channel} copy generated from this success pattern.`}catch(e){$('generatedPost').value=`AI generation is not available yet. ${e?.message||'Please check the server-side AI configuration.'}`}finally{if(button){button.disabled=false;button.textContent=old}}}
-function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='Higgsfield Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
-function renderSuccess(){if(!$('successIntelligence'))return;let rows=filterByHandle(allSuccess).sort((a,b)=>Number(b.success_likelihood_score||0)-Number(a.success_likelihood_score||0));rows=rows.slice(0,Math.max(15,successVisible));window.successRows=rows;if(!rows.length){$('successIntelligence').innerHTML='<div class="muted">No last-7-day intelligence is available yet for this selection.</div>';return}$('successIntelligence').innerHTML=rows.map((r,i)=>`<div class="successCard"><div class="successHead"><div><span class="successBadge">${Number(r.success_likelihood_score)>=75?'LIKELY TO BE SUCCESSFUL':'PROMISING PATTERN'}</span><h3 style="margin:10px 0 2px">${esc(r.theme||'Unclassified')}</h3><div class="muted small">${esc(r.account_name)} · ${esc(r.media_type||'text')} · ${dateFmt(r.posted_at)}</div></div><div class="successScore">${Number(r.success_likelihood_score||0).toFixed(0)}</div></div><div class="recLine"><b>Content signal:</b> ${esc((r.hook||r.post_text||'Media-led content').slice(0,140))}</div><div class="recLine"><b>Why:</b> ${esc(r.rationale||'Strong observed recent evidence.')}</div><div class="recLine"><b>Evidence source:</b> ${esc(r.account_name||r.handle||'Observed public source')} · ${esc(r.platform||'Telegram/Web')}</div><div class="recLine"><b>Recommended channel:</b> ${esc(recommendedChannel(r))}</div><div class="recMeta"><span class="pill">${esc(r.confidence||'Directional')} confidence</span><span class="pill blue">${fmt.format(r.views||0)} views</span><span class="pill orange">${r.observed_view_rate_pct==null?'View rate n/a':Number(r.observed_view_rate_pct).toFixed(2)+'% view rate'}</span></div><div class="small muted">Pattern evidence: ${r.pattern_sample_size||0} posts · ${r.pattern_competitors||0} competitor(s). Directional intelligence, not a guarantee.</div><div class="recActions"><button class="mini" onclick="generateSuccessPost(${i},'Telegram',this)">Generate Telegram</button><button class="mini" onclick="generateSuccessPost(${i},'Instagram',this)">Generate Instagram</button><button class="mini" onclick="generateHiggsfieldImage(${i})">Generate Image · Higgsfield</button><a class="mini" target="_blank" rel="noopener" href="${esc(r.post_url)}">Source</a></div></div>`).join('')}
+function generateHiggsfieldImage(i){const r=(window.successRows||[])[i];if(!r)return;const platform='Instagram/Telegram';const prompt=`Create a premium social-media image for ${platform}. Theme: ${r.theme||'high-performing social content'}. Core idea: ${(r.hook||r.post_text||'strong visual-first post').slice(0,220)}. Format: ${r.media_type||'image'}. Make it polished, high-contrast, mobile-first and brand-safe. Do not invent performance claims or financial guarantees. Leave clean space for a short headline and CTA.`;navigator.clipboard?.writeText(prompt);$('postModalTitle').textContent='ChatGPT Image Brief';$('postModalSub').textContent='Prompt copied. Higgsfield opens in a new tab; paste the brief to generate the image.';$('generatedPost').value=prompt;$('postModal').classList.remove('hide');window.open('https://higgsfield.ai/ai-image','_blank','noopener')}
+function renderSuccess(){if(!$('successIntelligence'))return;let rows=filterByHandle(allSuccess).sort((a,b)=>Number(b.success_likelihood_score||0)-Number(a.success_likelihood_score||0));rows=rows.slice(0,Math.max(15,successVisible));window.successRows=rows;if(!rows.length){$('successIntelligence').innerHTML='<div class="muted">No last-7-day intelligence is available yet for this selection.</div>';return}$('successIntelligence').innerHTML=rows.map((r,i)=>`<div class="successCard"><div class="successHead"><div><span class="successBadge">${Number(r.success_likelihood_score)>=75?'LIKELY TO BE SUCCESSFUL':'PROMISING PATTERN'}</span><h3 style="margin:10px 0 2px">${esc(r.theme||'Unclassified')}</h3><div class="muted small">${esc(r.account_name)} · ${esc(r.media_type||'text')} · ${dateFmt(r.posted_at)}</div></div><div class="successScore">${Number(r.success_likelihood_score||0).toFixed(0)}</div></div><div class="recLine"><b>Content signal:</b> ${esc((r.hook||r.post_text||'Media-led content').slice(0,140))}</div><div class="recLine"><b>Why:</b> ${esc(r.rationale||'Strong observed recent evidence.')}</div><div class="recLine"><b>Evidence source:</b> ${esc(r.account_name||r.handle||'Observed public source')} · ${esc(r.platform||'Telegram/Web')}</div><div class="recLine"><b>Recommended channel:</b> ${esc(recommendedChannel(r))}</div><div class="recMeta"><span class="pill">${esc(r.confidence||'Directional')} confidence</span><span class="pill blue">${fmt.format(r.views||0)} views</span><span class="pill orange">${r.observed_view_rate_pct==null?'View rate n/a':Number(r.observed_view_rate_pct).toFixed(2)+'% view rate'}</span></div><div class="small muted">Pattern evidence: ${r.pattern_sample_size||0} posts · ${r.pattern_competitors||0} competitor(s). Directional intelligence, not a guarantee.</div><div class="recActions"><button class="mini" onclick="generateSuccessPost(${i},'Telegram',this)">Generate Telegram</button><button class="mini" onclick="generateSuccessPost(${i},'Instagram',this)">Generate Instagram</button><button class="mini" onclick="generateHiggsfieldImage(${i})">Generate Image · ChatGPT</button><a class="mini" target="_blank" rel="noopener" href="${esc(r.post_url)}">Source</a></div></div>`).join('')}
 
 function sourcePlatform(x){return String(x?.platform||'').toLowerCase()}
 function postPlatform(r){return String(r?.platform||r?.source_platform||'').toLowerCase()}
@@ -1595,7 +1639,7 @@ async function generateSelectedCreative(){
   if(format==='image'){
     const engine=selectedImageEngine();
     if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Generating image with ${engine==='openai'?'ChatGPT / OpenAI':'Higgsfield'}…`;
-    const fn=engine==='openai'?'generate-openai-image':'generate-higgsfield-image';
+    const fn=engine==='openai'?'generate-openai-image':'generate-openai-image';
     const body=engine==='openai'?{prompt,aspect_ratio:'1:1',quality:'medium'}:{prompt,aspect_ratio:'1:1'};
     const{data,error}=await sb.functions.invoke(fn,{body});
     if(error||!data?.ok)throw new Error(engine==='openai'?(data?.error||error?.message||'OpenAI image generation failed'):hfError(error,data));
@@ -1606,7 +1650,7 @@ async function generateSelectedCreative(){
   if(format==='video'){
     const engine=selectedImageEngine();
     if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Creating source image with ${engine==='openai'?'ChatGPT / OpenAI':'Higgsfield'}…`;
-    const imageFn=engine==='openai'?'generate-openai-image':'generate-higgsfield-image';
+    const imageFn=engine==='openai'?'generate-openai-image':'generate-openai-image';
     const imageBody=engine==='openai'?{prompt,aspect_ratio:'9:16',quality:'medium'}:{prompt,aspect_ratio:'9:16'};
     const img=await sb.functions.invoke(imageFn,{body:imageBody});
     if(img.error||!img.data?.ok)throw new Error(engine==='openai'?(img.data?.error||img.error?.message||'OpenAI source image generation failed'):hfError(img.error,img.data));
@@ -1849,13 +1893,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
 <script>
 /* WINTURBO_CONTENT_GENERATOR_V27_START */
 (function(){
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const fmt=()=> $('ideaFormat')?.value||'text';
-  const engine=()=> $('ideaEngine')?.value||'higgsfield';
+  const engine=()=> 'openai';
   const isVisual=()=>fmt()!=='text';
   function syncUi(){
     const f=fmt(),visual=isVisual();
@@ -1883,20 +1928,20 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const prompt=mediaPrompt();if($('higgsfieldPrompt'))$('higgsfieldPrompt').value=prompt;
     const chosen=engine();
     if(f==='image'){
-      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Generating image with ${chosen==='openai'?'OpenAI Image':'Higgsfield'}…`;
-      const fn=chosen==='openai'?'generate-openai-image':'generate-higgsfield-image';
+      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Generating image with ${chosen==='openai'?'ChatGPT Image':'Higgsfield'}…`;
+      const fn=chosen==='openai'?'generate-openai-image':'generate-openai-image';
       const {data,error}=await sb.functions.invoke(fn,{body:{prompt,aspect_ratio:'1:1'}});
       if(error||!data?.ok)throw new Error(data?.error||error?.message||'Image generation failed');
       const u=data.image_url||data.images?.[0]?.url||data.url;if(!u)throw new Error('Image engine returned no image URL');
       if($('ideaMediaUrl'))$('ideaMediaUrl').value=u;if($('ideaSourceImageUrl'))$('ideaSourceImageUrl').value=u;
       if($('higgsfieldPreview'))$('higgsfieldPreview').innerHTML=`<img alt="Generated creative" style="width:100%;max-height:420px;object-fit:contain;border-radius:12px;border:1px solid var(--line)" src="${esc(u)}">`;
       if($('readyPostMedia'))$('readyPostMedia').innerHTML=`<img alt="Ready creative" style="width:100%;max-height:420px;object-fit:contain;border-radius:12px" src="${esc(u)}">`;
-      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Image generated with ${chosen==='openai'?'OpenAI Image':'Higgsfield'} ✓`;
+      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Image generated with ${chosen==='openai'?'ChatGPT Image':'Higgsfield'} ✓`;
       return u;
     }
     // Reel / Short Video: use chosen image engine for source frame, Higgsfield for motion.
-    const imageFn=chosen==='openai'?'generate-openai-image':'generate-higgsfield-image';
-    if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Creating source frame with ${chosen==='openai'?'OpenAI Image':'Higgsfield'}…`;
+    const imageFn=chosen==='openai'?'generate-openai-image':'generate-openai-image';
+    if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Creating source frame with ${chosen==='openai'?'ChatGPT Image':'Higgsfield'}…`;
     const img=await sb.functions.invoke(imageFn,{body:{prompt,aspect_ratio:'9:16'}});
     if(img.error||!img.data?.ok)throw new Error(img.data?.error||img.error?.message||'Source image generation failed');
     const source=img.data.image_url||img.data.images?.[0]?.url||img.data.url;if(!source)throw new Error('Image engine returned no source image');
@@ -1944,7 +1989,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function bind(){
     syncUi();
     if($('ideaFormat'))$('ideaFormat').onchange=syncUi;
-    if($('ideaEngine'))$('ideaEngine').onchange=syncUi;
+    
     if($('generateIdeaContent'))$('generateIdeaContent').onclick=generateV27;
     if($('regenerateIdeaContent'))$('regenerateIdeaContent').onclick=generateV27;
     if($('regenerateCreativeOnly'))$('regenerateCreativeOnly').onclick=regenerateVisualV27;
@@ -1953,6 +1998,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 /* WINTURBO_CONTENT_GENERATOR_V27_END */
 </script>
+
 
 
 
@@ -2143,6 +2189,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
 <script>
 /* WINTURBO_ADD_SOURCE_FIX_V30_START */
 (function(){
@@ -2218,6 +2265,64 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 /* WINTURBO_ADD_SOURCE_FIX_V30_END */
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+/* WINTURBO_EXECUTIVE_V26_START */
+(function(){
+ const $=id=>document.getElementById(id); const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+ const fmt=v=>new Intl.NumberFormat('en-IN').format(Number(v)||0); const dt=v=>v?new Date(v).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}):'—';
+ const set=(id,v)=>{if($(id))$(id).textContent=v}; const sel=()=> $('accountFilter')?.value||'all'; const match=r=>sel()==='all'||r.handle===sel();
+ const safeUrl=v=>{if(!v)return null;let x=String(v).trim();if(!/^https?:\/\//i.test(x))x='https://'+x.replace(/^\/+/, '');return x};
+ async function renderExecutive(){
+   if(typeof sb==='undefined'||!$('overview'))return;
+   const [g,c,sources,success]=await Promise.all([
+     sb.from('competitor_growth_analytics_v3').select('*').order('audience_rank'),
+     sb.from('creative_leaderboard').select('*').order('posted_at',{ascending:false}).limit(1000),
+     sb.from('monitored_sources').select('*').eq('is_active',true).order('created_at',{ascending:false}),
+     sb.from('content_success_intelligence').select('*').order('success_likelihood_score',{ascending:false}).limit(200)
+   ]);
+   const gr=(g.data||[]).filter(match), cr=(c.data||[]).filter(match), src=(sources.data||[]).filter(match), suc=(success.data||[]).filter(match);
+   const cut7=Date.now()-7*864e5,cut24=Date.now()-864e5; const recent=cr.filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut7); const recent24=cr.filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut24);
+   set('accounts',gr.length); set('members',fmt(gr.reduce((a,r)=>a+Number(r.followers_current||0),0))); set('overviewPosts',cr.length);
+   const scored=cr.filter(r=>r.creative_score!=null).sort((a,b)=>Number(b.creative_score)-Number(a.creative_score)); const top=scored[0]; set('overviewTopScore',top?Number(top.creative_score).toFixed(0):'—'); set('overviewTopName',top?.account_name||'No scored posts');
+   const countPlatform=p=>src.filter(x=>String(x.platform||'').toLowerCase()===p).length; const tg=countPlatform('telegram'),ig=countPlatform('instagram'),webc=src.length-tg-ig;
+   set('overviewTelegramLinks',tg);set('overviewInstagramLinks',ig);set('overviewWebLinks',webc);set('overviewTotalLinks',src.length);set('overviewLinkBreakdown',`Telegram ${tg} · Instagram ${ig} · Web ${webc}`);
+   set('posts24h',recent24.length);set('posts24hSub',recent24.length?`${new Set(recent24.map(x=>x.handle).filter(Boolean)).size} channel(s) contributed`:'No posts observed in last 24 hours');
+   const last=src.map(x=>x.last_scraped_at).filter(Boolean).sort().pop();set('lastDataUpdate',last?dt(last):'Waiting for scrape');
+   const topics={};recent.forEach(r=>{const k=r.theme||'Unclassified',x=topics[k]||(topics[k]={topic:k,posts:0,views:0,top:0,scores:[]});x.posts++;x.views+=Number(r.views||0);x.top=Math.max(x.top,Number(r.views||0));if(r.creative_score!=null)x.scores.push(Number(r.creative_score))});
+   const tr=Object.values(topics).map(x=>({...x,avg:x.posts?x.views/x.posts:0,score:x.scores.length?x.scores.reduce((a,b)=>a+b,0)/x.scores.length:null})).sort((a,b)=>b.posts-a.posts||b.views-a.views); const tt=tr[0];set('topTopic',tt?.topic||'No topic data');set('topTopicSub',tt?`${fmt(tt.posts)} posts · ${fmt(tt.views)} views`:'—');
+   const trending=[...recent].sort((a,b)=>Number(b.views||0)-Number(a.views||0));set('topTrendingViews',trending[0]?fmt(trending[0].views):'—');set('topTrendingName',trending[0]?.account_name||'No recent post');
+   const ar=$('audienceRankingList');if(ar)ar.innerHTML=gr.length?gr.slice(0,12).map(r=>`<div class="audienceRow"><div class="audienceRank">#${esc(r.audience_rank??'—')}</div><div class="audienceMeta"><b>${esc(r.account_name||r.handle)}</b><div class="muted small">@${esc(r.handle||'')} · ${fmt(r.posts_7d||0)} posts / 7d${r.avg_views_7d!=null?' · '+fmt(Math.round(r.avg_views_7d))+' avg views':''}</div></div><div class="audienceValue">${fmt(r.followers_current)}</div></div>`).join(''):'<div class="muted">No audience ranking data.</div>';
+   const os=$('overviewSources');if(os){const groups={Telegram:src.filter(x=>String(x.platform).toLowerCase()==='telegram'),Instagram:src.filter(x=>String(x.platform).toLowerCase()==='instagram'),Web:src.filter(x=>!['telegram','instagram'].includes(String(x.platform).toLowerCase()))};os.innerHTML=Object.entries(groups).map(([name,rows])=>`<div class="overviewSourceGroup"><h4>${name} · ${rows.length}</h4>${rows.length?rows.map(x=>{const u=safeUrl(x.source_url);return `<div class="overviewSourceRow"><div><b>${esc(x.source_name||x.handle||x.source_url)}</b><div class="muted small">${esc(x.handle||'')} · ${esc(x.scrape_status||'queued')} · ${x.last_scraped_at?dt(x.last_scraped_at):'not fetched'}</div></div>${u?`<a target="_blank" rel="noopener noreferrer" href="${esc(u)}">Open ↗</a>`:''}</div>`}).join(''):'<div class="muted small">No active links</div>'}</div>`).join('')}
+   const by={};recent.forEach(r=>{const k=r.handle||r.account_name||r.post_url||String(r.id);if(!by[k]||Number(r.views||0)>Number(by[k].views||0))by[k]=r});const per=Object.values(by).sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,12);const ot=$('overviewTrending');if(ot)ot.innerHTML=per.length?per.map((r,i)=>`<div class="trendItem"><div class="trendTop"><div><b>#${i+1} ${esc(r.account_name||r.handle||'Source')}</b><div class="muted small">@${esc(r.handle||'')} · ${dt(r.posted_at)}</div></div><span class="pill blue">${fmt(r.views)} views</span></div><div class="trendText">${esc((r.hook||r.post_text||'Media post').slice(0,160))}</div>${r.post_url?`<div style="margin-top:6px"><a target="_blank" rel="noopener noreferrer" href="${esc(safeUrl(r.post_url))}">Open post ↗</a></div>`:''}</div>`).join(''):'<div class="muted">No recent posts available.</div>';
+   const tb=$('topicBody');if(tb)tb.innerHTML=tr.length?tr.slice(0,15).map((r,i)=>`<tr><td>#${i+1}</td><td><b>${esc(r.topic)}</b></td><td>${fmt(r.posts)}</td><td>${fmt(r.views)}</td><td>${fmt(Math.round(r.avg))}</td><td>${fmt(r.top)}</td><td>${r.score==null?'—':r.score.toFixed(1)}</td><td>${recent.length?((r.posts/recent.length)*100).toFixed(1):'0.0'}%</td></tr>`).join(''):'<tr><td colspan="8" class="muted">No topic analytics available.</td></tr>';
+   const ai=$('aiOverview');if(ai){const bestSuc=suc[0],bestTopic=[...tr].sort((a,b)=>b.avg-a.avg)[0],bestChannel=gr.filter(x=>x.avg_views_7d!=null).sort((a,b)=>Number(b.avg_views_7d)-Number(a.avg_views_7d))[0],bestTime=(await sb.from('posting_intelligence').select('*').order('performance_rank').limit(1)).data?.[0];const learns=[];if(bestSuc)learns.push(`<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">${esc(bestSuc.theme||'Content pattern')} · ${Number(bestSuc.success_likelihood_score||0).toFixed(0)}% likelihood · ${fmt(bestSuc.views||0)} observed views.</div></div>`);if(bestTopic)learns.push(`<div class="aiLearn"><b>Highest-view topic</b><div class="muted small">${esc(bestTopic.topic)} averages ${fmt(Math.round(bestTopic.avg))} views across ${fmt(bestTopic.posts)} posts.</div></div>`);if(bestChannel)learns.push(`<div class="aiLearn"><b>Strongest channel by average views</b><div class="muted small">${esc(bestChannel.account_name||bestChannel.handle)} · ${fmt(Math.round(bestChannel.avg_views_7d))} avg views in the 7-day window.</div></div>`);if(bestTime)learns.push(`<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">${esc(bestTime.post_hour_label||bestTime.post_hour_ist)} · ${bestTime.avg_views==null?'—':fmt(Math.round(bestTime.avg_views))} avg views.</div></div>`);ai.innerHTML=learns.join('')||'<div class="muted">Not enough current evidence for AI learnings.</div>'}
+ }
+ function boot(){renderExecutive();setTimeout(renderExecutive,900);document.getElementById('accountFilter')?.addEventListener('change',renderExecutive);document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(renderExecutive,150));}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();window.WinTurboExecutiveRefresh=renderExecutive;
+})();
+/* WINTURBO_EXECUTIVE_V26_END */
+</script>
+
+
+
+
+
 
 
 
@@ -2785,6 +2890,30 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 /* WINTURBO_QUALITY_ACTIONS_V31_END */
+</script>
+
+
+<script>
+/* WINTURBO_MEDIA_ROUTING_V32_START */
+(function(){
+  const $=id=>document.getElementById(id);
+  function enforce(){
+    // Remove any legacy image-engine selector that may be dynamically reinserted.
+    const sel=$('ideaEngine');if(sel){sel.value='openai';sel.disabled=true;sel.style.display='none';}
+    document.querySelectorAll('button').forEach(btn=>{
+      const t=(btn.textContent||'').trim();
+      if(/higgsfield\s+image/i.test(t))btn.textContent=t.replace(/higgsfield\s+image/ig,'ChatGPT Image');
+    });
+    const st=$('higgsfieldGenerationStatus');
+    if(st && /image/i.test(st.textContent||'') && /higgsfield/i.test(st.textContent||'')){
+      st.textContent=(st.textContent||'').replace(/Higgsfield/ig,'ChatGPT');
+    }
+  }
+  window.WinTurboMediaRouting={imageProvider:'ChatGPT Image API',videoProvider:'Higgsfield'};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforce,{once:true});else enforce();
+  setTimeout(enforce,300);setTimeout(enforce,1200);
+})();
+/* WINTURBO_MEDIA_ROUTING_V32_END */
 </script>
 
 </body>
