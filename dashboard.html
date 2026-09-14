@@ -39,6 +39,21 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 @media(max-width:800px){#quality .qualitySummary,#quality .qualityGrid{grid-template-columns:1fr}}
 
 
+/* Quality-only components are never visible outside the quality section. */
+main.main > section.section:not(#quality) .qualityHero,
+main.main > section.section:not(#quality) .qualitySummary,
+main.main > section.section:not(#quality) .qualityMetric,
+main.main > section.section:not(#quality) .qualityGrid,
+main.main > section.section:not(#quality) .qualityPanel,
+main.main > section.section:not(#quality) .qualityRecommendations,
+main.main > section.section:not(#quality) #aiRecommendations,
+main.main > section.section:not(#quality) #qualityRules,
+main.main > section.section:not(#quality) #qualitySources{display:none!important}
+@media(max-width:1150px){#quality .qualitySummary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){#quality .qualitySummary,#quality .qualityGrid{grid-template-columns:1fr}}
+
+
+
 /* WINTURBO_REDESIGN_V20_CSS */
 :root{--bg:#070a08;--panel:#101611;--panel2:#0c120e;--line:#233027;--text:#f5f7f5;--muted:#8fa097;--green:#42e36c;--orange:#ff9d2e;--red:#ff6666;--blue:#67b7ff;--shadow:0 16px 42px rgba(0,0,0,.22)}
 body{background:radial-gradient(circle at 72% -15%,rgba(66,227,108,.08),transparent 32%),var(--bg)}
@@ -114,6 +129,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 <div id="app" class="shell hide"><aside class="sidebar"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><div class="muted small">Creative Intelligence Dashboard</div><div class="nav"><button class="on" data-s="overview">◉ Overview</button><button data-s="growth">↗ Growth Analytics</button><button data-s="creative">✦ Creative Explorer</button><button data-s="telegramSources">✈ Telegram Sources</button><button data-s="otherSources">◎ Instagram & Web</button><button data-s="timing">◷ Posting Intelligence</button><button data-s="quality">✓ Data Quality & AI</button><button data-s="verification">✓ Verification</button><button data-s="contentIdeas">✦ Content Ideas</button></div><button id="logout" class="ghost" style="width:100%;margin-top:24px">Log out</button></aside><main class="main"><div class="topbar"><div><h1 id="title" style="margin:0">Executive Overview</h1><div class="muted">Observed public competitor intelligence</div></div><div class="toolbar"><select id="accountFilter"><option value="all">All monitored accounts</option></select><button id="addSourceBtn" class="primary">+ Add Data Source</button><button id="refresh" class="ghost">Refresh data</button></div></div>
 <section id="overview" class="section on"><div class="grid4"><div class="card"><div class="k">Monitored Accounts</div><div id="accounts" class="v">—</div></div><div class="card"><div class="k">Observed Members</div><div id="members" class="v">—</div></div><div class="card"><div class="k">Posts Analyzed</div><div id="overviewPosts" class="v">—</div></div><div class="card"><div class="k">Top Creative Score</div><div id="overviewTopScore" class="v">—</div><div id="overviewTopName" class="subv">—</div></div></div><div class="grid4"><div class="card"><div class="k">Active Links</div><div id="activeLinks" class="v">—</div><div id="activeLinksSub" class="subv">—</div></div><div class="card"><div class="k">Posts Analyzed · Last 24H</div><div id="posts24h" class="v">—</div><div id="posts24hSub" class="subv">Public posts in dataset</div></div><div class="card"><div class="k">Last Data Update</div><div id="lastDataUpdate" class="v" style="font-size:18px">—</div><div id="lastDataUpdateSub" class="subv">Latest successful source scrape</div></div><div class="card"><div class="k">Top Content Topic · 7D</div><div id="topTopic" class="v" style="font-size:18px">—</div><div id="topTopicSub" class="subv">—</div></div></div><div class="grid2"><div class="card"><div class="sectionHead"><h3>Audience Ranking</h3><span class="pill">LIVE</span></div><canvas id="audienceChart"></canvas></div><div class="card"><h3>What AI Learned</h3><div id="aiOverview"></div></div></div><div class="grid2"><div class="card"><div class="sectionHead"><div><h3>Active Monitored Links</h3><div class="muted small">Names and current monitoring status.</div></div><span id="activeLinksBadge" class="pill">—</span></div><div id="overviewSources" class="sourceList"><div class="muted">Loading active links…</div></div></div><div class="card"><div class="sectionHead"><div><h3>Trending Posts by Link</h3><div class="muted small">Top observed recent post from each monitored source, ranked by views.</div></div><span class="pill orange">7 DAYS</span></div><div id="overviewTrending"><div class="muted">Loading trending posts…</div></div></div></div><div class="card"><div class="sectionHead"><div><h3>Content Topic Analytics</h3><div class="muted small">Topic volume and observed view performance across the latest 7-day window.</div></div><span class="pill blue">CONTENT</span></div><div class="tableWrap"><table><thead><tr><th>Rank</th><th>Topic</th><th>Posts</th><th>Total Views</th><th>Avg Views</th><th>Share of Analyzed Posts</th></tr></thead><tbody id="topicBody"></tbody></table></div></div></section>
 
+
 <section id="growth" class="section">
   <div class="sectionHead"><div><h2>Growth Analytics</h2><div class="muted small">Live 7-day competitor posting and audience analytics from normalized scraped data.</div></div><span class="pill">LIVE VIEW</span></div>
   <div class="grid4">
@@ -131,7 +147,9 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
   <div class="tableWrap"><table><thead><tr><th>Rank</th><th>Account</th><th>Followers</th><th>Posts Today</th><th>Posts 7D</th><th>Avg / Day</th><th>Active Days</th><th>Common Time</th><th>Avg Views</th><th>Top Views</th><th>View Rate</th><th>Reactions</th></tr></thead><tbody id="growthBody"><tr><td colspan="12" class="muted">Loading analytics…</td></tr></tbody></table></div>
 </section>
 
+
 <section id="creative" class="section"><div class="grid4"><div class="card"><div class="k">Posts Ingested</div><div id="posts" class="v">—</div></div><div class="card"><div class="k">Observed Views</div><div id="views" class="v">—</div></div><div class="card"><div class="k">Competitors With Posts</div><div id="postAccounts" class="v">—</div></div><div class="card"><div class="k">Top Creative</div><div id="topCreative" class="v" style="font-size:18px">—</div><div id="topCreativeSub" class="subv">—</div></div></div><div class="card"><h3>Cross-Competitor Creative Leaderboard</h3><div class="tableWrap"><table><thead><tr><th>Rank</th><th>Competitor</th><th>Post</th><th>Hook</th><th>Theme</th><th>Format</th><th>Views</th><th>View Rate</th><th>Score</th><th>Published</th></tr></thead><tbody id="creativeBody"></tbody></table></div></div></section>
+
 
 <section id="timing" class="section">
   <div class="sectionHead"><div><h2>Posting Intelligence</h2><div class="muted small">When competitors post, how much content appears in each hour, and which windows generate the strongest observed performance.</div></div><span class="pill">7-DAY INTELLIGENCE</span></div>
@@ -141,8 +159,9 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
     <div class="card"><div class="k">TOP VIEWS</div><div class="v" id="timingTopViews">—</div><div class="subv">Highest observed post</div></div>
     <div class="card"><div class="k">POSTS ANALYZED</div><div class="v" id="timingPostsAnalyzed">—</div><div class="subv">Across hourly buckets</div></div>
   </div>
-  <div class="tableWrap"><table><thead><tr><th>Rank</th><th>Time</th><th>Posts</th><th>Competitors</th><th>Avg Views</th><th>Median Views</th><th>Top Views</th><th>Avg Reactions</th><th>Creative Score</th><th>Evidence</th></tr></thead><tbody id="timingBody"><tr><td colspan="10" class="muted">Loading posting intelligence…</td></tr></tbody></table></div>
+  <div class="tableWrap"><table><thead><tr><th>Rank</th><th>Time</th><th>Channel / Account</th><th>Post</th><th>Posts</th><th>Competitors</th><th>Avg Views</th><th>Median Views</th><th>Top Views</th><th>Avg Reactions</th><th>Creative Score</th><th>Open</th></tr></thead><tbody id="timingBody"><tr><td colspan="12" class="muted">Loading posting intelligence…</td></tr></tbody></table></div>
 </section>
+
 
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
@@ -178,6 +197,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
+
 
 <section id="quality" class="section">
   <div class="sectionHead"><div><h2>Data Quality & AI</h2><div class="muted small">Evidence-led WinTurbo content recommendations based on the strongest scraped posts, engagement signals, views, creative score and cross-source patterns.</div></div><span class="pill" id="qualityHealthBadge">CHECKING DATA</span></div>
@@ -1408,6 +1428,18 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
 /* WINTURBO_QUALITY_V21_START */
 (function(){
@@ -1634,9 +1666,31 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
   function renderTiming(rows){
     const ti=[...rows].sort((a,b)=>Number(a.performance_rank||999)-Number(b.performance_rank||999));
-    const best=ti[0];set('timingBestHour',best?.post_hour_label||'—');set('timingAvgViews',best?.avg_views==null?'—':n(Math.round(best.avg_views)));set('timingTopViews',best?.top_views==null?'—':n(best.top_views));set('timingPostsAnalyzed',n(ti.reduce((a,r)=>a+Number(r.posts_count||0),0)));
+    const best=ti[0];
+    set('timingBestHour',best?.post_hour_label||'—');
+    set('timingAvgViews',best?.avg_views==null?'—':n(Math.round(best.avg_views)));
+    set('timingTopViews',best?.top_views==null?'—':n(best.top_views));
+    set('timingPostsAnalyzed',n(ti.reduce((a,r)=>a+Number(r.posts_count||0),0)));
     const body=$('timingBody');if(!body)return;
-    body.innerHTML=ti.length?ti.map(r=>{let detail=[];try{detail=Array.isArray(r.posts_detail)?r.posts_detail:[]}catch{};const links=detail.slice(0,3).map(d=>{const u=postUrl(d);return u?`<a class="openExternal" target="_blank" rel="noopener noreferrer" href="${esc(u)}">Post ↗</a>`:''}).filter(Boolean).join(' · ');return `<tr><td>#${r.performance_rank??'—'}</td><td><b>${esc(r.post_hour_label||r.post_hour_ist)}</b></td><td>${n(r.posts_count)}</td><td>${n(r.competitors_posting)}</td><td>${r.avg_views==null?'—':n(Math.round(r.avg_views))}</td><td>${r.median_views==null?'—':n(Math.round(r.median_views))}</td><td>${r.top_views==null?'—':n(r.top_views)}</td><td>${r.avg_reactions==null?'Not visible':f1(r.avg_reactions)}</td><td>${r.avg_creative_score==null?'—':f1(r.avg_creative_score)}</td><td>${links||'—'}</td></tr>`}).join(''):'<tr><td colspan="10" class="muted">No posting intelligence available yet.</td></tr>';
+    const flat=[];
+    ti.forEach(bucket=>{
+      let detail=[];
+      try{detail=Array.isArray(bucket.posts_detail)?bucket.posts_detail:[]}catch{}
+      if(detail.length){
+        detail.forEach((d,idx)=>flat.push({bucket,d,idx}));
+      }else{
+        flat.push({bucket,d:null,idx:0});
+      }
+    });
+    body.innerHTML=flat.length?flat.map(({bucket:r,d,idx})=>{
+      const u=d?postUrl(d):null;
+      const channel=d?(d.account_name||d.handle||'Unknown channel'):'No post detail';
+      const handle=d?.handle?`@${String(d.handle).replace(/^@/,'')}`:'';
+      const text=d?.post_text?String(d.post_text).replace(/\n/g,' ').slice(0,120):'—';
+      const posted=d?.posted_at?dt(d.posted_at):'';
+      const first=idx===0;
+      return `<tr><td>${first?'#'+(r.performance_rank??'—'):''}</td><td>${first?`<b>${esc(r.post_hour_label||r.post_hour_ist)}</b>`:''}</td><td><b>${esc(channel)}</b>${handle?`<div class="muted small">${esc(handle)}</div>`:''}</td><td>${esc(text)}${posted?`<div class="muted small">${esc(posted)}</div>`:''}</td><td>${first?n(r.posts_count):''}</td><td>${first?n(r.competitors_posting):''}</td><td>${first?(r.avg_views==null?'—':n(Math.round(r.avg_views))):''}</td><td>${first?(r.median_views==null?'—':n(Math.round(r.median_views))):''}</td><td>${first?(r.top_views==null?'—':n(r.top_views)):''}</td><td>${first?(r.avg_reactions==null?'Not visible':f1(r.avg_reactions)):''}</td><td>${first?(r.avg_creative_score==null?'—':f1(r.avg_creative_score)):''}</td><td>${u?`<a class="openExternal" target="_blank" rel="noopener noreferrer" href="${esc(u)}">Open post ↗</a>`:'—'}</td></tr>`;
+    }).join(''):'<tr><td colspan="12" class="muted">No posting intelligence available yet.</td></tr>';
   }
 
   function recommendationPrompt(r){return `${r.theme||'High-performing content pattern'}\n\nSource evidence: ${r.account_name||r.handle||'competitor'}; ${n(r.views||0)} views; creative score ${r.creative_score==null?'n/a':Number(r.creative_score).toFixed(0)}; success likelihood ${Number(r.success_likelihood_score||0).toFixed(0)}%.\n\nDirection: ${r.hook||r.post_text||r.rationale||'Create an original WinTurbo version inspired by the observed pattern.'}`}
