@@ -10,6 +10,7 @@ on:
       - 'patch_dashboard_workflow_v23.py'
       - 'patch_dashboard_posting_identity_v24.py'
       - 'patch_dashboard_approval_v25.py'
+      - 'patch_dashboard_executive_summary_v26.py'
 
 permissions:
   contents: write
@@ -31,6 +32,8 @@ jobs:
         run: python patch_dashboard_posting_identity_v24.py
       - name: Add centralized approval archive and timestamps
         run: python patch_dashboard_approval_v25.py
+      - name: Rebuild executive summary live analytics
+        run: python patch_dashboard_executive_summary_v26.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
