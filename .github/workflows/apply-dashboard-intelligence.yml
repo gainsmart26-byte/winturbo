@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/apply-dashboard-intelligence.yml'
       - 'patch_dashboard_redesign_v20.py'
+      - 'patch_dashboard_quality_v21.py'
 
 permissions:
   contents: write
@@ -16,6 +17,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Apply clean dashboard redesign
         run: python patch_dashboard_redesign_v20.py
+      - name: Rebuild Data Quality and AI
+        run: python patch_dashboard_quality_v21.py
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with:
@@ -30,6 +33,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No dashboard changes needed"
           else
-            git commit -m "Redesign dashboard and isolate sections"
+            git commit -m "Rebuild Data Quality and isolate dashboard sections"
             git push
           fi
