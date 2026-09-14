@@ -113,6 +113,31 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 .audienceMeta{flex:1}.audienceValue{text-align:right;font-weight:850}.overviewSourceGroup{margin-bottom:14px}.overviewSourceGroup h4{margin:0 0 7px;color:#b9ffc9}.trendItem{padding:11px 0;border-bottom:1px solid var(--line)}.trendItem:last-child{border-bottom:0}.trendTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.trendText{margin-top:6px}.aiLearn{padding:11px 0;border-bottom:1px solid var(--line)}.aiLearn:last-child{border-bottom:0}
 
 
+/* Quality-only components are never visible outside the quality section. */
+main.main > section.section:not(#quality) .qualityHero,
+main.main > section.section:not(#quality) .qualitySummary,
+main.main > section.section:not(#quality) .qualityMetric,
+main.main > section.section:not(#quality) .qualityGrid,
+main.main > section.section:not(#quality) .qualityPanel,
+main.main > section.section:not(#quality) .qualityRecommendations,
+main.main > section.section:not(#quality) #aiRecommendations,
+main.main > section.section:not(#quality) #qualityRules,
+main.main > section.section:not(#quality) #qualitySources{display:none!important}
+@media(max-width:1150px){#quality .qualitySummary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){#quality .qualitySummary,#quality .qualityGrid{grid-template-columns:1fr}}
+
+
+
+/* WINTURBO_APPROVAL_V25_CSS */
+.statusRejected{color:#ff9b9b}.approvalMeta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:10px 0}.approvalMeta div{background:#09100b;border:1px solid var(--line);border-radius:9px;padding:8px}.approvalMeta b{display:block;font-size:11px}.approvalMeta span{font-size:10px;color:var(--muted)}
+
+
+/* WINTURBO_EXECUTIVE_V26_CSS */
+.audienceRow,.overviewSourceRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.audienceRow:last-child,.overviewSourceRow:last-child{border-bottom:0}.audienceRank{width:30px;font-weight:900;color:var(--green)}
+.audienceMeta{flex:1}.audienceValue{text-align:right;font-weight:850}.overviewSourceGroup{margin-bottom:14px}.overviewSourceGroup h4{margin:0 0 7px;color:#b9ffc9}.trendItem{padding:11px 0;border-bottom:1px solid var(--line)}.trendItem:last-child{border-bottom:0}.trendTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.trendText{margin-top:6px}.aiLearn{padding:11px 0;border-bottom:1px solid var(--line)}.aiLearn:last-child{border-bottom:0}
+
+
 /* WINTURBO_REDESIGN_V20_CSS */
 :root{--bg:#070a08;--panel:#101611;--panel2:#0c120e;--line:#233027;--text:#f5f7f5;--muted:#8fa097;--green:#42e36c;--orange:#ff9d2e;--red:#ff6666;--blue:#67b7ff;--shadow:0 16px 42px rgba(0,0,0,.22)}
 body{background:radial-gradient(circle at 72% -15%,rgba(66,227,108,.08),transparent 32%),var(--bg)}
@@ -195,7 +220,8 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 </head>
 <body>
 <div id="login" class="login"><div class="loginBox"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><p class="muted">Creative Intelligence Dashboard</p><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Password"><button id="loginBtn" class="primary" style="width:100%;margin-top:8px">Log in</button><p id="msg" class="muted small"></p></div></div>
-<div id="app" class="shell hide"><aside class="sidebar"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><div class="muted small">Creative Intelligence Dashboard</div><div class="nav"><button class="on" data-s="overview">◉ Overview</button><button data-s="growth">↗ Growth Analytics</button><button data-s="creative">✦ Creative Explorer</button><button data-s="telegramSources">✈ Telegram Sources</button><button data-s="otherSources">◎ Instagram & Web</button><button data-s="timing">◷ Posting Intelligence</button><button data-s="quality">✓ Data Quality & AI</button><button data-s="verification">✓ Verification</button><button data-s="contentIdeas">✦ Content Ideas</button></div><button id="logout" class="ghost" style="width:100%;margin-top:24px">Log out</button></aside><main class="main"><div class="topbar"><div><h1 id="title" style="margin:0">Executive Overview</h1><div class="muted">Observed public competitor intelligence</div></div><div class="toolbar"><select id="accountFilter"><option value="all">All monitored accounts</option></select><button id="addSourceBtn" class="primary">+ Add Data Source</button><button id="refresh" class="ghost">Refresh data</button></div></div>
+<div id="app" class="shell hide"><aside class="sidebar"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><div class="muted small">Creative Intelligence Dashboard</div><div class="nav"><button class="on" data-s="overview">◉ Overview</button><button data-s="growth">↗ Growth Analytics</button><button data-s="creative">✦ Creative Explorer</button><button data-s="telegramSources">✈ Telegram Sources</button><button data-s="otherSources">◎ Instagram & Web</button><button data-s="discordSources">◈ Discord Sources</button><button data-s="timing">◷ Posting Intelligence</button><button data-s="quality">✓ Data Quality & AI</button><button data-s="verification">✓ Verification</button><button data-s="contentIdeas">✦ Content Ideas</button></div><button id="logout" class="ghost" style="width:100%;margin-top:24px">Log out</button></aside><main class="main"><div class="topbar"><div><h1 id="title" style="margin:0">Executive Overview</h1><div class="muted">Observed public competitor intelligence</div></div><div class="toolbar"><select id="accountFilter"><option value="all">All monitored accounts</option></select><button id="addSourceBtn" class="primary">+ Add Data Source</button><button id="refresh" class="ghost">Refresh data</button></div></div>
+
 
 
 <section id="overview" class="section on">
@@ -250,11 +276,29 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="creative" class="section"><div class="grid4"><div class="card"><div class="k">Posts Ingested</div><div id="posts" class="v">—</div></div><div class="card"><div class="k">Observed Views</div><div id="views" class="v">—</div></div><div class="card"><div class="k">Competitors With Posts</div><div id="postAccounts" class="v">—</div></div><div class="card"><div class="k">Top Creative</div><div id="topCreative" class="v" style="font-size:18px">—</div><div id="topCreativeSub" class="subv">—</div></div></div><div class="card"><h3>Cross-Competitor Creative Leaderboard</h3><div class="tableWrap"><table><thead><tr><th>Rank</th><th>Competitor</th><th>Post</th><th>Hook</th><th>Theme</th><th>Format</th><th>Views</th><th>View Rate</th><th>Score</th><th>Published</th></tr></thead><tbody id="creativeBody"></tbody></table></div></div></section>
 
 
 
 
+
+
+
+<section id="discordSources" class="section">
+  <div class="sectionHead"><div><h2>Discord Sources</h2><div class="muted small">Monitor Discord servers/channels and feed accessible messages into WinTurbo content, timing and AI analytics.</div></div><span class="pill blue">DISCORD</span></div>
+  <div class="grid4">
+    <div class="card"><div class="k">ACTIVE DISCORD LINKS</div><div class="v" id="discordSourceCount">0</div><div class="subv">Configured Discord sources</div></div>
+    <div class="card"><div class="k">MESSAGES · 7 DAYS</div><div class="v" id="discordPostCount">0</div><div class="subv">Messages available to analytics</div></div>
+    <div class="card"><div class="k">LAST UPDATE</div><div class="v" id="discordLastUpdate" style="font-size:18px">—</div><div class="subv">Latest successful Discord collection</div></div>
+    <div class="card"><div class="k">BOT ACCESS</div><div class="v" id="discordAccess" style="font-size:18px">Not connected</div><div class="subv">Bot must be allowed to read each channel</div></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="sectionHead"><div><h3>Monitored Discord Channels</h3><div class="muted small">Use a channel URL such as https://discord.com/channels/server_id/channel_id. Invite links can be saved, but message history requires bot access.</div></div><button id="addDiscordSource" class="primary">+ Add Discord Source</button></div>
+    <div class="tableWrap"><table><thead><tr><th>Server / Channel</th><th>Channel ID</th><th>Status</th><th>Last Updated</th><th>7D Messages</th><th>Top Reactions</th><th>Open</th><th>Collect</th></tr></thead><tbody id="discordSourcesBody"><tr><td colspan="8" class="muted">No Discord sources configured yet.</td></tr></tbody></table></div>
+  </div>
+  <div class="card" style="margin-top:14px"><div class="sectionHead"><div><h3>Discord Analytics Coverage</h3><div class="muted small">Once collected, Discord messages automatically participate in Creative Explorer, Posting Intelligence, Content Topic Analytics and AI recommendations.</div></div></div><div id="discordCoverage" class="muted small">Waiting for an accessible Discord channel.</div></div>
+</section>
 
 <section id="timing" class="section">
   <div class="sectionHead"><div><h2>Posting Intelligence</h2><div class="muted small">When competitors post, how much content appears in each hour, and which windows generate the strongest observed performance.</div></div><span class="pill">7-DAY INTELLIGENCE</span></div>
@@ -271,6 +315,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
@@ -305,6 +350,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
+
 
 
 
@@ -354,6 +400,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="approval" class="section">
   <div class="sectionHead"><div><h2>Approval</h2><div class="muted small">Every post, story and creative generated in the WinTurbo dashboard enters this queue before publishing. Approve means publish; Reject permanently marks the item rejected.</div></div><span class="pill">CONTENT CONTROL</span></div>
   <div class="grid4">
@@ -375,8 +422,9 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 </main></div>
-<div id="sourceModal" class="modal hide"><div class="modalBox"><div class="sectionHead"><div><h3 style="margin:0">Add Data Source</h3><div class="muted small">Paste a public link. Up to the last 7 days will be backfilled where available.</div></div><button id="closeSource" class="ghost">Close</button></div><label class="small muted">Public URL</label><input id="sourceUrl" placeholder="https://t.me/channelname"><label class="small muted">Source name (optional)</label><input id="sourceName" placeholder="Competitor or channel name"><label class="small muted">Platform</label><select id="sourcePlatform"><option>Telegram</option><option>Instagram</option><option>Public Web</option></select><div id="sourceMsg" class="small muted" style="margin-top:8px"></div><div class="modalActions"><button id="saveSource" class="primary">Add & Start Monitoring</button></div></div></div>
+<div id="sourceModal" class="modal hide"><div class="modalBox"><div class="sectionHead"><div><h3 style="margin:0">Add Data Source</h3><div class="muted small">Paste a public link. Up to the last 7 days will be backfilled where available.</div></div><button id="closeSource" class="ghost">Close</button></div><label class="small muted">Public URL</label><input id="sourceUrl" placeholder="https://t.me/channelname"><label class="small muted">Source name (optional)</label><input id="sourceName" placeholder="Competitor or channel name"><label class="small muted">Platform</label><select id="sourcePlatform"><option>Telegram</option><option>Instagram</option><option>Discord</option><option>Public Web</option></select><div id="sourceMsg" class="small muted" style="margin-top:8px"></div><div class="modalActions"><button id="saveSource" class="primary">Add & Start Monitoring</button></div></div></div>
 <div id="postModal" class="modal hide"><div class="modalBox"><div class="sectionHead"><div><h3 id="postModalTitle" style="margin:0">AI Generated Post</h3><div id="postModalSub" class="muted small">Fresh copy generated from the selected recommendation and observed evidence.</div></div><button id="closePost" class="ghost">Close</button></div><textarea id="generatedPost" class="generated"></textarea><div class="modalActions"><button id="regeneratePost" class="ghost">Regenerate</button><button id="publishTelegram" class="primary">Post to Telegram</button><button id="copyPost" class="ghost">Copy Post</button></div></div></div>
 <script>
 const SB_URL='https://kxspsqtdvngiovjvskuq.supabase.co',SB_KEY='sb_publishable_mY0ClcO6rmkXBE9ppsX5ew_IFQ4jvD8';const sb=supabase.createClient(SB_URL,SB_KEY),fmt=new Intl.NumberFormat('en-IN'),$=id=>document.getElementById(id);const compact=n=>Intl.NumberFormat('en',{notation:'compact',maximumFractionDigits:1}).format(Number(n)||0);const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));let audienceChart,timingChart,allAccounts=[],allGrowth=[],allCreative=[],allSources=[],allSuccess=[],allPublishingAccounts=[];let successVisible=15;const selectedHandle=()=> $('accountFilter').value;const filterByHandle=rows=>selectedHandle()==='all'?rows:rows.filter(r=>r.handle===selectedHandle());function dateFmt(v){if(!v)return'—';return new Date(v).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'})}function timeFmt(v){if(!v)return'—';return new Date(v).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'})}function hourLabel(h){const a=h%12||12,b=(h+1)%12||12;return `${a}:00 ${h<12?'AM':'PM'}–${b}:00 ${(h+1)<12?'AM':'PM'}`}function median(nums){const a=[...nums].sort((x,y)=>x-y);if(!a.length)return null;const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2}function showApp(){$('login').classList.add('hide');$('app').classList.remove('hide');loadAll()}$('loginBtn').onclick=async()=>{$('msg').textContent='Signing in…';const{data,error}=await sb.auth.signInWithPassword({email:$('email').value.trim(),password:$('pass').value});$('msg').textContent=error?error.message:'';if(data?.user)showApp()};$('logout').onclick=async()=>{await sb.auth.signOut();location.reload()};$('refresh').onclick=loadAll;document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button,.section').forEach(x=>x.classList.remove('on'));b.classList.add('on');$(b.dataset.s).classList.add('on');$('title').textContent={overview:'Executive Overview',growth:'Growth Analytics',creative:'Creative Explorer',timing:'Posting Intelligence',quality:'Data Quality & AI Recommendations'}[b.dataset.s]});$('accountFilter').onchange=renderAll;$('addSourceBtn').onclick=$('addSourceInline').onclick=()=>{$('sourceModal').classList.remove('hide');$('sourceMsg').textContent=''};$('closeSource').onclick=()=>$('sourceModal').classList.add('hide');$('closePost').onclick=()=>$('postModal').classList.add('hide');$('copyPost').onclick=async()=>{await navigator.clipboard.writeText($('generatedPost').value);$('copyPost').textContent='Copied';setTimeout(()=>$('copyPost').textContent='Copy Post',1200)};$('regeneratePost').onclick=()=>{const x=window.lastGenerationRequest;if(x)generatePost(x.i,x.channel,$('regeneratePost'))};
@@ -1640,6 +1688,165 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
+
+
+
+
+
+
+
+
+<script>
+/* WINTURBO_EXECUTIVE_V26_START */
+(function(){
+ const $=id=>document.getElementById(id); const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+ const fmt=v=>new Intl.NumberFormat('en-IN').format(Number(v)||0); const dt=v=>v?new Date(v).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}):'—';
+ const set=(id,v)=>{if($(id))$(id).textContent=v}; const sel=()=> $('accountFilter')?.value||'all'; const match=r=>sel()==='all'||r.handle===sel();
+ const safeUrl=v=>{if(!v)return null;let x=String(v).trim();if(!/^https?:\/\//i.test(x))x='https://'+x.replace(/^\/+/, '');return x};
+ async function renderExecutive(){
+   if(typeof sb==='undefined'||!$('overview'))return;
+   const [g,c,sources,success]=await Promise.all([
+     sb.from('competitor_growth_analytics_v3').select('*').order('audience_rank'),
+     sb.from('creative_leaderboard').select('*').order('posted_at',{ascending:false}).limit(1000),
+     sb.from('monitored_sources').select('*').eq('is_active',true).order('created_at',{ascending:false}),
+     sb.from('content_success_intelligence').select('*').order('success_likelihood_score',{ascending:false}).limit(200)
+   ]);
+   const gr=(g.data||[]).filter(match), cr=(c.data||[]).filter(match), src=(sources.data||[]).filter(match), suc=(success.data||[]).filter(match);
+   const cut7=Date.now()-7*864e5,cut24=Date.now()-864e5; const recent=cr.filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut7); const recent24=cr.filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut24);
+   set('accounts',gr.length); set('members',fmt(gr.reduce((a,r)=>a+Number(r.followers_current||0),0))); set('overviewPosts',cr.length);
+   const scored=cr.filter(r=>r.creative_score!=null).sort((a,b)=>Number(b.creative_score)-Number(a.creative_score)); const top=scored[0]; set('overviewTopScore',top?Number(top.creative_score).toFixed(0):'—'); set('overviewTopName',top?.account_name||'No scored posts');
+   const countPlatform=p=>src.filter(x=>String(x.platform||'').toLowerCase()===p).length; const tg=countPlatform('telegram'),ig=countPlatform('instagram'),webc=src.length-tg-ig;
+   set('overviewTelegramLinks',tg);set('overviewInstagramLinks',ig);set('overviewWebLinks',webc);set('overviewTotalLinks',src.length);set('overviewLinkBreakdown',`Telegram ${tg} · Instagram ${ig} · Web ${webc}`);
+   set('posts24h',recent24.length);set('posts24hSub',recent24.length?`${new Set(recent24.map(x=>x.handle).filter(Boolean)).size} channel(s) contributed`:'No posts observed in last 24 hours');
+   const last=src.map(x=>x.last_scraped_at).filter(Boolean).sort().pop();set('lastDataUpdate',last?dt(last):'Waiting for scrape');
+   const topics={};recent.forEach(r=>{const k=r.theme||'Unclassified',x=topics[k]||(topics[k]={topic:k,posts:0,views:0,top:0,scores:[]});x.posts++;x.views+=Number(r.views||0);x.top=Math.max(x.top,Number(r.views||0));if(r.creative_score!=null)x.scores.push(Number(r.creative_score))});
+   const tr=Object.values(topics).map(x=>({...x,avg:x.posts?x.views/x.posts:0,score:x.scores.length?x.scores.reduce((a,b)=>a+b,0)/x.scores.length:null})).sort((a,b)=>b.posts-a.posts||b.views-a.views); const tt=tr[0];set('topTopic',tt?.topic||'No topic data');set('topTopicSub',tt?`${fmt(tt.posts)} posts · ${fmt(tt.views)} views`:'—');
+   const trending=[...recent].sort((a,b)=>Number(b.views||0)-Number(a.views||0));set('topTrendingViews',trending[0]?fmt(trending[0].views):'—');set('topTrendingName',trending[0]?.account_name||'No recent post');
+   const ar=$('audienceRankingList');if(ar)ar.innerHTML=gr.length?gr.slice(0,12).map(r=>`<div class="audienceRow"><div class="audienceRank">#${esc(r.audience_rank??'—')}</div><div class="audienceMeta"><b>${esc(r.account_name||r.handle)}</b><div class="muted small">@${esc(r.handle||'')} · ${fmt(r.posts_7d||0)} posts / 7d${r.avg_views_7d!=null?' · '+fmt(Math.round(r.avg_views_7d))+' avg views':''}</div></div><div class="audienceValue">${fmt(r.followers_current)}</div></div>`).join(''):'<div class="muted">No audience ranking data.</div>';
+   const os=$('overviewSources');if(os){const groups={Telegram:src.filter(x=>String(x.platform).toLowerCase()==='telegram'),Instagram:src.filter(x=>String(x.platform).toLowerCase()==='instagram'),Web:src.filter(x=>!['telegram','instagram'].includes(String(x.platform).toLowerCase()))};os.innerHTML=Object.entries(groups).map(([name,rows])=>`<div class="overviewSourceGroup"><h4>${name} · ${rows.length}</h4>${rows.length?rows.map(x=>{const u=safeUrl(x.source_url);return `<div class="overviewSourceRow"><div><b>${esc(x.source_name||x.handle||x.source_url)}</b><div class="muted small">${esc(x.handle||'')} · ${esc(x.scrape_status||'queued')} · ${x.last_scraped_at?dt(x.last_scraped_at):'not fetched'}</div></div>${u?`<a target="_blank" rel="noopener noreferrer" href="${esc(u)}">Open ↗</a>`:''}</div>`}).join(''):'<div class="muted small">No active links</div>'}</div>`).join('')}
+   const by={};recent.forEach(r=>{const k=r.handle||r.account_name||r.post_url||String(r.id);if(!by[k]||Number(r.views||0)>Number(by[k].views||0))by[k]=r});const per=Object.values(by).sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,12);const ot=$('overviewTrending');if(ot)ot.innerHTML=per.length?per.map((r,i)=>`<div class="trendItem"><div class="trendTop"><div><b>#${i+1} ${esc(r.account_name||r.handle||'Source')}</b><div class="muted small">@${esc(r.handle||'')} · ${dt(r.posted_at)}</div></div><span class="pill blue">${fmt(r.views)} views</span></div><div class="trendText">${esc((r.hook||r.post_text||'Media post').slice(0,160))}</div>${r.post_url?`<div style="margin-top:6px"><a target="_blank" rel="noopener noreferrer" href="${esc(safeUrl(r.post_url))}">Open post ↗</a></div>`:''}</div>`).join(''):'<div class="muted">No recent posts available.</div>';
+   const tb=$('topicBody');if(tb)tb.innerHTML=tr.length?tr.slice(0,15).map((r,i)=>`<tr><td>#${i+1}</td><td><b>${esc(r.topic)}</b></td><td>${fmt(r.posts)}</td><td>${fmt(r.views)}</td><td>${fmt(Math.round(r.avg))}</td><td>${fmt(r.top)}</td><td>${r.score==null?'—':r.score.toFixed(1)}</td><td>${recent.length?((r.posts/recent.length)*100).toFixed(1):'0.0'}%</td></tr>`).join(''):'<tr><td colspan="8" class="muted">No topic analytics available.</td></tr>';
+   const ai=$('aiOverview');if(ai){const bestSuc=suc[0],bestTopic=[...tr].sort((a,b)=>b.avg-a.avg)[0],bestChannel=gr.filter(x=>x.avg_views_7d!=null).sort((a,b)=>Number(b.avg_views_7d)-Number(a.avg_views_7d))[0],bestTime=(await sb.from('posting_intelligence').select('*').order('performance_rank').limit(1)).data?.[0];const learns=[];if(bestSuc)learns.push(`<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">${esc(bestSuc.theme||'Content pattern')} · ${Number(bestSuc.success_likelihood_score||0).toFixed(0)}% likelihood · ${fmt(bestSuc.views||0)} observed views.</div></div>`);if(bestTopic)learns.push(`<div class="aiLearn"><b>Highest-view topic</b><div class="muted small">${esc(bestTopic.topic)} averages ${fmt(Math.round(bestTopic.avg))} views across ${fmt(bestTopic.posts)} posts.</div></div>`);if(bestChannel)learns.push(`<div class="aiLearn"><b>Strongest channel by average views</b><div class="muted small">${esc(bestChannel.account_name||bestChannel.handle)} · ${fmt(Math.round(bestChannel.avg_views_7d))} avg views in the 7-day window.</div></div>`);if(bestTime)learns.push(`<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">${esc(bestTime.post_hour_label||bestTime.post_hour_ist)} · ${bestTime.avg_views==null?'—':fmt(Math.round(bestTime.avg_views))} avg views.</div></div>`);ai.innerHTML=learns.join('')||'<div class="muted">Not enough current evidence for AI learnings.</div>'}
+ }
+ function boot(){renderExecutive();setTimeout(renderExecutive,900);document.getElementById('accountFilter')?.addEventListener('change',renderExecutive);document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(renderExecutive,150));}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();window.WinTurboExecutiveRefresh=renderExecutive;
+})();
+/* WINTURBO_EXECUTIVE_V26_END */
+</script>
+
+
+
+<script>
+/* WINTURBO_CONTENT_GENERATOR_V27_START */
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const fmt=()=> $('ideaFormat')?.value||'text';
+  const engine=()=> $('ideaEngine')?.value||'higgsfield';
+  const isVisual=()=>fmt()!=='text';
+  function syncUi(){
+    const f=fmt(),visual=isVisual();
+    const wrap=$('ideaEngineWrap');if(wrap)wrap.style.display=visual?'block':'none';
+    const btn=$('generateIdeaContent');if(btn)btn.textContent=visual?'Generate with ChatGPT + Creative':'Generate with ChatGPT';
+    const regen=$('regenerateCreativeOnly');if(regen)regen.style.display=visual?'inline-flex':'none';
+    const badge=$('creativeFormatBadge');if(badge)badge.textContent=(f==='reel'?'REEL':f==='video'?'SHORT VIDEO':f.toUpperCase());
+    if(!visual){
+      if($('ideaMediaUrl'))$('ideaMediaUrl').value='';
+      if($('higgsfieldPreview'))$('higgsfieldPreview').innerHTML='<div class="muted small">Text-only format selected. No image or video will be generated.</div>';
+      if($('readyPostMedia'))$('readyPostMedia').innerHTML='<span class="muted small">Text-only post · no media required.</span>';
+      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent='Text-only format selected · ChatGPT content only.';
+      if($('ideaStatus'))$('ideaStatus').textContent='Text-only will generate ChatGPT content only.';
+    } else if($('ideaStatus')){
+      $('ideaStatus').textContent='ChatGPT will create the copy, then the selected creative engine will create the visual.';
+    }
+  }
+  function mediaPrompt(){
+    const input=$('ideaInput')?.value.trim()||'',draft=$('ideaDraft')?.value.trim()||'',tone=$('ideaTone')?.value||'Premium & confident',f=fmt();
+    const motion=f==='reel'||f==='video';
+    return `Create a premium WinTurbo ${f} creative for social media. Brief: ${input}. Copy context: ${draft.slice(0,700)}. Tone: ${tone}. Indian audience, bold modern Gen-Z gaming aesthetic, premium trustworthy presentation, strong readable hierarchy, no fake receipts or fabricated claims, avoid clutter. Include WinTurbo branding naturally. ${motion?'Vertical 9:16, cinematic motion, subtitle-safe lower area, approximately 8-10 seconds.':'Social image composition.'}`;
+  }
+  async function createVisual(){
+    const f=fmt();if(f==='text')return null;
+    const prompt=mediaPrompt();if($('higgsfieldPrompt'))$('higgsfieldPrompt').value=prompt;
+    const chosen=engine();
+    if(f==='image'){
+      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Generating image with ${chosen==='openai'?'OpenAI Image':'Higgsfield'}…`;
+      const fn=chosen==='openai'?'generate-openai-image':'generate-higgsfield-image';
+      const {data,error}=await sb.functions.invoke(fn,{body:{prompt,aspect_ratio:'1:1'}});
+      if(error||!data?.ok)throw new Error(data?.error||error?.message||'Image generation failed');
+      const u=data.image_url||data.images?.[0]?.url||data.url;if(!u)throw new Error('Image engine returned no image URL');
+      if($('ideaMediaUrl'))$('ideaMediaUrl').value=u;if($('ideaSourceImageUrl'))$('ideaSourceImageUrl').value=u;
+      if($('higgsfieldPreview'))$('higgsfieldPreview').innerHTML=`<img alt="Generated creative" style="width:100%;max-height:420px;object-fit:contain;border-radius:12px;border:1px solid var(--line)" src="${esc(u)}">`;
+      if($('readyPostMedia'))$('readyPostMedia').innerHTML=`<img alt="Ready creative" style="width:100%;max-height:420px;object-fit:contain;border-radius:12px" src="${esc(u)}">`;
+      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Image generated with ${chosen==='openai'?'OpenAI Image':'Higgsfield'} ✓`;
+      return u;
+    }
+    // Reel / Short Video: use chosen image engine for source frame, Higgsfield for motion.
+    const imageFn=chosen==='openai'?'generate-openai-image':'generate-higgsfield-image';
+    if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Creating source frame with ${chosen==='openai'?'OpenAI Image':'Higgsfield'}…`;
+    const img=await sb.functions.invoke(imageFn,{body:{prompt,aspect_ratio:'9:16'}});
+    if(img.error||!img.data?.ok)throw new Error(img.data?.error||img.error?.message||'Source image generation failed');
+    const source=img.data.image_url||img.data.images?.[0]?.url||img.data.url;if(!source)throw new Error('Image engine returned no source image');
+    if($('ideaSourceImageUrl'))$('ideaSourceImageUrl').value=source;
+    if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Generating ${f==='reel'?'reel':'short video'} with Higgsfield…`;
+    const vid=await sb.functions.invoke('generate-higgsfield-video',{body:{prompt,image_url:source}});
+    if(vid.error||!vid.data?.ok)throw new Error(vid.data?.error||vid.error?.message||'Video generation failed');
+    const u=vid.data.video_url||vid.data.videos?.[0]?.url||vid.data.url;if(!u)throw new Error('Higgsfield returned no video URL');
+    if($('ideaMediaUrl'))$('ideaMediaUrl').value=u;
+    if($('higgsfieldPreview'))$('higgsfieldPreview').innerHTML=`<video controls playsinline style="width:100%;max-height:420px;border-radius:12px;border:1px solid var(--line)" src="${esc(u)}"></video>`;
+    if($('readyPostMedia'))$('readyPostMedia').innerHTML=`<video controls playsinline style="width:100%;max-height:420px;border-radius:12px" src="${esc(u)}"></video>`;
+    if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`${f==='reel'?'Reel':'Short video'} generated ✓`;
+    return u;
+  }
+  async function generateV27(){
+    const input=$('ideaInput')?.value.trim();if(!input){alert('Enter an idea, topic, keywords, event or site link first.');return;}
+    const platform=$('ideaPlatform')?.value||'telegram',type=$('ideaType')?.value||'idea',tone=$('ideaTone')?.value||'Premium & confident',f=fmt();
+    const btn=$('generateIdeaContent');if(btn){btn.disabled=true;btn.textContent='Generating with ChatGPT…';}
+    if($('ideaStatus'))$('ideaStatus').textContent='ChatGPT is creating the content…';
+    try{
+      const recommendation={theme:`${type}: ${input}`,media_type:f,hook_direction:`Create original WinTurbo content around this brief: ${input}`,cta_direction:`Tone: ${tone}. End with a clear, appropriate call to action.`,confidence:'User-directed'};
+      const evidence=[{account_name:'User brief',post_text:input}];
+      const {data,error}=await sb.functions.invoke('generate-social-post',{body:{platform,recommendation,evidence}});
+      if(error)throw new Error(error?.message||'ChatGPT content request failed');if(!data?.ok)throw new Error(data?.error||'ChatGPT content generation failed');
+      if($('ideaDraft'))$('ideaDraft').value=data.text||'';
+      if($('readyPostCopy')){$('readyPostCopy').textContent=data.text||'';$('readyPostCopy').classList.remove('muted');}
+      if(f==='text'){
+        if($('ideaMediaUrl'))$('ideaMediaUrl').value='';
+        if($('ideaStatus'))$('ideaStatus').textContent=`ChatGPT content ready ✓ · ${platform} · text only`;
+        if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent='No creative requested.';
+      }else{
+        if(btn)btn.textContent='Generating creative…';
+        if($('ideaStatus'))$('ideaStatus').textContent='ChatGPT content ready ✓ · creating visual…';
+        await createVisual();
+        if($('ideaStatus'))$('ideaStatus').textContent=`Content + ${f==='reel'?'reel':f==='video'?'short video':'image'} ready ✓`;
+      }
+    }catch(e){console.error(e);if($('ideaStatus'))$('ideaStatus').textContent=`Generation failed: ${e?.message||e}`;}
+    finally{if(btn){btn.disabled=false;syncUi();}}
+  }
+  async function regenerateVisualV27(){
+    if(fmt()==='text'){syncUi();return;}
+    const b=$('regenerateCreativeOnly');const old=b?.textContent;if(b){b.disabled=true;b.textContent='Regenerating…';}
+    try{await createVisual();}catch(e){if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Creative generation failed: ${e?.message||e}`;}finally{if(b){b.disabled=false;b.textContent=old||'Regenerate Creative';}}
+  }
+  function bind(){
+    syncUi();
+    if($('ideaFormat'))$('ideaFormat').onchange=syncUi;
+    if($('ideaEngine'))$('ideaEngine').onchange=syncUi;
+    if($('generateIdeaContent'))$('generateIdeaContent').onclick=generateV27;
+    if($('regenerateIdeaContent'))$('regenerateIdeaContent').onclick=generateV27;
+    if($('regenerateCreativeOnly'))$('regenerateCreativeOnly').onclick=regenerateVisualV27;
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,50));else setTimeout(bind,50);
+})();
+/* WINTURBO_CONTENT_GENERATOR_V27_END */
+</script>
+
+
+
+
+
+
 <script>
 /* WINTURBO_QUALITY_V21_START */
 (function(){
@@ -1812,8 +2019,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   let publishingAccounts=[];
   let hydrating=false;
 
-  const IDS=['overview','growth','creative','telegramSources','otherSources','timing','quality','verification','contentIdeas','approval'];
-  const TITLES={overview:'Executive Overview',growth:'Growth Analytics',creative:'Creative Explorer',telegramSources:'Telegram Sources',otherSources:'Instagram & Web',timing:'Posting Intelligence',quality:'Data Quality & AI',verification:'Verification',contentIdeas:'Content Ideas',approval:'Approval'};
+  const IDS=['overview','growth','creative','telegramSources','otherSources','discordSources','timing','quality','verification','contentIdeas','approval'];
+  const TITLES={overview:'Executive Overview',growth:'Growth Analytics',creative:'Creative Explorer',telegramSources:'Telegram Sources',otherSources:'Instagram & Web',discordSources:'Discord Sources',timing:'Posting Intelligence',quality:'Data Quality & AI',verification:'Verification',contentIdeas:'Content Ideas',approval:'Approval'};
 
   function ensureApprovalNav(){
     const nav=document.querySelector('.nav'); if(!nav)return;
@@ -2058,108 +2265,82 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 <script>
-/* WINTURBO_CONTENT_GENERATOR_V27_START */
+/* WINTURBO_DISCORD_V28_START */
 (function(){
-  const $=id=>document.getElementById(id);
-  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
-  const fmt=()=> $('ideaFormat')?.value||'text';
-  const engine=()=> $('ideaEngine')?.value||'higgsfield';
-  const isVisual=()=>fmt()!=='text';
-  function syncUi(){
-    const f=fmt(),visual=isVisual();
-    const wrap=$('ideaEngineWrap');if(wrap)wrap.style.display=visual?'block':'none';
-    const btn=$('generateIdeaContent');if(btn)btn.textContent=visual?'Generate with ChatGPT + Creative':'Generate with ChatGPT';
-    const regen=$('regenerateCreativeOnly');if(regen)regen.style.display=visual?'inline-flex':'none';
-    const badge=$('creativeFormatBadge');if(badge)badge.textContent=(f==='reel'?'REEL':f==='video'?'SHORT VIDEO':f.toUpperCase());
-    if(!visual){
-      if($('ideaMediaUrl'))$('ideaMediaUrl').value='';
-      if($('higgsfieldPreview'))$('higgsfieldPreview').innerHTML='<div class="muted small">Text-only format selected. No image or video will be generated.</div>';
-      if($('readyPostMedia'))$('readyPostMedia').innerHTML='<span class="muted small">Text-only post · no media required.</span>';
-      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent='Text-only format selected · ChatGPT content only.';
-      if($('ideaStatus'))$('ideaStatus').textContent='Text-only will generate ChatGPT content only.';
-    } else if($('ideaStatus')){
-      $('ideaStatus').textContent='ChatGPT will create the copy, then the selected creative engine will create the visual.';
-    }
-  }
-  function mediaPrompt(){
-    const input=$('ideaInput')?.value.trim()||'',draft=$('ideaDraft')?.value.trim()||'',tone=$('ideaTone')?.value||'Premium & confident',f=fmt();
-    const motion=f==='reel'||f==='video';
-    return `Create a premium WinTurbo ${f} creative for social media. Brief: ${input}. Copy context: ${draft.slice(0,700)}. Tone: ${tone}. Indian audience, bold modern Gen-Z gaming aesthetic, premium trustworthy presentation, strong readable hierarchy, no fake receipts or fabricated claims, avoid clutter. Include WinTurbo branding naturally. ${motion?'Vertical 9:16, cinematic motion, subtitle-safe lower area, approximately 8-10 seconds.':'Social image composition.'}`;
-  }
-  async function createVisual(){
-    const f=fmt();if(f==='text')return null;
-    const prompt=mediaPrompt();if($('higgsfieldPrompt'))$('higgsfieldPrompt').value=prompt;
-    const chosen=engine();
-    if(f==='image'){
-      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Generating image with ${chosen==='openai'?'OpenAI Image':'Higgsfield'}…`;
-      const fn=chosen==='openai'?'generate-openai-image':'generate-higgsfield-image';
-      const {data,error}=await sb.functions.invoke(fn,{body:{prompt,aspect_ratio:'1:1'}});
-      if(error||!data?.ok)throw new Error(data?.error||error?.message||'Image generation failed');
-      const u=data.image_url||data.images?.[0]?.url||data.url;if(!u)throw new Error('Image engine returned no image URL');
-      if($('ideaMediaUrl'))$('ideaMediaUrl').value=u;if($('ideaSourceImageUrl'))$('ideaSourceImageUrl').value=u;
-      if($('higgsfieldPreview'))$('higgsfieldPreview').innerHTML=`<img alt="Generated creative" style="width:100%;max-height:420px;object-fit:contain;border-radius:12px;border:1px solid var(--line)" src="${esc(u)}">`;
-      if($('readyPostMedia'))$('readyPostMedia').innerHTML=`<img alt="Ready creative" style="width:100%;max-height:420px;object-fit:contain;border-radius:12px" src="${esc(u)}">`;
-      if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Image generated with ${chosen==='openai'?'OpenAI Image':'Higgsfield'} ✓`;
-      return u;
-    }
-    // Reel / Short Video: use chosen image engine for source frame, Higgsfield for motion.
-    const imageFn=chosen==='openai'?'generate-openai-image':'generate-higgsfield-image';
-    if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Creating source frame with ${chosen==='openai'?'OpenAI Image':'Higgsfield'}…`;
-    const img=await sb.functions.invoke(imageFn,{body:{prompt,aspect_ratio:'9:16'}});
-    if(img.error||!img.data?.ok)throw new Error(img.data?.error||img.error?.message||'Source image generation failed');
-    const source=img.data.image_url||img.data.images?.[0]?.url||img.data.url;if(!source)throw new Error('Image engine returned no source image');
-    if($('ideaSourceImageUrl'))$('ideaSourceImageUrl').value=source;
-    if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Generating ${f==='reel'?'reel':'short video'} with Higgsfield…`;
-    const vid=await sb.functions.invoke('generate-higgsfield-video',{body:{prompt,image_url:source}});
-    if(vid.error||!vid.data?.ok)throw new Error(vid.data?.error||vid.error?.message||'Video generation failed');
-    const u=vid.data.video_url||vid.data.videos?.[0]?.url||vid.data.url;if(!u)throw new Error('Higgsfield returned no video URL');
-    if($('ideaMediaUrl'))$('ideaMediaUrl').value=u;
-    if($('higgsfieldPreview'))$('higgsfieldPreview').innerHTML=`<video controls playsinline style="width:100%;max-height:420px;border-radius:12px;border:1px solid var(--line)" src="${esc(u)}"></video>`;
-    if($('readyPostMedia'))$('readyPostMedia').innerHTML=`<video controls playsinline style="width:100%;max-height:420px;border-radius:12px" src="${esc(u)}"></video>`;
-    if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`${f==='reel'?'Reel':'Short video'} generated ✓`;
-    return u;
-  }
-  async function generateV27(){
-    const input=$('ideaInput')?.value.trim();if(!input){alert('Enter an idea, topic, keywords, event or site link first.');return;}
-    const platform=$('ideaPlatform')?.value||'telegram',type=$('ideaType')?.value||'idea',tone=$('ideaTone')?.value||'Premium & confident',f=fmt();
-    const btn=$('generateIdeaContent');if(btn){btn.disabled=true;btn.textContent='Generating with ChatGPT…';}
-    if($('ideaStatus'))$('ideaStatus').textContent='ChatGPT is creating the content…';
+  const isDiscord=x=>String(x?.platform||'').toLowerCase()==='discord';
+  const discordHandleFromUrl=raw=>{try{const u=new URL(raw);const p=u.pathname.split('/').filter(Boolean);if(p[0]==='channels'&&p[1]&&p[2])return `${p[1]}/${p[2]}`;}catch{}return null};
+  const discordPostsFor=(src,cut)=>{const h=src.handle||discordHandleFromUrl(src.source_url);return (window.allCreative||allCreative||[]).filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut&&(String(r.platform||'').toLowerCase()==='discord'||(h&&r.handle===h)||String(r.account_name||'').toLowerCase()===String(src.source_name||'').toLowerCase()))};
+  const maxDate=list=>list.map(x=>x.last_scraped_at).filter(Boolean).sort().pop();
+
+  async function collectDiscordSource(id,button){
+    const old=button?.textContent;if(button){button.disabled=true;button.textContent='Collecting…'}
     try{
-      const recommendation={theme:`${type}: ${input}`,media_type:f,hook_direction:`Create original WinTurbo content around this brief: ${input}`,cta_direction:`Tone: ${tone}. End with a clear, appropriate call to action.`,confidence:'User-directed'};
-      const evidence=[{account_name:'User brief',post_text:input}];
-      const {data,error}=await sb.functions.invoke('generate-social-post',{body:{platform,recommendation,evidence}});
-      if(error)throw new Error(error?.message||'ChatGPT content request failed');if(!data?.ok)throw new Error(data?.error||'ChatGPT content generation failed');
-      if($('ideaDraft'))$('ideaDraft').value=data.text||'';
-      if($('readyPostCopy')){$('readyPostCopy').textContent=data.text||'';$('readyPostCopy').classList.remove('muted');}
-      if(f==='text'){
-        if($('ideaMediaUrl'))$('ideaMediaUrl').value='';
-        if($('ideaStatus'))$('ideaStatus').textContent=`ChatGPT content ready ✓ · ${platform} · text only`;
-        if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent='No creative requested.';
-      }else{
-        if(btn)btn.textContent='Generating creative…';
-        if($('ideaStatus'))$('ideaStatus').textContent='ChatGPT content ready ✓ · creating visual…';
-        await createVisual();
-        if($('ideaStatus'))$('ideaStatus').textContent=`Content + ${f==='reel'?'reel':f==='video'?'short video':'image'} ready ✓`;
-      }
-    }catch(e){console.error(e);if($('ideaStatus'))$('ideaStatus').textContent=`Generation failed: ${e?.message||e}`;}
-    finally{if(btn){btn.disabled=false;syncUi();}}
+      const {data,error}=await sb.functions.invoke('discord-collector',{body:{action:'ingest_source',source_id:id}});
+      if(error)throw error;if(!data?.ok)throw new Error(data?.error||'Discord collection failed');
+      if(button)button.textContent=`${data.messages_ingested||0} collected ✓`;
+      await loadSources(); if(typeof loadCreative==='function')await loadCreative(); if(typeof loadGrowth==='function')await loadGrowth(); if(typeof loadSuccess==='function')await loadSuccess();
+      renderDiscordSourcesV28(); if(typeof renderAll==='function')setTimeout(()=>renderAll(),50);
+    }catch(e){alert(`Discord collection: ${e?.message||e}`);if(button)button.textContent=old||'Collect now'}finally{if(button){button.disabled=false;setTimeout(()=>button.textContent=old||'Collect now',1400)}}
   }
-  async function regenerateVisualV27(){
-    if(fmt()==='text'){syncUi();return;}
-    const b=$('regenerateCreativeOnly');const old=b?.textContent;if(b){b.disabled=true;b.textContent='Regenerating…';}
-    try{await createVisual();}catch(e){if($('higgsfieldGenerationStatus'))$('higgsfieldGenerationStatus').textContent=`Creative generation failed: ${e?.message||e}`;}finally{if(b){b.disabled=false;b.textContent=old||'Regenerate Creative';}}
+  window.collectDiscordSource=collectDiscordSource;
+
+  function renderDiscordSourcesV28(){
+    if(!document.getElementById('discordSourcesBody'))return;
+    const cut=Date.now()-7*86400000;
+    const sources=(window.allSources||allSources||[]).filter(x=>x.is_active!==false&&isDiscord(x));
+    const allPosts=[];sources.forEach(x=>discordPostsFor(x,cut).forEach(p=>allPosts.push(p)));
+    const uniq=new Map(allPosts.map(p=>[`${p.handle||''}:${p.platform_post_id||p.post_url||''}`,p]));
+    const posts=[...uniq.values()];
+    const accessible=sources.filter(x=>x.scrape_status==='active').length;
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+    set('discordSourceCount',sources.length);
+    set('discordPostCount',posts.length);
+    const last=maxDate(sources);set('discordLastUpdate',last?dateFmt(last):'—');
+    set('discordAccess',sources.length?(accessible===sources.length?'Connected':`${accessible}/${sources.length} active`):'Not connected');
+    const body=document.getElementById('discordSourcesBody');
+    body.innerHTML=sources.length?sources.map(src=>{
+      const p=discordPostsFor(src,cut),top=[...p].sort((a,b)=>Number(b.reactions_count||0)-Number(a.reactions_count||0))[0];
+      const handle=src.handle||discordHandleFromUrl(src.source_url)||'—';
+      const cls=src.scrape_status==='active'?'':'orange';
+      const status=src.scrape_status||'needs_bot_access';
+      return `<tr><td><b>${esc(src.source_name||'Discord channel')}</b><div class="muted small">${esc(src.last_error||'Discord source')}</div></td><td>${esc(handle)}</td><td><span class="pill ${cls}">${esc(status.replaceAll('_',' '))}</span></td><td>${src.last_scraped_at?dateFmt(src.last_scraped_at):'—'}</td><td>${fmt.format(p.length)}</td><td>${top?.reactions_count!=null?fmt.format(top.reactions_count):'—'}</td><td>${src.source_url?`<a target="_blank" rel="noopener noreferrer" href="${esc(src.source_url)}">Open ↗</a>`:'—'}</td><td><button class="mini" onclick="collectDiscordSource('${esc(src.id)}',this)">Collect now</button></td></tr>`;
+    }).join(''):'<tr><td colspan="8" class="muted">No Discord sources configured yet. Add a Discord channel URL to begin.</td></tr>';
+    const coverage=document.getElementById('discordCoverage');
+    if(coverage)coverage.innerHTML=posts.length?`<b>${fmt.format(posts.length)}</b> Discord messages are currently available to shared analytics. Reactions, message timing, media type, topic and creative score flow into the same normalized intelligence views.`:'No Discord messages have been ingested yet. Save a source and give the WinTurbo Discord bot access to the server/channel.';
   }
-  function bind(){
-    syncUi();
-    if($('ideaFormat'))$('ideaFormat').onchange=syncUi;
-    if($('ideaEngine'))$('ideaEngine').onchange=syncUi;
-    if($('generateIdeaContent'))$('generateIdeaContent').onclick=generateV27;
-    if($('regenerateIdeaContent'))$('regenerateIdeaContent').onclick=generateV27;
-    if($('regenerateCreativeOnly'))$('regenerateCreativeOnly').onclick=regenerateVisualV27;
+  window.renderDiscordSourcesV28=renderDiscordSourcesV28;
+
+  const oldRenderAll=typeof renderAll==='function'?renderAll:null;
+  if(oldRenderAll){window.renderAll=function(){oldRenderAll();renderDiscordSourcesV28()}}
+
+  function ensureDiscordControls(){
+    const platform=document.getElementById('sourcePlatform');
+    if(platform&&!Array.from(platform.options).some(o=>o.value==='Discord'||o.text==='Discord')){const o=document.createElement('option');o.text='Discord';o.value='Discord';platform.insertBefore(o,platform.lastElementChild)}
+    const add=document.getElementById('addDiscordSource');if(add&&!add.dataset.bound){add.dataset.bound='1';add.onclick=()=>{document.getElementById('sourceModal')?.classList.remove('hide');if(platform)platform.value='Discord';const input=document.getElementById('sourceUrl');if(input)input.placeholder='https://discord.com/channels/server_id/channel_id';const msg=document.getElementById('sourceMsg');if(msg)msg.textContent='Discord message history requires the WinTurbo Discord bot to have permission to read the channel.'}}
+    if(platform&&!platform.dataset.discordBound){platform.dataset.discordBound='1';platform.addEventListener('change',()=>{const input=document.getElementById('sourceUrl');if(!input)return;input.placeholder=platform.value==='Discord'?'https://discord.com/channels/server_id/channel_id':platform.value==='Telegram'?'https://t.me/channelname':'https://...'});}
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,50));else setTimeout(bind,50);
+
+  const save=document.getElementById('saveSource');
+  if(save){save.onclick=async()=>{
+    const raw=document.getElementById('sourceUrl')?.value.trim()||'',name=document.getElementById('sourceName')?.value.trim()||'',platform=document.getElementById('sourcePlatform')?.value||'Public Web',msg=document.getElementById('sourceMsg');
+    if(!/^https?:\/\//i.test(raw)){if(msg)msg.innerHTML='<span class="error">Enter a valid public http/https URL.</span>';return}
+    if(msg)msg.textContent='Adding source…';
+    const {data:{user}}=await sb.auth.getUser();let handle=null;
+    try{const u=new URL(raw),parts=u.pathname.split('/').filter(Boolean);if(platform==='Telegram'&&u.hostname.includes('t.me'))handle=u.pathname.replace(/^\/s\//,'').replace(/^\//,'').split('/')[0]||null;else if(platform==='Discord'&&parts[0]==='channels'&&parts[1]&&parts[2])handle=`${parts[1]}/${parts[2]}`;else if(platform==='Instagram')handle=parts[0]||null;}catch{}
+    const initialStatus=platform==='Discord'?'needs_bot_access':'queued';
+    const {data,error}=await sb.from('monitored_sources').insert({source_url:raw,platform,source_name:name||handle||raw,handle,created_by:user?.id||null,scrape_status:initialStatus,is_active:true}).select('id').single();
+    if(error){if(msg)msg.innerHTML=`<span class="error">${esc(error.message)}</span>`;return}
+    if(platform==='Discord'){
+      if(msg)msg.textContent='Discord source saved · checking bot access…';
+      try{const r=await sb.functions.invoke('discord-collector',{body:{action:'ingest_source',source_id:data.id}});if(r.error)throw r.error;if(!r.data?.ok)throw new Error(r.data?.error||'Bot access required');if(msg)msg.textContent=`Discord connected ✓ · ${r.data.messages_ingested||0} messages collected from the last 7 days.`}catch(e){if(msg)msg.textContent=`Discord source saved. Bot access is still required before messages can be collected: ${e?.message||e}`}
+    }else if(msg)msg.textContent='Added. The scheduled collector will backfill up to the last 7 days where available.';
+    document.getElementById('sourceUrl').value='';document.getElementById('sourceName').value='';await loadSources();renderDiscordSourcesV28();if(typeof renderAll==='function')renderAll();if(platform!=='Discord')setTimeout(()=>document.getElementById('sourceModal')?.classList.add('hide'),900);
+  }}
+
+  ensureDiscordControls();
+  setTimeout(()=>{ensureDiscordControls();renderDiscordSourcesV28()},50);
 })();
-/* WINTURBO_CONTENT_GENERATOR_V27_END */
+/* WINTURBO_DISCORD_V28_END */
 </script>
 
 </body>
