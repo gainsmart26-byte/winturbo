@@ -238,6 +238,31 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 .audienceMeta{flex:1}.audienceValue{text-align:right;font-weight:850}.overviewSourceGroup{margin-bottom:14px}.overviewSourceGroup h4{margin:0 0 7px;color:#b9ffc9}.trendItem{padding:11px 0;border-bottom:1px solid var(--line)}.trendItem:last-child{border-bottom:0}.trendTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.trendText{margin-top:6px}.aiLearn{padding:11px 0;border-bottom:1px solid var(--line)}.aiLearn:last-child{border-bottom:0}
 
 
+/* Quality-only components are never visible outside the quality section. */
+main.main > section.section:not(#quality) .qualityHero,
+main.main > section.section:not(#quality) .qualitySummary,
+main.main > section.section:not(#quality) .qualityMetric,
+main.main > section.section:not(#quality) .qualityGrid,
+main.main > section.section:not(#quality) .qualityPanel,
+main.main > section.section:not(#quality) .qualityRecommendations,
+main.main > section.section:not(#quality) #aiRecommendations,
+main.main > section.section:not(#quality) #qualityRules,
+main.main > section.section:not(#quality) #qualitySources{display:none!important}
+@media(max-width:1150px){#quality .qualitySummary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){#quality .qualitySummary,#quality .qualityGrid{grid-template-columns:1fr}}
+
+
+
+/* WINTURBO_APPROVAL_V25_CSS */
+.statusRejected{color:#ff9b9b}.approvalMeta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:10px 0}.approvalMeta div{background:#09100b;border:1px solid var(--line);border-radius:9px;padding:8px}.approvalMeta b{display:block;font-size:11px}.approvalMeta span{font-size:10px;color:var(--muted)}
+
+
+/* WINTURBO_EXECUTIVE_V26_CSS */
+.audienceRow,.overviewSourceRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.audienceRow:last-child,.overviewSourceRow:last-child{border-bottom:0}.audienceRank{width:30px;font-weight:900;color:var(--green)}
+.audienceMeta{flex:1}.audienceValue{text-align:right;font-weight:850}.overviewSourceGroup{margin-bottom:14px}.overviewSourceGroup h4{margin:0 0 7px;color:#b9ffc9}.trendItem{padding:11px 0;border-bottom:1px solid var(--line)}.trendItem:last-child{border-bottom:0}.trendTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.trendText{margin-top:6px}.aiLearn{padding:11px 0;border-bottom:1px solid var(--line)}.aiLearn:last-child{border-bottom:0}
+
+
 /* WINTURBO_REDESIGN_V20_CSS */
 :root{--bg:#070a08;--panel:#101611;--panel2:#0c120e;--line:#233027;--text:#f5f7f5;--muted:#8fa097;--green:#42e36c;--orange:#ff9d2e;--red:#ff6666;--blue:#67b7ff;--shadow:0 16px 42px rgba(0,0,0,.22)}
 body{background:radial-gradient(circle at 72% -15%,rgba(66,227,108,.08),transparent 32%),var(--bg)}
@@ -335,11 +360,28 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 .mediaRoutingRow:last-of-type{border-bottom:0}.mediaRoutingRow b{color:#e9fff0}
 #contentIdeas select#ideaEngine{display:none!important}
 
+
+/* WINTURBO_USER_ACCESS_V33_CSS */
+#userAccess .accessGrid{grid-template-columns:1.15fr .85fr}
+#userAccess .sectionPicker{margin-top:4px}
+#userAccess .accessChecks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#userAccess .accessCheck{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#0a100c}
+#userAccess .accessCheck input,#userAccess .accessActive input{width:auto}
+#userAccess .accessActive{display:flex;align-items:center;gap:8px;margin-top:14px}
+#userAccess .accessRule{padding:11px 0;border-bottom:1px solid var(--line)}
+#userAccess .accessRule:last-child{border-bottom:0}
+#userAccess .accessRule b{display:block;margin-bottom:4px}.accessRule span{color:var(--muted);font-size:12px}
+.accessReadOnlyNote{position:fixed;right:18px;bottom:18px;z-index:50;background:#172019;border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:11px;color:#b9ffc9;box-shadow:0 8px 25px rgba(0,0,0,.28)}
+@media(max-width:900px){#userAccess .accessGrid{grid-template-columns:1fr}#userAccess .accessChecks{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
 <div id="login" class="login"><div class="loginBox"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><p class="muted">Creative Intelligence Dashboard</p><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Password"><button id="loginBtn" class="primary" style="width:100%;margin-top:8px">Log in</button><p id="msg" class="muted small"></p></div></div>
-<div id="app" class="shell hide"><aside class="sidebar"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><div class="muted small">Creative Intelligence Dashboard</div><div class="nav"><button class="on" data-s="overview">◉ Overview</button><button data-s="growth">↗ Growth Analytics</button><button data-s="creative">✦ Creative Explorer</button><button data-s="telegramSources">✈ Telegram Sources</button><button data-s="otherSources">◎ Instagram & Web</button><button data-s="discordSources">◈ Discord Sources</button><button data-s="timing">◷ Posting Intelligence</button><button data-s="quality">✓ Data Quality & AI</button><button data-s="verification">✓ Verification</button><button data-s="contentIdeas">✦ Content Ideas</button></div><button id="logout" class="ghost" style="width:100%;margin-top:24px">Log out</button></aside><main class="main"><div class="topbar"><div><h1 id="title" style="margin:0">Executive Overview</h1><div class="muted">Observed public competitor intelligence</div></div><div class="toolbar"><select id="accountFilter"><option value="all">All monitored accounts</option></select><select id="entityCategoryFilter"><option value="all">All categories</option><option value="influencer">Influencers</option><option value="company">Companies</option></select><button id="addSourceBtn" class="primary">+ Add Data Source</button><button id="refresh" class="ghost">Refresh data</button></div></div>
+<div id="app" class="shell hide"><aside class="sidebar"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><div class="muted small">Creative Intelligence Dashboard</div><div class="nav"><button class="on" data-s="overview">◉ Overview</button><button data-s="growth">↗ Growth Analytics</button><button data-s="creative">✦ Creative Explorer</button><button data-s="telegramSources">✈ Telegram Sources</button><button data-s="otherSources">◎ Instagram & Web</button><button data-s="discordSources">◈ Discord Sources</button><button data-s="timing">◷ Posting Intelligence</button><button data-s="quality">✓ Data Quality & AI</button><button data-s="verification">✓ Verification</button><button data-s="contentIdeas">✦ Content Ideas</button>
+<button data-s="userAccess">User Access</button>
+</div><button id="logout" class="ghost" style="width:100%;margin-top:24px">Log out</button></aside><main class="main"><div class="topbar"><div><h1 id="title" style="margin:0">Executive Overview</h1><div class="muted">Observed public competitor intelligence</div></div><div class="toolbar"><select id="accountFilter"><option value="all">All monitored accounts</option></select><select id="entityCategoryFilter"><option value="all">All categories</option><option value="influencer">Influencers</option><option value="company">Companies</option></select><button id="addSourceBtn" class="primary">+ Add Data Source</button><button id="refresh" class="ghost">Refresh data</button></div></div>
+
 
 
 
@@ -404,6 +446,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="creative" class="section"><div class="grid4"><div class="card"><div class="k">Posts Ingested</div><div id="posts" class="v">—</div></div><div class="card"><div class="k">Observed Views</div><div id="views" class="v">—</div></div><div class="card"><div class="k">Competitors With Posts</div><div id="postAccounts" class="v">—</div></div><div class="card"><div class="k">Top Creative</div><div id="topCreative" class="v" style="font-size:18px">—</div><div id="topCreativeSub" class="subv">—</div></div></div><div class="card"><h3>Cross-Competitor Creative Leaderboard</h3><div class="tableWrap"><table><thead><tr><th>Rank</th><th>Competitor</th><th>Post</th><th>Hook</th><th>Theme</th><th>Format</th><th>Views</th><th>View Rate</th><th>Score</th><th>Published</th></tr></thead><tbody id="creativeBody"></tbody></table></div></div></section>
 
 
@@ -431,6 +474,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="timing" class="section">
   <div class="sectionHead"><div><h2>Posting Intelligence</h2><div class="muted small">When competitors post, how much content appears in each hour, and which windows generate the strongest observed performance.</div></div><span class="pill">7-DAY INTELLIGENCE</span></div>
   <div class="grid4">
@@ -451,6 +495,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
@@ -485,6 +530,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
+
 
 
 
@@ -550,6 +596,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="approval" class="section">
   <div class="sectionHead"><div><h2>Approval</h2><div class="muted small">Every post, story and creative generated in the WinTurbo dashboard enters this queue before publishing. Approve means publish; Reject permanently marks the item rejected.</div></div><span class="pill">CONTENT CONTROL</span></div>
   <div class="grid4">
@@ -575,6 +622,47 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
+
+
+<section id="userAccess" class="section">
+  <div class="sectionHead">
+    <div><h2>User Access</h2><div class="muted small">Authorize users by email and control Admin, View Only, or section-specific access.</div></div>
+    <span class="pill">ADMIN ONLY</span>
+  </div>
+  <div class="grid2 accessGrid">
+    <div class="card">
+      <div class="sectionHead"><div><h3 style="margin:0">Authorize User</h3><div class="muted small">The email can be authorized before the person creates or signs into their account.</div></div></div>
+      <input id="accessGrantId" type="hidden">
+      <label class="small muted">Email address</label>
+      <input id="accessEmail" type="email" placeholder="user@example.com" autocomplete="off">
+      <label class="small muted" style="display:block;margin-top:12px">Access level</label>
+      <select id="accessLevel">
+        <option value="admin">Admin — Full dashboard + management</option>
+        <option value="view">View Only — All sections, no changes</option>
+        <option value="section">Section Access — Selected sections only</option>
+      </select>
+      <div id="sectionAccessPicker" class="sectionPicker" style="display:none">
+        <div class="k" style="margin:14px 0 8px">Allowed sections</div>
+        <div id="sectionAccessChecks" class="accessChecks"></div>
+      </div>
+      <label class="accessActive"><input id="accessActive" type="checkbox" checked> <span>Access active</span></label>
+      <div id="accessMsg" class="small muted" style="margin-top:10px"></div>
+      <div class="modalActions"><button id="clearAccessForm" class="ghost">Clear</button><button id="saveAccessGrant" class="primary">Save Access</button></div>
+    </div>
+    <div class="card">
+      <div class="sectionHead"><div><h3 style="margin:0">Access Model</h3><div class="muted small">How permissions work across the dashboard.</div></div></div>
+      <div class="accessRule"><b>Admin</b><span>All sections, data-source management, AI generation, approval and publishing controls, and User Access management.</span></div>
+      <div class="accessRule"><b>View Only</b><span>Can see all dashboard sections and analytics but cannot add sources, generate/queue content, approve, reject, or publish.</span></div>
+      <div class="accessRule"><b>Section Access</b><span>Can only see the selected sections and remains read-only.</span></div>
+      <div class="accessRule"><b>Email authorization</b><span>Pre-authorized emails receive their assigned access when they sign in. Unapproved new accounts stay inactive.</span></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="sectionHead"><div><h3 style="margin:0">Authorized Users</h3><div class="muted small">Edit, deactivate, or revoke dashboard access.</div></div><button id="refreshAccessList" class="ghost">Refresh</button></div>
+    <div class="tableWrap"><table><thead><tr><th>Email</th><th>Access</th><th>Sections</th><th>Status</th><th>Account</th><th>Updated</th><th>Actions</th></tr></thead><tbody id="accessUsersBody"><tr><td colspan="7" class="muted">Loading access grants…</td></tr></tbody></table></div>
+  </div>
+</section>
 
 </main></div>
 <div id="sourceModal" class="modal hide"><div class="modalBox"><div class="sectionHead"><div><h3 style="margin:0">Add Data Source</h3><div class="muted small">Paste a public link. Up to the last 7 days will be backfilled where available.</div></div><button id="closeSource" class="ghost">Close</button></div><label class="small muted">Public URL</label><input id="sourceUrl" placeholder="https://t.me/channelname"><label class="small muted">Source name (optional)</label><input id="sourceName" placeholder="Competitor or channel name"><label class="small muted">Platform</label><select id="sourcePlatform"><option>Telegram</option><option>Instagram</option><option>Discord</option><option>Public Web</option></select><label class="small muted">Entity category</label><select id="sourceEntityCategory"><option value="influencer">Influencer</option><option value="company">Company</option></select><div id="sourceMsg" class="small muted" style="margin-top:8px"></div><div class="modalActions"><button id="saveSource" class="primary">Add & Start Monitoring</button></div></div></div>
@@ -1894,6 +1982,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
 <script>
 /* WINTURBO_CONTENT_GENERATOR_V27_START */
 (function(){
@@ -1998,6 +2087,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 /* WINTURBO_CONTENT_GENERATOR_V27_END */
 </script>
+
 
 
 
@@ -2190,6 +2280,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
 <script>
 /* WINTURBO_ADD_SOURCE_FIX_V30_START */
 (function(){
@@ -2281,6 +2372,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
 <script>
 /* WINTURBO_EXECUTIVE_V26_START */
 (function(){
@@ -2318,6 +2410,66 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 /* WINTURBO_EXECUTIVE_V26_END */
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+/* WINTURBO_EXECUTIVE_V26_START */
+(function(){
+ const $=id=>document.getElementById(id); const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+ const fmt=v=>new Intl.NumberFormat('en-IN').format(Number(v)||0); const dt=v=>v?new Date(v).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}):'—';
+ const set=(id,v)=>{if($(id))$(id).textContent=v}; const sel=()=> $('accountFilter')?.value||'all'; const match=r=>sel()==='all'||r.handle===sel();
+ const safeUrl=v=>{if(!v)return null;let x=String(v).trim();if(!/^https?:\/\//i.test(x))x='https://'+x.replace(/^\/+/, '');return x};
+ async function renderExecutive(){
+   if(typeof sb==='undefined'||!$('overview'))return;
+   const [g,c,sources,success]=await Promise.all([
+     sb.from('competitor_growth_analytics_v3').select('*').order('audience_rank'),
+     sb.from('creative_leaderboard').select('*').order('posted_at',{ascending:false}).limit(1000),
+     sb.from('monitored_sources').select('*').eq('is_active',true).order('created_at',{ascending:false}),
+     sb.from('content_success_intelligence').select('*').order('success_likelihood_score',{ascending:false}).limit(200)
+   ]);
+   const gr=(g.data||[]).filter(match), cr=(c.data||[]).filter(match), src=(sources.data||[]).filter(match), suc=(success.data||[]).filter(match);
+   const cut7=Date.now()-7*864e5,cut24=Date.now()-864e5; const recent=cr.filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut7); const recent24=cr.filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut24);
+   set('accounts',gr.length); set('members',fmt(gr.reduce((a,r)=>a+Number(r.followers_current||0),0))); set('overviewPosts',cr.length);
+   const scored=cr.filter(r=>r.creative_score!=null).sort((a,b)=>Number(b.creative_score)-Number(a.creative_score)); const top=scored[0]; set('overviewTopScore',top?Number(top.creative_score).toFixed(0):'—'); set('overviewTopName',top?.account_name||'No scored posts');
+   const countPlatform=p=>src.filter(x=>String(x.platform||'').toLowerCase()===p).length; const tg=countPlatform('telegram'),ig=countPlatform('instagram'),webc=src.length-tg-ig;
+   set('overviewTelegramLinks',tg);set('overviewInstagramLinks',ig);set('overviewWebLinks',webc);set('overviewTotalLinks',src.length);set('overviewLinkBreakdown',`Telegram ${tg} · Instagram ${ig} · Web ${webc}`);
+   set('posts24h',recent24.length);set('posts24hSub',recent24.length?`${new Set(recent24.map(x=>x.handle).filter(Boolean)).size} channel(s) contributed`:'No posts observed in last 24 hours');
+   const last=src.map(x=>x.last_scraped_at).filter(Boolean).sort().pop();set('lastDataUpdate',last?dt(last):'Waiting for scrape');
+   const topics={};recent.forEach(r=>{const k=r.theme||'Unclassified',x=topics[k]||(topics[k]={topic:k,posts:0,views:0,top:0,scores:[]});x.posts++;x.views+=Number(r.views||0);x.top=Math.max(x.top,Number(r.views||0));if(r.creative_score!=null)x.scores.push(Number(r.creative_score))});
+   const tr=Object.values(topics).map(x=>({...x,avg:x.posts?x.views/x.posts:0,score:x.scores.length?x.scores.reduce((a,b)=>a+b,0)/x.scores.length:null})).sort((a,b)=>b.posts-a.posts||b.views-a.views); const tt=tr[0];set('topTopic',tt?.topic||'No topic data');set('topTopicSub',tt?`${fmt(tt.posts)} posts · ${fmt(tt.views)} views`:'—');
+   const trending=[...recent].sort((a,b)=>Number(b.views||0)-Number(a.views||0));set('topTrendingViews',trending[0]?fmt(trending[0].views):'—');set('topTrendingName',trending[0]?.account_name||'No recent post');
+   const ar=$('audienceRankingList');if(ar)ar.innerHTML=gr.length?gr.slice(0,12).map(r=>`<div class="audienceRow"><div class="audienceRank">#${esc(r.audience_rank??'—')}</div><div class="audienceMeta"><b>${esc(r.account_name||r.handle)}</b><div class="muted small">@${esc(r.handle||'')} · ${fmt(r.posts_7d||0)} posts / 7d${r.avg_views_7d!=null?' · '+fmt(Math.round(r.avg_views_7d))+' avg views':''}</div></div><div class="audienceValue">${fmt(r.followers_current)}</div></div>`).join(''):'<div class="muted">No audience ranking data.</div>';
+   const os=$('overviewSources');if(os){const groups={Telegram:src.filter(x=>String(x.platform).toLowerCase()==='telegram'),Instagram:src.filter(x=>String(x.platform).toLowerCase()==='instagram'),Web:src.filter(x=>!['telegram','instagram'].includes(String(x.platform).toLowerCase()))};os.innerHTML=Object.entries(groups).map(([name,rows])=>`<div class="overviewSourceGroup"><h4>${name} · ${rows.length}</h4>${rows.length?rows.map(x=>{const u=safeUrl(x.source_url);return `<div class="overviewSourceRow"><div><b>${esc(x.source_name||x.handle||x.source_url)}</b><div class="muted small">${esc(x.handle||'')} · ${esc(x.scrape_status||'queued')} · ${x.last_scraped_at?dt(x.last_scraped_at):'not fetched'}</div></div>${u?`<a target="_blank" rel="noopener noreferrer" href="${esc(u)}">Open ↗</a>`:''}</div>`}).join(''):'<div class="muted small">No active links</div>'}</div>`).join('')}
+   const by={};recent.forEach(r=>{const k=r.handle||r.account_name||r.post_url||String(r.id);if(!by[k]||Number(r.views||0)>Number(by[k].views||0))by[k]=r});const per=Object.values(by).sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,12);const ot=$('overviewTrending');if(ot)ot.innerHTML=per.length?per.map((r,i)=>`<div class="trendItem"><div class="trendTop"><div><b>#${i+1} ${esc(r.account_name||r.handle||'Source')}</b><div class="muted small">@${esc(r.handle||'')} · ${dt(r.posted_at)}</div></div><span class="pill blue">${fmt(r.views)} views</span></div><div class="trendText">${esc((r.hook||r.post_text||'Media post').slice(0,160))}</div>${r.post_url?`<div style="margin-top:6px"><a target="_blank" rel="noopener noreferrer" href="${esc(safeUrl(r.post_url))}">Open post ↗</a></div>`:''}</div>`).join(''):'<div class="muted">No recent posts available.</div>';
+   const tb=$('topicBody');if(tb)tb.innerHTML=tr.length?tr.slice(0,15).map((r,i)=>`<tr><td>#${i+1}</td><td><b>${esc(r.topic)}</b></td><td>${fmt(r.posts)}</td><td>${fmt(r.views)}</td><td>${fmt(Math.round(r.avg))}</td><td>${fmt(r.top)}</td><td>${r.score==null?'—':r.score.toFixed(1)}</td><td>${recent.length?((r.posts/recent.length)*100).toFixed(1):'0.0'}%</td></tr>`).join(''):'<tr><td colspan="8" class="muted">No topic analytics available.</td></tr>';
+   const ai=$('aiOverview');if(ai){const bestSuc=suc[0],bestTopic=[...tr].sort((a,b)=>b.avg-a.avg)[0],bestChannel=gr.filter(x=>x.avg_views_7d!=null).sort((a,b)=>Number(b.avg_views_7d)-Number(a.avg_views_7d))[0],bestTime=(await sb.from('posting_intelligence').select('*').order('performance_rank').limit(1)).data?.[0];const learns=[];if(bestSuc)learns.push(`<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">${esc(bestSuc.theme||'Content pattern')} · ${Number(bestSuc.success_likelihood_score||0).toFixed(0)}% likelihood · ${fmt(bestSuc.views||0)} observed views.</div></div>`);if(bestTopic)learns.push(`<div class="aiLearn"><b>Highest-view topic</b><div class="muted small">${esc(bestTopic.topic)} averages ${fmt(Math.round(bestTopic.avg))} views across ${fmt(bestTopic.posts)} posts.</div></div>`);if(bestChannel)learns.push(`<div class="aiLearn"><b>Strongest channel by average views</b><div class="muted small">${esc(bestChannel.account_name||bestChannel.handle)} · ${fmt(Math.round(bestChannel.avg_views_7d))} avg views in the 7-day window.</div></div>`);if(bestTime)learns.push(`<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">${esc(bestTime.post_hour_label||bestTime.post_hour_ist)} · ${bestTime.avg_views==null?'—':fmt(Math.round(bestTime.avg_views))} avg views.</div></div>`);ai.innerHTML=learns.join('')||'<div class="muted">Not enough current evidence for AI learnings.</div>'}
+ }
+ function boot(){renderExecutive();setTimeout(renderExecutive,900);document.getElementById('accountFilter')?.addEventListener('change',renderExecutive);document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(renderExecutive,150));}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();window.WinTurboExecutiveRefresh=renderExecutive;
+})();
+/* WINTURBO_EXECUTIVE_V26_END */
+</script>
+
+
+
 
 
 
@@ -2914,6 +3066,144 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   setTimeout(enforce,300);setTimeout(enforce,1200);
 })();
 /* WINTURBO_MEDIA_ROUTING_V32_END */
+</script>
+
+
+<script>
+/* WINTURBO_USER_ACCESS_V33_START */
+(function(){
+  const q=id=>document.getElementById(id);
+  const escA=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  const SECTIONS=[
+    ['overview','Executive Overview'],['growth','Growth Analytics'],['creative','Creative Explorer'],
+    ['telegramSources','Telegram Sources'],['otherSources','Instagram & Web'],['discordSources','Discord Sources'],
+    ['timing','Posting Intelligence'],['quality','Data Quality & AI'],['verification','Verification'],
+    ['contentIdeas','Content Ideas'],['approval','Approval']
+  ];
+  let accessContext=null;
+  let accessRows=[];
+
+  function setAccessMessage(msg,isErr=false){const el=q('accessMsg');if(el){el.textContent=msg||'';el.className='small '+(isErr?'error':'muted')}}
+  function levelLabel(v){return v==='admin'?'Admin':v==='section'?'Section Access':'View Only'}
+  function showSectionDirect(id){
+    document.querySelectorAll('main.main > section.section').forEach(sec=>{const on=sec.id===id;sec.classList.toggle('on',on);sec.style.setProperty('display',on?'block':'none','important')});
+    document.querySelectorAll('.nav button[data-s]').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
+    const title=q('title');if(title)title.textContent=id==='userAccess'?'User Access':(SECTIONS.find(x=>x[0]===id)?.[1]||id);
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  function allowedSet(ctx){
+    if(ctx?.access_level==='admin'||ctx?.access_level==='view')return new Set(SECTIONS.map(x=>x[0]));
+    return new Set((ctx?.allowed_sections||[]).filter(x=>SECTIONS.some(s=>s[0]===x)));
+  }
+  function setReadOnlyUI(readOnly){
+    document.getElementById('accessReadOnlyNote')?.remove();
+    const selectors=['#addSourceBtn','#addSourceInline','#addDiscordSource','#saveSource','#generateIdeaContent','#regenerateIdeaContent','#regenerateCreativeOnly','#publishIdeaTelegram','#publishTelegram','.approveQueue','.rejectQueue','.publishQueue','.recGenerate','.recApprove','.qualityGenerate','.qualitySendApproval'];
+    document.querySelectorAll(selectors.join(',')).forEach(el=>{el.style.display=readOnly?'none':'';el.disabled=!!readOnly});
+    if(readOnly){const n=document.createElement('div');n.id='accessReadOnlyNote';n.className='accessReadOnlyNote';n.textContent='VIEW ONLY ACCESS';document.body.appendChild(n)}
+  }
+  function applyAccessUI(ctx){
+    accessContext=ctx;
+    const admin=ctx?.access_level==='admin';
+    const allowed=allowedSet(ctx);
+    document.querySelectorAll('.nav button[data-s]').forEach(b=>{
+      const id=b.dataset.s;
+      b.style.display=(id==='userAccess'?admin:allowed.has(id))?'':'none';
+    });
+    const ua=q('userAccess');if(ua)ua.style.display='none';
+    setReadOnlyUI(!admin);
+    const current=document.querySelector('main.main > section.section.on')?.id;
+    if(current==='userAccess'&&!admin)showSectionDirect([...allowed][0]||'overview');
+    else if(current&&!allowed.has(current)&&current!=='userAccess')showSectionDirect([...allowed][0]||'overview');
+  }
+
+  async function loadCurrentAccess(){
+    const {data:{user}}=await sb.auth.getUser();
+    if(!user)return null;
+    const [{data:profile},{data:grant}]=await Promise.all([
+      sb.from('profiles').select('id,email,role,is_active').eq('id',user.id).maybeSingle(),
+      sb.from('user_access_grants').select('*').ilike('email',user.email||'').maybeSingle()
+    ]);
+    if(profile?.role==='admin'&&profile?.is_active!==false&&!grant)return {email:user.email,access_level:'admin',allowed_sections:[],is_active:true};
+    if(!profile?.is_active||!grant?.is_active)return null;
+    return grant;
+  }
+  async function enforceAccess(){
+    const ctx=await loadCurrentAccess();
+    const {data:{user}}=await sb.auth.getUser();
+    if(!user)return;
+    if(!ctx){
+      q('app')?.classList.add('hide');q('login')?.classList.remove('hide');
+      if(q('msg'))q('msg').textContent='This email is not authorized for dashboard access. Ask an administrator to add it in User Access.';
+      await sb.auth.signOut();return;
+    }
+    q('login')?.classList.add('hide');q('app')?.classList.remove('hide');
+    applyAccessUI(ctx);
+    if(ctx.access_level==='admin')await renderAccessUsers();
+  }
+
+  function buildSectionChecks(){
+    const host=q('sectionAccessChecks');if(!host)return;
+    host.innerHTML=SECTIONS.map(([id,label])=>`<label class="accessCheck"><input type="checkbox" value="${escA(id)}"> <span>${escA(label)}</span></label>`).join('');
+  }
+  function syncLevelPicker(){const wrap=q('sectionAccessPicker');if(wrap)wrap.style.display=q('accessLevel')?.value==='section'?'block':'none'}
+  function clearForm(){if(q('accessGrantId'))q('accessGrantId').value='';if(q('accessEmail'))q('accessEmail').value='';if(q('accessLevel'))q('accessLevel').value='view';if(q('accessActive'))q('accessActive').checked=true;document.querySelectorAll('#sectionAccessChecks input').forEach(x=>x.checked=false);syncLevelPicker();setAccessMessage('')}
+  function editGrant(id){
+    const g=accessRows.find(x=>x.id===id);if(!g)return;
+    q('accessGrantId').value=g.id;q('accessEmail').value=g.email||'';q('accessLevel').value=g.access_level||'view';q('accessActive').checked=g.is_active!==false;
+    const set=new Set(g.allowed_sections||[]);document.querySelectorAll('#sectionAccessChecks input').forEach(x=>x.checked=set.has(x.value));syncLevelPicker();setAccessMessage('Editing '+g.email);
+    q('accessEmail')?.focus();
+  }
+  async function saveGrant(){
+    const email=(q('accessEmail')?.value||'').trim().toLowerCase();const level=q('accessLevel')?.value||'view';const active=!!q('accessActive')?.checked;
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){setAccessMessage('Enter a valid email address.',true);return}
+    const sections=level==='section'?[...document.querySelectorAll('#sectionAccessChecks input:checked')].map(x=>x.value):[];
+    if(level==='section'&&!sections.length){setAccessMessage('Select at least one section for Section Access.',true);return}
+    const btn=q('saveAccessGrant');if(btn){btn.disabled=true;btn.textContent='Saving…'};setAccessMessage('Saving access…');
+    try{
+      const id=q('accessGrantId')?.value;
+      let error;
+      if(id){({error}=await sb.from('user_access_grants').update({email,access_level:level,allowed_sections:sections,is_active:active}).eq('id',id));}
+      else{
+        const {data:existing}=await sb.from('user_access_grants').select('id').ilike('email',email).maybeSingle();
+        if(existing?.id)({error}=await sb.from('user_access_grants').update({access_level:level,allowed_sections:sections,is_active:active}).eq('id',existing.id));
+        else {const {data:{user}}=await sb.auth.getUser();({error}=await sb.from('user_access_grants').insert({email,access_level:level,allowed_sections:sections,is_active:active,granted_by:user?.id||null}));}
+      }
+      if(error)throw error;
+      setAccessMessage('Access saved successfully.');clearForm();await renderAccessUsers();
+    }catch(e){setAccessMessage(e?.message||String(e),true)}finally{if(btn){btn.disabled=false;btn.textContent='Save Access'}}
+  }
+  async function revokeGrant(id){if(!confirm('Deactivate this user\'s dashboard access?'))return;const {error}=await sb.from('user_access_grants').update({is_active:false}).eq('id',id);if(error)alert(error.message);else await renderAccessUsers()}
+  async function deleteGrant(id){if(!confirm('Permanently remove this access grant? The linked profile will be deactivated.'))return;const {error}=await sb.from('user_access_grants').delete().eq('id',id);if(error)alert(error.message);else await renderAccessUsers()}
+  async function renderAccessUsers(){
+    if(accessContext?.access_level!=='admin')return;
+    const {data,error}=await sb.from('user_access_grants').select('*').order('updated_at',{ascending:false});
+    const body=q('accessUsersBody');if(error){if(body)body.innerHTML=`<tr><td colspan="7" class="error">${escA(error.message)}</td></tr>`;return}
+    accessRows=data||[];
+    if(body)body.innerHTML=accessRows.length?accessRows.map(g=>{
+      const secs=g.access_level==='section'?(g.allowed_sections||[]).map(id=>SECTIONS.find(x=>x[0]===id)?.[1]||id).join(', '):'All dashboard sections';
+      return `<tr><td><b>${escA(g.email)}</b></td><td><span class="pill ${g.access_level==='admin'?'':'blue'}">${escA(levelLabel(g.access_level))}</span></td><td>${escA(secs)}</td><td>${g.is_active?'<span class="pill">ACTIVE</span>':'<span class="pill orange">INACTIVE</span>'}</td><td>${g.user_id?'Linked':'Pre-authorized'}</td><td>${g.updated_at?new Date(g.updated_at).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}):'—'}</td><td><div class="recActions"><button class="mini accessEdit" data-id="${escA(g.id)}">Edit</button><button class="mini accessRevoke" data-id="${escA(g.id)}">Deactivate</button><button class="mini accessDelete" data-id="${escA(g.id)}">Remove</button></div></td></tr>`;
+    }).join(''):'<tr><td colspan="7" class="muted">No authorized users yet.</td></tr>';
+  }
+
+  function bind(){
+    buildSectionChecks();syncLevelPicker();
+    q('accessLevel')?.addEventListener('change',syncLevelPicker);
+    q('clearAccessForm')?.addEventListener('click',clearForm);
+    q('saveAccessGrant')?.addEventListener('click',saveGrant);
+    q('refreshAccessList')?.addEventListener('click',renderAccessUsers);
+    document.addEventListener('click',e=>{
+      const nav=e.target.closest?.('.nav button[data-s="userAccess"]');if(nav){e.preventDefault();e.stopPropagation();if(accessContext?.access_level==='admin'){showSectionDirect('userAccess');renderAccessUsers()}return}
+      const edit=e.target.closest?.('.accessEdit');if(edit){e.preventDefault();editGrant(edit.dataset.id);return}
+      const rev=e.target.closest?.('.accessRevoke');if(rev){e.preventDefault();revokeGrant(rev.dataset.id);return}
+      const del=e.target.closest?.('.accessDelete');if(del){e.preventDefault();deleteGrant(del.dataset.id);return}
+    },false);
+    const login=q('loginBtn');if(login){login.onclick=async()=>{if(q('msg'))q('msg').textContent='Signing in…';const {data,error}=await sb.auth.signInWithPassword({email:q('email').value.trim(),password:q('pass').value});if(error){if(q('msg'))q('msg').textContent=error.message;return}if(data?.user){const ctx=await loadCurrentAccess();if(!ctx){if(q('msg'))q('msg').textContent='This email is not authorized for dashboard access.';await sb.auth.signOut();return}if(typeof showApp==='function')showApp();applyAccessUI(ctx);if(ctx.access_level==='admin')renderAccessUsers();}}}
+    sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session?.user)setTimeout(enforceAccess,0)});
+    setTimeout(enforceAccess,100);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+/* WINTURBO_USER_ACCESS_V33_END */
 </script>
 
 </body>
