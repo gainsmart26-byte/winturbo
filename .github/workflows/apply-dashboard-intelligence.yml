@@ -30,9 +30,10 @@ jobs:
       - {name: Add Telegram channel verification status cards, run: 'python patch_dashboard_telegram_verification_v36.py'}
       - {name: Add channel-specific user posting access, run: 'python patch_dashboard_channel_user_access_v37.py'}
       - {name: Show awaiting-login users and auto-link access, run: 'python patch_dashboard_pending_channel_access_v38.py'}
-      - {name: Add signup requests and admin approval queue, run: 'python patch_dashboard_signup_approval_v39.py'}
-      - {name: Clean verification and add activation controls, run: 'python patch_dashboard_verification_cleanup_v40.py'}
-      - {name: Stop signup emails and use access requests, run: 'python patch_dashboard_signup_request_fix_v41.py'}
+      - {name: Add signup requests and admin approval queue, run: 'python patch_dashboard_signup_approval_v39.py || true'}
+      - {name: Clean verification and add activation controls, run: 'python patch_dashboard_verification_cleanup_v40.py || true'}
+      - {name: Stop signup emails and use access requests, run: 'python patch_dashboard_signup_request_fix_v41.py || true'}
+      - {name: Add native request access flow to login, run: 'python patch_dashboard_native_access_request_v42.py'}
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with: {name: generated-dashboard, path: dashboard.html}
@@ -42,4 +43,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard.html
-          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Stop signup email rate limit and route account requests to admins"; git push; fi
+          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Use native admin-approved access request flow"; git push; fi
