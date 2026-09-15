@@ -37,6 +37,7 @@ jobs:
       - {name: Clarify Telegram and Instagram posting authorization, run: 'python patch_dashboard_channel_authorization_v43.py'}
       - {name: Add approved-user password registration, run: 'python patch_dashboard_complete_registration_v44.py'}
       - {name: Filter authorization users and fix registration handler, run: 'python patch_dashboard_registration_and_channel_users_v45.py'}
+      - {name: Route Content Ideas to authorized channels for approval, run: 'python patch_dashboard_content_channel_approval_v46.py'}
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with: {name: generated-dashboard, path: dashboard.html}
@@ -46,4 +47,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard.html
-          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Fix approved registration and channel authorization users"; git push; fi
+          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Route Content Ideas to authorized publishing accounts"; git push; fi
