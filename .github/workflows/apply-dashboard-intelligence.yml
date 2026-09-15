@@ -1,28 +1,9 @@
 name: Build WinTurbo dashboard
-
 on:
   push:
     paths:
       - '.github/workflows/apply-dashboard-intelligence.yml'
-      - 'patch_dashboard_redesign_v20.py'
-      - 'patch_dashboard_quality_v21.py'
-      - 'patch_dashboard_data_runtime_v22.py'
-      - 'patch_dashboard_workflow_v23.py'
-      - 'patch_dashboard_posting_identity_v24.py'
-      - 'patch_dashboard_approval_v25.py'
-      - 'patch_dashboard_executive_summary_v26.py'
-      - 'patch_dashboard_content_generator_v27.py'
-      - 'patch_dashboard_discord_sources_v28.py'
-      - 'patch_dashboard_entity_categories_v29.py'
-      - 'patch_dashboard_add_source_fix_v30.py'
-      - 'patch_dashboard_quality_actions_v31.py'
-      - 'patch_dashboard_media_routing_v32.py'
-      - 'patch_dashboard_user_access_v33.py'
-      - 'patch_dashboard_publishing_access_v34.py'
-      - 'patch_dashboard_channel_workflow_v35.py'
-      - 'patch_dashboard_telegram_verification_v36.py'
-      - 'patch_dashboard_channel_user_access_v37.py'
-      - 'patch_dashboard_pending_channel_access_v38.py'
+      - 'patch_dashboard_*.py'
 permissions:
   contents: write
 jobs:
@@ -49,6 +30,7 @@ jobs:
       - {name: Add Telegram channel verification status cards, run: 'python patch_dashboard_telegram_verification_v36.py'}
       - {name: Add channel-specific user posting access, run: 'python patch_dashboard_channel_user_access_v37.py'}
       - {name: Show awaiting-login users and auto-link access, run: 'python patch_dashboard_pending_channel_access_v38.py'}
+      - {name: Add signup requests and admin approval queue, run: 'python patch_dashboard_signup_approval_v39.py'}
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with: {name: generated-dashboard, path: dashboard.html}
@@ -58,4 +40,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard.html
-          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Show awaiting-login users in channel posting access"; git push; fi
+          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Add admin-approved dashboard account signup"; git push; fi
