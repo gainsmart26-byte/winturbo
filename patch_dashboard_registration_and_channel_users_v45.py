@@ -1,0 +1,13 @@
+from pathlib import Path
+p=Path('dashboard.html');s=p.read_text(encoding='utf-8');M='WINTURBO_REGISTRATION_CHANNEL_FILTER_V45'
+if M in s: raise SystemExit(0)
+js=r'''<script>/* WINTURBO_REGISTRATION_CHANNEL_FILTER_V45 */
+(function(){
+ const $=x=>document.getElementById(x);
+ async function refreshChannelUsers(){const sel=$('channelAccessUserV37');if(!sel)return;const r=await sb.from('user_access_grants').select('email,user_id,access_level,is_active').eq('is_active',true).not('user_id','is',null).order('email');if(r.error)return;const current=sel.value;sel.innerHTML='<option value="">Select registered authorized user</option>'+((r.data||[]).map(x=>`<option value="${x.user_id}">${x.email} · ${x.access_level}</option>`).join(''));if([...sel.options].some(o=>o.value===current))sel.value=current}
+ async function approvedStatus(email){const r=await sb.functions.invoke('request-dashboard-access',{body:{action:'status',email}});if(r.error)throw r.error;return r.data?.status||'none'}
+ async function completeRegistration(){const email=($('registrationEmailV44')?.value||$('email')?.value||'').trim().toLowerCase(),password=$('registrationPasswordV44')?.value||'',m=$('registrationMsgV44');if(!m)return;if(!email||password.length<8){m.textContent='Enter your approved email and a password of at least 8 characters.';return}try{const st=await approvedStatus(email);if(st!=='approved'){m.textContent=st==='pending'?'Your access request is still pending.':'This email has not been approved.';return}m.textContent='Creating your login account…';const r=await sb.auth.signUp({email,password,options:{data:{approved_dashboard_access:true}}});if(r.error)throw r.error;if(r.data?.user){m.textContent=r.data.session?'Account activated ✓ Opening dashboard…':'Account created ✓ Complete email confirmation if requested, then use Log in.';if(r.data.session)setTimeout(()=>location.reload(),800)}else m.textContent='Registration did not create an account. Please try again.'}catch(err){m.textContent=err.message||String(err)}}
+ document.addEventListener('click',e=>{if(e.target?.id==='completeRegistrationV44'){e.preventDefault();e.stopImmediatePropagation();completeRegistration()}},true);
+ async function init(){await refreshChannelUsers();setTimeout(refreshChannelUsers,1800)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();</script>'''
+s=s.replace('</body>',js+'\n</body>',1);p.write_text(s,encoding='utf-8')
