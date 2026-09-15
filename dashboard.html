@@ -403,6 +403,32 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+/* Quality-only components are never visible outside the quality section. */
+main.main > section.section:not(#quality) .qualityHero,
+main.main > section.section:not(#quality) .qualitySummary,
+main.main > section.section:not(#quality) .qualityMetric,
+main.main > section.section:not(#quality) .qualityGrid,
+main.main > section.section:not(#quality) .qualityPanel,
+main.main > section.section:not(#quality) .qualityRecommendations,
+main.main > section.section:not(#quality) #aiRecommendations,
+main.main > section.section:not(#quality) #qualityRules,
+main.main > section.section:not(#quality) #qualitySources{display:none!important}
+@media(max-width:1150px){#quality .qualitySummary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:800px){#quality .qualitySummary,#quality .qualityGrid{grid-template-columns:1fr}}
+
+
+
+/* WINTURBO_APPROVAL_V25_CSS */
+.statusRejected{color:#ff9b9b}.approvalMeta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:10px 0}.approvalMeta div{background:#09100b;border:1px solid var(--line);border-radius:9px;padding:8px}.approvalMeta b{display:block;font-size:11px}.approvalMeta span{font-size:10px;color:var(--muted)}
+
+
+/* WINTURBO_EXECUTIVE_V26_CSS */
+.audienceRow,.overviewSourceRow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.audienceRow:last-child,.overviewSourceRow:last-child{border-bottom:0}.audienceRank{width:30px;font-weight:900;color:var(--green)}
+.audienceMeta{flex:1}.audienceValue{text-align:right;font-weight:850}.overviewSourceGroup{margin-bottom:14px}.overviewSourceGroup h4{margin:0 0 7px;color:#b9ffc9}.trendItem{padding:11px 0;border-bottom:1px solid var(--line)}.trendItem:last-child{border-bottom:0}.trendTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.trendText{margin-top:6px}.aiLearn{padding:11px 0;border-bottom:1px solid var(--line)}.aiLearn:last-child{border-bottom:0}
+
+
+
 /* WINTURBO_REDESIGN_V20_CSS */
 :root{--bg:#070a08;--panel:#101611;--panel2:#0c120e;--line:#233027;--text:#f5f7f5;--muted:#8fa097;--green:#42e36c;--orange:#ff9d2e;--red:#ff6666;--blue:#67b7ff;--shadow:0 16px 42px rgba(0,0,0,.22)}
 body{background:radial-gradient(circle at 72% -15%,rgba(66,227,108,.08),transparent 32%),var(--bg)}
@@ -517,10 +543,11 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 </style>
 </head>
 <body>
-<div id="login" class="login"><div class="loginBox"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><p class="muted">Creative Intelligence Dashboard</p><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Password"><button id="loginBtn" class="primary" style="width:100%;margin-top:8px">Log in</button><p id="msg" class="muted small"></p></div></div>
+<div id="login" class="login"><div class="loginBox"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><p class="muted">Creative Intelligence Dashboard</p><input id="email" type="email" placeholder="Email"><input id="pass" type="password" placeholder="Password"><button id="loginBtn" class="primary" style="width:100%;margin-top:8px">Log in</button><p id="msg" class="muted small"></p><div id="nativeAccessRequestV42" style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px"><button id="showAccessRequestV42" class="ghost" style="width:100%">Request Access</button><div id="accessRequestFormV42" style="display:none;gap:8px;margin-top:10px"><input id="accessNameV42" placeholder="Full name"><input id="accessEmailV42" type="email" placeholder="Email"><button id="submitAccessRequestV42" class="primary" style="width:100%">Submit Access Request</button><div class="muted small">Your request goes to a WinTurbo administrator for approval. No signup or confirmation email is sent now.</div><div id="accessRequestMsgV42" class="muted small"></div></div></div></div></div>
 <div id="app" class="shell hide"><aside class="sidebar"><div class="brand"><span class="win">WIN</span><span class="turbo">TURBO</span></div><div class="muted small">Creative Intelligence Dashboard</div><div class="nav"><button class="on" data-s="overview">◉ Overview</button><button data-s="growth">↗ Growth Analytics</button><button data-s="creative">✦ Creative Explorer</button><button data-s="telegramSources">✈ Telegram Sources</button><button data-s="otherSources">◎ Instagram & Web</button><button data-s="discordSources">◈ Discord Sources</button><button data-s="timing">◷ Posting Intelligence</button><button data-s="quality">✓ Data Quality & AI</button><button data-s="verification">✓ Verification</button><button data-s="contentIdeas">✦ Content Ideas</button>
 <button data-s="userAccess">User Access</button>
 </div><button id="logout" class="ghost" style="width:100%;margin-top:24px">Log out</button></aside><main class="main"><div class="topbar"><div><h1 id="title" style="margin:0">Executive Overview</h1><div class="muted">Observed public competitor intelligence</div></div><div class="toolbar"><select id="accountFilter"><option value="all">All monitored accounts</option></select><select id="entityCategoryFilter"><option value="all">All categories</option><option value="influencer">Influencers</option><option value="company">Companies</option></select><button id="addSourceBtn" class="primary">+ Add Data Source</button><button id="refresh" class="ghost">Refresh data</button></div></div>
+
 
 
 
@@ -597,6 +624,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="creative" class="section"><div class="grid4"><div class="card"><div class="k">Posts Ingested</div><div id="posts" class="v">—</div></div><div class="card"><div class="k">Observed Views</div><div id="views" class="v">—</div></div><div class="card"><div class="k">Competitors With Posts</div><div id="postAccounts" class="v">—</div></div><div class="card"><div class="k">Top Creative</div><div id="topCreative" class="v" style="font-size:18px">—</div><div id="topCreativeSub" class="subv">—</div></div></div><div class="card"><h3>Cross-Competitor Creative Leaderboard</h3><div class="tableWrap"><table><thead><tr><th>Rank</th><th>Competitor</th><th>Post</th><th>Hook</th><th>Theme</th><th>Format</th><th>Views</th><th>View Rate</th><th>Score</th><th>Published</th></tr></thead><tbody id="creativeBody"></tbody></table></div></div></section>
 
 
@@ -619,6 +647,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
   </div>
   <div class="card" style="margin-top:14px"><div class="sectionHead"><div><h3>Discord Analytics Coverage</h3><div class="muted small">Once collected, Discord messages automatically participate in Creative Explorer, Posting Intelligence, Content Topic Analytics and AI recommendations.</div></div></div><div id="discordCoverage" class="muted small">Waiting for an accessible Discord channel.</div></div>
 </section>
+
 
 
 
@@ -656,6 +685,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
@@ -690,6 +720,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
 <section id="telegramSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Telegram Links</div><div id="tgSourceCount" class="v">—</div></div><div class="card"><div class="k">Telegram Posts · 7D</div><div id="tgPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Telegram Update</div><div id="tgLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collector</div><div class="v" style="font-size:18px">Public + Auth Fallback</div><div class="subv">Only authorized/publicly accessible data</div></div></div><div class="card"><div class="sectionHead"><div><h3>Telegram Source Intelligence</h3><div class="muted small">Telegram links, collection status and observed post coverage.</div></div><span class="pill">TELEGRAM</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Handle</th><th>Status</th><th>Last Updated</th><th>Posts · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="tgSourcesBody"></tbody></table></div></div></section>
 <section id="otherSources" class="section"><div class="grid4"><div class="card"><div class="k">Active Instagram/Web Links</div><div id="otherSourceCount" class="v">—</div></div><div class="card"><div class="k">Posts / Items · 7D</div><div id="otherPostCount" class="v">—</div></div><div class="card"><div class="k">Latest Source Update</div><div id="otherLastUpdate" class="v" style="font-size:18px">—</div></div><div class="card"><div class="k">Collectors</div><div class="v" style="font-size:18px">Apify + Firecrawl</div><div class="subv">Instagram and general web collection</div></div></div><div class="card"><div class="sectionHead"><div><h3>Instagram & Web Source Intelligence</h3><div class="muted small">Non-Telegram source coverage, status and observed content.</div></div><span class="pill blue">MULTI-SOURCE</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Last Updated</th><th>Items · 7D</th><th>Top Recent Views</th><th>Open</th></tr></thead><tbody id="otherSourcesBody"></tbody></table></div></div></section>
+
 
 
 
@@ -767,6 +798,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 
 
+
 <section id="approval" class="section">
   <div class="sectionHead"><div><h2>Approval</h2><div class="muted small">Every post, story and creative generated in the WinTurbo dashboard enters this queue before publishing. Approve means publish; Reject permanently marks the item rejected.</div></div><span class="pill">CONTENT CONTROL</span></div>
   <div class="grid4">
@@ -784,6 +816,10 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
   <div class="sectionHead" style="margin-top:24px"><div><h3>Failed</h3><div class="muted small">Items that could not be published.</div></div></div>
   <div id="approvalFailedCards" class="approvalGrid"><div class="muted">Loading failed content…</div></div>
 </section>
+
+
+
+
 
 
 
@@ -2178,6 +2214,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
 <script>
 /* WINTURBO_CONTENT_GENERATOR_V27_START */
 (function(){
@@ -2282,6 +2319,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 /* WINTURBO_CONTENT_GENERATOR_V27_END */
 </script>
+
 
 
 
@@ -2486,6 +2524,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 
 
+
 <script>
 /* WINTURBO_ADD_SOURCE_FIX_V30_START */
 (function(){
@@ -2561,6 +2600,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 /* WINTURBO_ADD_SOURCE_FIX_V30_END */
 </script>
+
 
 
 
@@ -3082,6 +3122,94 @@ async function render(uid){if(!uid){$('channelAccessGridV37').innerHTML='<div cl
 async function save(row){const uid=$('channelAccessUserV37').value;if(!uid)return;const obj={user_id:uid,publishing_account_id:row.dataset.account};row.querySelectorAll('[data-k]').forEach(i=>obj[i.dataset.k]=i.checked);const r=await sb.from('user_publishing_account_access').upsert(obj,{onConflict:'user_id,publishing_account_id'});if(r.error)alert(r.error.message);else{const b=row.querySelector('button');b.textContent='Saved ✓';setTimeout(()=>b.textContent='Save',1200)}}
 $('channelAccessUserV37')?.addEventListener('change',e=>render(e.target.value));document.addEventListener('click',e=>{const b=e.target.closest?.('.saveChannelAccessV37');if(b)save(b.closest('.channelAccessRow'))});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>init().catch(console.error),{once:true});else init().catch(console.error);})();
 /* WINTURBO_CHANNEL_USER_ACCESS_V37_END */</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+/* WINTURBO_EXECUTIVE_V26_START */
+(function(){
+ const $=id=>document.getElementById(id); const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+ const fmt=v=>new Intl.NumberFormat('en-IN').format(Number(v)||0); const dt=v=>v?new Date(v).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}):'—';
+ const set=(id,v)=>{if($(id))$(id).textContent=v}; const sel=()=> $('accountFilter')?.value||'all'; const match=r=>sel()==='all'||r.handle===sel();
+ const safeUrl=v=>{if(!v)return null;let x=String(v).trim();if(!/^https?:\/\//i.test(x))x='https://'+x.replace(/^\/+/, '');return x};
+ async function renderExecutive(){
+   if(typeof sb==='undefined'||!$('overview'))return;
+   const [g,c,sources,success]=await Promise.all([
+     sb.from('competitor_growth_analytics_v3').select('*').order('audience_rank'),
+     sb.from('creative_leaderboard').select('*').order('posted_at',{ascending:false}).limit(1000),
+     sb.from('monitored_sources').select('*').eq('is_active',true).order('created_at',{ascending:false}),
+     sb.from('content_success_intelligence').select('*').order('success_likelihood_score',{ascending:false}).limit(200)
+   ]);
+   const gr=(g.data||[]).filter(match), cr=(c.data||[]).filter(match), src=(sources.data||[]).filter(match), suc=(success.data||[]).filter(match);
+   const cut7=Date.now()-7*864e5,cut24=Date.now()-864e5; const recent=cr.filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut7); const recent24=cr.filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut24);
+   set('accounts',gr.length); set('members',fmt(gr.reduce((a,r)=>a+Number(r.followers_current||0),0))); set('overviewPosts',cr.length);
+   const scored=cr.filter(r=>r.creative_score!=null).sort((a,b)=>Number(b.creative_score)-Number(a.creative_score)); const top=scored[0]; set('overviewTopScore',top?Number(top.creative_score).toFixed(0):'—'); set('overviewTopName',top?.account_name||'No scored posts');
+   const countPlatform=p=>src.filter(x=>String(x.platform||'').toLowerCase()===p).length; const tg=countPlatform('telegram'),ig=countPlatform('instagram'),webc=src.length-tg-ig;
+   set('overviewTelegramLinks',tg);set('overviewInstagramLinks',ig);set('overviewWebLinks',webc);set('overviewTotalLinks',src.length);set('overviewLinkBreakdown',`Telegram ${tg} · Instagram ${ig} · Web ${webc}`);
+   set('posts24h',recent24.length);set('posts24hSub',recent24.length?`${new Set(recent24.map(x=>x.handle).filter(Boolean)).size} channel(s) contributed`:'No posts observed in last 24 hours');
+   const last=src.map(x=>x.last_scraped_at).filter(Boolean).sort().pop();set('lastDataUpdate',last?dt(last):'Waiting for scrape');
+   const topics={};recent.forEach(r=>{const k=r.theme||'Unclassified',x=topics[k]||(topics[k]={topic:k,posts:0,views:0,top:0,scores:[]});x.posts++;x.views+=Number(r.views||0);x.top=Math.max(x.top,Number(r.views||0));if(r.creative_score!=null)x.scores.push(Number(r.creative_score))});
+   const tr=Object.values(topics).map(x=>({...x,avg:x.posts?x.views/x.posts:0,score:x.scores.length?x.scores.reduce((a,b)=>a+b,0)/x.scores.length:null})).sort((a,b)=>b.posts-a.posts||b.views-a.views); const tt=tr[0];set('topTopic',tt?.topic||'No topic data');set('topTopicSub',tt?`${fmt(tt.posts)} posts · ${fmt(tt.views)} views`:'—');
+   const trending=[...recent].sort((a,b)=>Number(b.views||0)-Number(a.views||0));set('topTrendingViews',trending[0]?fmt(trending[0].views):'—');set('topTrendingName',trending[0]?.account_name||'No recent post');
+   const ar=$('audienceRankingList');if(ar)ar.innerHTML=gr.length?gr.slice(0,12).map(r=>`<div class="audienceRow"><div class="audienceRank">#${esc(r.audience_rank??'—')}</div><div class="audienceMeta"><b>${esc(r.account_name||r.handle)}</b><div class="muted small">@${esc(r.handle||'')} · ${fmt(r.posts_7d||0)} posts / 7d${r.avg_views_7d!=null?' · '+fmt(Math.round(r.avg_views_7d))+' avg views':''}</div></div><div class="audienceValue">${fmt(r.followers_current)}</div></div>`).join(''):'<div class="muted">No audience ranking data.</div>';
+   const os=$('overviewSources');if(os){const groups={Telegram:src.filter(x=>String(x.platform).toLowerCase()==='telegram'),Instagram:src.filter(x=>String(x.platform).toLowerCase()==='instagram'),Web:src.filter(x=>!['telegram','instagram'].includes(String(x.platform).toLowerCase()))};os.innerHTML=Object.entries(groups).map(([name,rows])=>`<div class="overviewSourceGroup"><h4>${name} · ${rows.length}</h4>${rows.length?rows.map(x=>{const u=safeUrl(x.source_url);return `<div class="overviewSourceRow"><div><b>${esc(x.source_name||x.handle||x.source_url)}</b><div class="muted small">${esc(x.handle||'')} · ${esc(x.scrape_status||'queued')} · ${x.last_scraped_at?dt(x.last_scraped_at):'not fetched'}</div></div>${u?`<a target="_blank" rel="noopener noreferrer" href="${esc(u)}">Open ↗</a>`:''}</div>`}).join(''):'<div class="muted small">No active links</div>'}</div>`).join('')}
+   const by={};recent.forEach(r=>{const k=r.handle||r.account_name||r.post_url||String(r.id);if(!by[k]||Number(r.views||0)>Number(by[k].views||0))by[k]=r});const per=Object.values(by).sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,12);const ot=$('overviewTrending');if(ot)ot.innerHTML=per.length?per.map((r,i)=>`<div class="trendItem"><div class="trendTop"><div><b>#${i+1} ${esc(r.account_name||r.handle||'Source')}</b><div class="muted small">@${esc(r.handle||'')} · ${dt(r.posted_at)}</div></div><span class="pill blue">${fmt(r.views)} views</span></div><div class="trendText">${esc((r.hook||r.post_text||'Media post').slice(0,160))}</div>${r.post_url?`<div style="margin-top:6px"><a target="_blank" rel="noopener noreferrer" href="${esc(safeUrl(r.post_url))}">Open post ↗</a></div>`:''}</div>`).join(''):'<div class="muted">No recent posts available.</div>';
+   const tb=$('topicBody');if(tb)tb.innerHTML=tr.length?tr.slice(0,15).map((r,i)=>`<tr><td>#${i+1}</td><td><b>${esc(r.topic)}</b></td><td>${fmt(r.posts)}</td><td>${fmt(r.views)}</td><td>${fmt(Math.round(r.avg))}</td><td>${fmt(r.top)}</td><td>${r.score==null?'—':r.score.toFixed(1)}</td><td>${recent.length?((r.posts/recent.length)*100).toFixed(1):'0.0'}%</td></tr>`).join(''):'<tr><td colspan="8" class="muted">No topic analytics available.</td></tr>';
+   const ai=$('aiOverview');if(ai){const bestSuc=suc[0],bestTopic=[...tr].sort((a,b)=>b.avg-a.avg)[0],bestChannel=gr.filter(x=>x.avg_views_7d!=null).sort((a,b)=>Number(b.avg_views_7d)-Number(a.avg_views_7d))[0],bestTime=(await sb.from('posting_intelligence').select('*').order('performance_rank').limit(1)).data?.[0];const learns=[];if(bestSuc)learns.push(`<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">${esc(bestSuc.theme||'Content pattern')} · ${Number(bestSuc.success_likelihood_score||0).toFixed(0)}% likelihood · ${fmt(bestSuc.views||0)} observed views.</div></div>`);if(bestTopic)learns.push(`<div class="aiLearn"><b>Highest-view topic</b><div class="muted small">${esc(bestTopic.topic)} averages ${fmt(Math.round(bestTopic.avg))} views across ${fmt(bestTopic.posts)} posts.</div></div>`);if(bestChannel)learns.push(`<div class="aiLearn"><b>Strongest channel by average views</b><div class="muted small">${esc(bestChannel.account_name||bestChannel.handle)} · ${fmt(Math.round(bestChannel.avg_views_7d))} avg views in the 7-day window.</div></div>`);if(bestTime)learns.push(`<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">${esc(bestTime.post_hour_label||bestTime.post_hour_ist)} · ${bestTime.avg_views==null?'—':fmt(Math.round(bestTime.avg_views))} avg views.</div></div>`);ai.innerHTML=learns.join('')||'<div class="muted">Not enough current evidence for AI learnings.</div>'}
+ }
+ function boot(){renderExecutive();setTimeout(renderExecutive,900);document.getElementById('accountFilter')?.addEventListener('change',renderExecutive);document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(renderExecutive,150));}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();window.WinTurboExecutiveRefresh=renderExecutive;
+})();
+/* WINTURBO_EXECUTIVE_V26_END */
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>/* WINTURBO_PENDING_CHANNEL_ACCESS_V38 */
+(function(){
+async function refreshPendingUsers(){const sel=document.getElementById('channelAccessUserV37');if(!sel||!window.sb)return;const r=await sb.from('user_access_grants').select('email,user_id,access_level,is_active').eq('is_active',true).order('email');if(r.error)return;const current=sel.value;sel.innerHTML='<option value="">Select authorized user</option>'+(r.data||[]).map(x=>`<option value="${x.user_id||''}" data-email="${x.email}" ${x.user_id?'':'disabled'}>${x.email} · ${x.access_level}${x.user_id?'':' · Awaiting Login'}</option>`).join('');if(current&&[...sel.options].some(o=>o.value===current))sel.value=current}
+async function tryLinkCurrentUser(){const u=(await sb.auth.getUser()).data?.user;if(!u?.id||!u?.email)return;const r=await sb.from('user_access_grants').select('id,user_id,is_active').ilike('email',u.email).eq('is_active',true).maybeSingle();if(r.data&&!r.data.user_id){const x=await sb.from('user_access_grants').update({user_id:u.id,updated_at:new Date().toISOString()}).eq('id',r.data.id).is('user_id',null);if(!x.error)await refreshPendingUsers()}}
+window.WinTurboRefreshPendingChannelUsersV38=refreshPendingUsers;const run=()=>{tryLinkCurrentUser().catch(console.error);refreshPendingUsers().catch(console.error)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,700),{once:true});else setTimeout(run,700);})();
+</script>
+<script>/* WINTURBO_SIGNUP_APPROVAL_V39 */
+(function(){const $=x=>document.getElementById(x);async function load(){const box=$('signupRequestsListV39');if(!box)return;const r=await sb.from('dashboard_access_requests').select('*').eq('status','pending').order('requested_at',{ascending:false});if(r.error){box.innerHTML='<div class="muted">Admin access required to view account requests.</div>';return}box.innerHTML=(r.data||[]).map(x=>`<div class="channelAccessRow" style="grid-template-columns:1fr 130px 100px 100px"><div><b>${x.full_name||x.email}</b><div class="muted small">${x.email} · Requested ${new Date(x.requested_at).toLocaleString()}</div></div><select data-role><option value="viewer">View Only</option><option value="admin">Admin</option></select><button class="mini approveSignupV39" data-id="${x.id}">Approve</button><button class="mini rejectSignupV39" data-id="${x.id}">Reject</button></div>`).join('')||'<div class="muted">No pending account requests.</div>'}
+async function review(btn,approve){const row=btn.closest('.channelAccessRow'),role=row?.querySelector('[data-role]')?.value||'viewer';btn.disabled=true;const r=await sb.rpc('review_dashboard_access_request',{p_request_id:btn.dataset.id,p_approve:approve,p_access_level:role});if(r.error){alert(r.error.message);btn.disabled=false;return}await load();window.WinTurboRefreshPendingChannelUsersV38?.()}
+document.addEventListener('click',e=>{const a=e.target.closest?.('.approveSignupV39'),r=e.target.closest?.('.rejectSignupV39');if(a)review(a,true);if(r)review(r,false)});$('refreshSignupRequestsV39')?.addEventListener('click',load);window.WinTurboLoadSignupRequestsV39=load;if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(load,900),{once:true});else setTimeout(load,900)})();
+</script>
+<script>/* signup UI v39 */
+(function(){function add(){const login=document.querySelector('#loginCard,.login-card,.auth-card');if(!login||document.getElementById('createAccountV39'))return;const d=document.createElement('div');d.id='createAccountV39';d.innerHTML=`<div style="margin-top:14px;text-align:center"><button id="showSignupV39" class="mini">Create Account</button></div><div id="signupFormV39" style="display:none;margin-top:12px"><input id="signupNameV39" placeholder="Full name"><input id="signupEmailV39" type="email" placeholder="Email"><input id="signupPasswordV39" type="password" placeholder="Password"><button id="submitSignupV39" class="btn" style="width:100%;margin-top:8px">Request Account</button><div id="signupMsgV39" class="muted small" style="margin-top:8px"></div></div>`;login.appendChild(d);document.getElementById('showSignupV39').onclick=()=>document.getElementById('signupFormV39').style.display='grid';document.getElementById('submitSignupV39').onclick=async()=>{const b=document.getElementById('submitSignupV39'),msg=document.getElementById('signupMsgV39');b.disabled=true;const email=document.getElementById('signupEmailV39').value.trim(),password=document.getElementById('signupPasswordV39').value,name=document.getElementById('signupNameV39').value.trim();const r=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});msg.textContent=r.error?r.error.message:'Account request created. An administrator must approve dashboard access before you can use WinTurbo.';b.disabled=false}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',add,{once:true});else add()})();
+</script>
+<script>/* WINTURBO_VERIFICATION_CLEANUP_V40 */
+(function(){const $=x=>document.getElementById(x);
+function removeOld(){[...document.querySelectorAll('#verification .card')].forEach(c=>{const h=(c.querySelector('h3')?.textContent||'').trim().toLowerCase();if(h==='publishing channel verification')c.remove()})}
+async function telegram(){const host=[...document.querySelectorAll('#verification .card')].find(c=>(c.querySelector('h3')?.textContent||'').toLowerCase().includes('telegram connections'));if(!host)return;const r=await sb.from('publishing_accounts').select('id,account_name,username,is_active,connection_status').eq('platform','telegram').eq('is_active',true).order('account_name');const rows=r.data||[],live=rows.filter(x=>x.connection_status==='connected').length;let summary=host.querySelector('.v40tgsummary');if(!summary){summary=document.createElement('div');summary.className='v40tgsummary';host.querySelector('.sectionHead')?.after(summary)}summary.innerHTML=`<div class="statGrid" style="margin:12px 0"><div class="stat"><span>Telegram Channels</span><b>${rows.length}</b></div><div class="stat"><span>Live & Connected</span><b>${live}</b></div><div class="stat"><span>Need Connection</span><b>${rows.length-live}</b></div></div>`;const target=host.querySelector('[id*=telegram][id*=List],.telegramConnectionsGrid,.channelGrid')||host;let box=host.querySelector('.v40tglist');if(!box){box=document.createElement('div');box.className='v40tglist';host.appendChild(box)}box.innerHTML=rows.map(x=>`<div class="channelAccessRow" style="grid-template-columns:1fr 130px"><div><b>${x.account_name}</b><div class="muted small">@${x.username||''}</div></div><span class="badge">${x.connection_status==='connected'?'● Live & Connected':'Needs Connection'}</span></div>`).join('')||'<div class="muted">No Telegram publishing channels configured.</div>'}
+async function users(){const card=$('channelUserAccessV37');if(!card)return;let panel=$('userActivationV40');if(!panel){panel=document.createElement('div');panel.id='userActivationV40';panel.style.marginBottom='14px';card.insertBefore(panel,card.children[1]||null)}const r=await sb.from('user_access_grants').select('id,email,user_id,access_level,is_active').order('email');if(r.error){panel.innerHTML='<div class="muted">Admin access required.</div>';return}panel.innerHTML='<div class="small" style="font-weight:700;margin-bottom:8px">Users — Activate / Deactivate</div>'+((r.data||[]).map(x=>`<div class="channelAccessRow" style="grid-template-columns:1fr 120px 120px"><div><b>${x.email}</b><div class="muted small">${x.access_level}${x.user_id?'':' · Awaiting Login'}</div></div><span class="badge">${x.is_active?'Active':'Deactivated'}</span><button class="mini toggleUserV40" data-id="${x.id}" data-active="${x.is_active}">${x.is_active?'Deactivate':'Activate'}</button></div>`).join('')||'<div class="muted">No authorized users yet.</div>')}
+async function toggle(b){b.disabled=true;const next=b.dataset.active!=='true';const r=await sb.from('user_access_grants').update({is_active:next,updated_at:new Date().toISOString()}).eq('id',b.dataset.id);if(r.error){alert(r.error.message);b.disabled=false}else{await users();window.WinTurboRefreshPendingChannelUsersV38?.()}}
+document.addEventListener('click',e=>{const b=e.target.closest?.('.toggleUserV40');if(b)toggle(b)});async function run(){removeOld();await telegram();await users()}window.WinTurboRefreshVerificationV40=run;if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,1100),{once:true});else setTimeout(run,1100)})();</script>
+<script>/* WINTURBO_SIGNUP_REQUEST_FIX_V41 */
+(function(){async function submit(){const b=document.getElementById('submitSignupV39'),msg=document.getElementById('signupMsgV39');if(!b||!msg)return;b.disabled=true;const email=document.getElementById('signupEmailV39')?.value.trim(),full_name=document.getElementById('signupNameV39')?.value.trim();if(!email){msg.textContent='Please enter your email.';b.disabled=false;return}msg.textContent='Sending account request…';try{const r=await sb.functions.invoke('request-dashboard-access',{body:{email,full_name}});if(r.error)throw r.error;msg.textContent=r.data?.status==='approved'?'This email is already approved. Please use Sign In.':'Account request submitted. An administrator will review it under Verification. No activation email is sent at this stage.';document.getElementById('signupPasswordV39')?.setAttribute('disabled','disabled')}catch(e){msg.textContent=e?.message||'Could not submit account request.'}finally{b.disabled=false}}
+function bind(){const old=document.getElementById('submitSignupV39');if(!old)return;const n=old.cloneNode(true);old.parentNode.replaceChild(n,old);n.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();submit()});const pw=document.getElementById('signupPasswordV39');if(pw){pw.style.display='none';pw.disabled=true}const form=document.getElementById('signupFormV39');if(form&&!form.querySelector('.v41note')){const x=document.createElement('div');x.className='muted small v41note';x.textContent='No password or confirmation email is required until an administrator approves your request.';form.insertBefore(x,n)}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,1200),{once:true});else setTimeout(bind,1200)})();</script>
 
 
 
@@ -3811,30 +3939,8 @@ $('channelAccessUserV37')?.addEventListener('change',e=>render(e.target.value));
 /* WINTURBO_USER_ACCESS_V33_END */
 </script>
 
-<script>/* WINTURBO_PENDING_CHANNEL_ACCESS_V38 */
-(function(){
-async function refreshPendingUsers(){const sel=document.getElementById('channelAccessUserV37');if(!sel||!window.sb)return;const r=await sb.from('user_access_grants').select('email,user_id,access_level,is_active').eq('is_active',true).order('email');if(r.error)return;const current=sel.value;sel.innerHTML='<option value="">Select authorized user</option>'+(r.data||[]).map(x=>`<option value="${x.user_id||''}" data-email="${x.email}" ${x.user_id?'':'disabled'}>${x.email} · ${x.access_level}${x.user_id?'':' · Awaiting Login'}</option>`).join('');if(current&&[...sel.options].some(o=>o.value===current))sel.value=current}
-async function tryLinkCurrentUser(){const u=(await sb.auth.getUser()).data?.user;if(!u?.id||!u?.email)return;const r=await sb.from('user_access_grants').select('id,user_id,is_active').ilike('email',u.email).eq('is_active',true).maybeSingle();if(r.data&&!r.data.user_id){const x=await sb.from('user_access_grants').update({user_id:u.id,updated_at:new Date().toISOString()}).eq('id',r.data.id).is('user_id',null);if(!x.error)await refreshPendingUsers()}}
-window.WinTurboRefreshPendingChannelUsersV38=refreshPendingUsers;const run=()=>{tryLinkCurrentUser().catch(console.error);refreshPendingUsers().catch(console.error)};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,700),{once:true});else setTimeout(run,700);})();
-</script>
-<script>/* WINTURBO_SIGNUP_APPROVAL_V39 */
-(function(){const $=x=>document.getElementById(x);async function load(){const box=$('signupRequestsListV39');if(!box)return;const r=await sb.from('dashboard_access_requests').select('*').eq('status','pending').order('requested_at',{ascending:false});if(r.error){box.innerHTML='<div class="muted">Admin access required to view account requests.</div>';return}box.innerHTML=(r.data||[]).map(x=>`<div class="channelAccessRow" style="grid-template-columns:1fr 130px 100px 100px"><div><b>${x.full_name||x.email}</b><div class="muted small">${x.email} · Requested ${new Date(x.requested_at).toLocaleString()}</div></div><select data-role><option value="viewer">View Only</option><option value="admin">Admin</option></select><button class="mini approveSignupV39" data-id="${x.id}">Approve</button><button class="mini rejectSignupV39" data-id="${x.id}">Reject</button></div>`).join('')||'<div class="muted">No pending account requests.</div>'}
-async function review(btn,approve){const row=btn.closest('.channelAccessRow'),role=row?.querySelector('[data-role]')?.value||'viewer';btn.disabled=true;const r=await sb.rpc('review_dashboard_access_request',{p_request_id:btn.dataset.id,p_approve:approve,p_access_level:role});if(r.error){alert(r.error.message);btn.disabled=false;return}await load();window.WinTurboRefreshPendingChannelUsersV38?.()}
-document.addEventListener('click',e=>{const a=e.target.closest?.('.approveSignupV39'),r=e.target.closest?.('.rejectSignupV39');if(a)review(a,true);if(r)review(r,false)});$('refreshSignupRequestsV39')?.addEventListener('click',load);window.WinTurboLoadSignupRequestsV39=load;if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(load,900),{once:true});else setTimeout(load,900)})();
-</script>
-<script>/* signup UI v39 */
-(function(){function add(){const login=document.querySelector('#loginCard,.login-card,.auth-card');if(!login||document.getElementById('createAccountV39'))return;const d=document.createElement('div');d.id='createAccountV39';d.innerHTML=`<div style="margin-top:14px;text-align:center"><button id="showSignupV39" class="mini">Create Account</button></div><div id="signupFormV39" style="display:none;margin-top:12px"><input id="signupNameV39" placeholder="Full name"><input id="signupEmailV39" type="email" placeholder="Email"><input id="signupPasswordV39" type="password" placeholder="Password"><button id="submitSignupV39" class="btn" style="width:100%;margin-top:8px">Request Account</button><div id="signupMsgV39" class="muted small" style="margin-top:8px"></div></div>`;login.appendChild(d);document.getElementById('showSignupV39').onclick=()=>document.getElementById('signupFormV39').style.display='grid';document.getElementById('submitSignupV39').onclick=async()=>{const b=document.getElementById('submitSignupV39'),msg=document.getElementById('signupMsgV39');b.disabled=true;const email=document.getElementById('signupEmailV39').value.trim(),password=document.getElementById('signupPasswordV39').value,name=document.getElementById('signupNameV39').value.trim();const r=await sb.auth.signUp({email,password,options:{data:{full_name:name}}});msg.textContent=r.error?r.error.message:'Account request created. An administrator must approve dashboard access before you can use WinTurbo.';b.disabled=false}}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',add,{once:true});else add()})();
-</script>
-<script>/* WINTURBO_VERIFICATION_CLEANUP_V40 */
-(function(){const $=x=>document.getElementById(x);
-function removeOld(){[...document.querySelectorAll('#verification .card')].forEach(c=>{const h=(c.querySelector('h3')?.textContent||'').trim().toLowerCase();if(h==='publishing channel verification')c.remove()})}
-async function telegram(){const host=[...document.querySelectorAll('#verification .card')].find(c=>(c.querySelector('h3')?.textContent||'').toLowerCase().includes('telegram connections'));if(!host)return;const r=await sb.from('publishing_accounts').select('id,account_name,username,is_active,connection_status').eq('platform','telegram').eq('is_active',true).order('account_name');const rows=r.data||[],live=rows.filter(x=>x.connection_status==='connected').length;let summary=host.querySelector('.v40tgsummary');if(!summary){summary=document.createElement('div');summary.className='v40tgsummary';host.querySelector('.sectionHead')?.after(summary)}summary.innerHTML=`<div class="statGrid" style="margin:12px 0"><div class="stat"><span>Telegram Channels</span><b>${rows.length}</b></div><div class="stat"><span>Live & Connected</span><b>${live}</b></div><div class="stat"><span>Need Connection</span><b>${rows.length-live}</b></div></div>`;const target=host.querySelector('[id*=telegram][id*=List],.telegramConnectionsGrid,.channelGrid')||host;let box=host.querySelector('.v40tglist');if(!box){box=document.createElement('div');box.className='v40tglist';host.appendChild(box)}box.innerHTML=rows.map(x=>`<div class="channelAccessRow" style="grid-template-columns:1fr 130px"><div><b>${x.account_name}</b><div class="muted small">@${x.username||''}</div></div><span class="badge">${x.connection_status==='connected'?'● Live & Connected':'Needs Connection'}</span></div>`).join('')||'<div class="muted">No Telegram publishing channels configured.</div>'}
-async function users(){const card=$('channelUserAccessV37');if(!card)return;let panel=$('userActivationV40');if(!panel){panel=document.createElement('div');panel.id='userActivationV40';panel.style.marginBottom='14px';card.insertBefore(panel,card.children[1]||null)}const r=await sb.from('user_access_grants').select('id,email,user_id,access_level,is_active').order('email');if(r.error){panel.innerHTML='<div class="muted">Admin access required.</div>';return}panel.innerHTML='<div class="small" style="font-weight:700;margin-bottom:8px">Users — Activate / Deactivate</div>'+((r.data||[]).map(x=>`<div class="channelAccessRow" style="grid-template-columns:1fr 120px 120px"><div><b>${x.email}</b><div class="muted small">${x.access_level}${x.user_id?'':' · Awaiting Login'}</div></div><span class="badge">${x.is_active?'Active':'Deactivated'}</span><button class="mini toggleUserV40" data-id="${x.id}" data-active="${x.is_active}">${x.is_active?'Deactivate':'Activate'}</button></div>`).join('')||'<div class="muted">No authorized users yet.</div>')}
-async function toggle(b){b.disabled=true;const next=b.dataset.active!=='true';const r=await sb.from('user_access_grants').update({is_active:next,updated_at:new Date().toISOString()}).eq('id',b.dataset.id);if(r.error){alert(r.error.message);b.disabled=false}else{await users();window.WinTurboRefreshPendingChannelUsersV38?.()}}
-document.addEventListener('click',e=>{const b=e.target.closest?.('.toggleUserV40');if(b)toggle(b)});async function run(){removeOld();await telegram();await users()}window.WinTurboRefreshVerificationV40=run;if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,1100),{once:true});else setTimeout(run,1100)})();</script>
-<script>/* WINTURBO_SIGNUP_REQUEST_FIX_V41 */
-(function(){async function submit(){const b=document.getElementById('submitSignupV39'),msg=document.getElementById('signupMsgV39');if(!b||!msg)return;b.disabled=true;const email=document.getElementById('signupEmailV39')?.value.trim(),full_name=document.getElementById('signupNameV39')?.value.trim();if(!email){msg.textContent='Please enter your email.';b.disabled=false;return}msg.textContent='Sending account request…';try{const r=await sb.functions.invoke('request-dashboard-access',{body:{email,full_name}});if(r.error)throw r.error;msg.textContent=r.data?.status==='approved'?'This email is already approved. Please use Sign In.':'Account request submitted. An administrator will review it under Verification. No activation email is sent at this stage.';document.getElementById('signupPasswordV39')?.setAttribute('disabled','disabled')}catch(e){msg.textContent=e?.message||'Could not submit account request.'}finally{b.disabled=false}}
-function bind(){const old=document.getElementById('submitSignupV39');if(!old)return;const n=old.cloneNode(true);old.parentNode.replaceChild(n,old);n.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();submit()});const pw=document.getElementById('signupPasswordV39');if(pw){pw.style.display='none';pw.disabled=true}const form=document.getElementById('signupFormV39');if(form&&!form.querySelector('.v41note')){const x=document.createElement('div');x.className='muted small v41note';x.textContent='No password or confirmation email is required until an administrator approves your request.';form.insertBefore(x,n)}}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,1200),{once:true});else setTimeout(bind,1200)})();</script>
+<script>/* WINTURBO_NATIVE_ACCESS_REQUEST_V42 */
+(function(){const $=x=>document.getElementById(x);function bind(){const show=$('showAccessRequestV42'),form=$('accessRequestFormV42'),submit=$('submitAccessRequestV42');if(!show||!form||!submit)return;show.onclick=e=>{e.preventDefault();form.style.display=form.style.display==='grid'?'none':'grid'};submit.onclick=async e=>{e.preventDefault();e.stopImmediatePropagation();const msg=$('accessRequestMsgV42'),email=$('accessEmailV42').value.trim(),full_name=$('accessNameV42').value.trim();if(!email){msg.textContent='Please enter your email.';return}submit.disabled=true;msg.textContent='Submitting request…';try{const r=await sb.functions.invoke('request-dashboard-access',{body:{email,full_name}});if(r.error)throw r.error;msg.textContent=r.data?.status==='approved'?'This email is already approved. Please use Log in.':'Request submitted. An administrator can now approve or reject it under Verification.'}catch(err){msg.textContent=err?.message||'Could not submit the access request.'}finally{submit.disabled=false}}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind()})();</script>
 </body>
 </html>
