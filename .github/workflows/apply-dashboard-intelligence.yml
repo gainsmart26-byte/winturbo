@@ -21,63 +21,39 @@ on:
       - 'patch_dashboard_publishing_access_v34.py'
       - 'patch_dashboard_channel_workflow_v35.py'
       - 'patch_dashboard_telegram_verification_v36.py'
-
+      - 'patch_dashboard_channel_user_access_v37.py'
 permissions:
   contents: write
-
 jobs:
   build-dashboard:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Apply clean dashboard redesign
-        run: python patch_dashboard_redesign_v20.py
-      - name: Rebuild Data Quality and AI
-        run: python patch_dashboard_quality_v21.py
-      - name: Connect live data and recommendations
-        run: python patch_dashboard_data_runtime_v22.py
-      - name: Add analytics workflow and approvals
-        run: python patch_dashboard_workflow_v23.py
-      - name: Show posting intelligence identity
-        run: python patch_dashboard_posting_identity_v24.py
-      - name: Add centralized approval archive and timestamps
-        run: python patch_dashboard_approval_v25.py
-      - name: Rebuild executive summary live analytics
-        run: python patch_dashboard_executive_summary_v26.py
-      - name: Fix Content Ideas generation by format and engine
-        run: python patch_dashboard_content_generator_v27.py
-      - name: Add Discord source collection and analytics
-        run: python patch_dashboard_discord_sources_v28.py
-      - name: Add influencer and company entity categories
-        run: python patch_dashboard_entity_categories_v29.py
-      - name: Fix Add Data Source modal and save bindings
-        run: python patch_dashboard_add_source_fix_v30.py
-      - name: Expand quality recommendations and approval actions
-        run: python patch_dashboard_quality_actions_v31.py
-      - name: Fix media provider routing
-        run: python patch_dashboard_media_routing_v32.py
-      - name: Add email-based user access controls
-        run: python patch_dashboard_user_access_v33.py
-      - name: Add per-user publishing account authorization
-        run: python patch_dashboard_publishing_access_v34.py
-      - name: Add multi-channel verification and scoped approvals
-        run: python patch_dashboard_channel_workflow_v35.py
-      - name: Add Telegram channel verification status cards
-        run: python patch_dashboard_telegram_verification_v36.py
+      - {name: Apply clean dashboard redesign, run: 'python patch_dashboard_redesign_v20.py'}
+      - {name: Rebuild Data Quality and AI, run: 'python patch_dashboard_quality_v21.py'}
+      - {name: Connect live data and recommendations, run: 'python patch_dashboard_data_runtime_v22.py'}
+      - {name: Add analytics workflow and approvals, run: 'python patch_dashboard_workflow_v23.py'}
+      - {name: Show posting intelligence identity, run: 'python patch_dashboard_posting_identity_v24.py'}
+      - {name: Add centralized approval archive and timestamps, run: 'python patch_dashboard_approval_v25.py'}
+      - {name: Rebuild executive summary live analytics, run: 'python patch_dashboard_executive_summary_v26.py'}
+      - {name: Fix Content Ideas generation by format and engine, run: 'python patch_dashboard_content_generator_v27.py'}
+      - {name: Add Discord source collection and analytics, run: 'python patch_dashboard_discord_sources_v28.py'}
+      - {name: Add influencer and company entity categories, run: 'python patch_dashboard_entity_categories_v29.py'}
+      - {name: Fix Add Data Source modal and save bindings, run: 'python patch_dashboard_add_source_fix_v30.py'}
+      - {name: Expand quality recommendations and approval actions, run: 'python patch_dashboard_quality_actions_v31.py'}
+      - {name: Fix media provider routing, run: 'python patch_dashboard_media_routing_v32.py'}
+      - {name: Add email-based user access controls, run: 'python patch_dashboard_user_access_v33.py'}
+      - {name: Add per-user publishing account authorization, run: 'python patch_dashboard_publishing_access_v34.py'}
+      - {name: Add multi-channel verification and scoped approvals, run: 'python patch_dashboard_channel_workflow_v35.py'}
+      - {name: Add Telegram channel verification status cards, run: 'python patch_dashboard_telegram_verification_v36.py'}
+      - {name: Add channel-specific user posting access, run: 'python patch_dashboard_channel_user_access_v37.py'}
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
-        with:
-          name: generated-dashboard
-          path: dashboard.html
+        with: {name: generated-dashboard, path: dashboard.html}
       - name: Commit dashboard update
         continue-on-error: true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard.html
-          if git diff --cached --quiet; then
-            echo "No dashboard changes needed"
-          else
-            git commit -m "Add Telegram channel-wise verification status cards"
-            git push
-          fi
+          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Add channel-specific user posting access"; git push; fi
