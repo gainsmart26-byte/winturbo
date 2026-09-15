@@ -1,0 +1,12 @@
+from pathlib import Path
+p=Path('dashboard.html');s=p.read_text(encoding='utf-8');M='WINTURBO_NATIVE_ACCESS_REQUEST_V42'
+if M in s: raise SystemExit(0)
+# Add a native Request Access panel directly to the real loginBox. This path never calls Supabase Auth signup.
+needle='<p id="msg" class="muted small"></p>'
+ui='''<p id="msg" class="muted small"></p><div id="nativeAccessRequestV42" style="margin-top:14px;border-top:1px solid var(--line);padding-top:14px"><button id="showAccessRequestV42" class="ghost" style="width:100%">Request Access</button><div id="accessRequestFormV42" style="display:none;gap:8px;margin-top:10px"><input id="accessNameV42" placeholder="Full name"><input id="accessEmailV42" type="email" placeholder="Email"><button id="submitAccessRequestV42" class="primary" style="width:100%">Submit Access Request</button><div class="muted small">Your request goes to a WinTurbo administrator for approval. No signup or confirmation email is sent now.</div><div id="accessRequestMsgV42" class="muted small"></div></div></div>'''
+if needle not in s: raise SystemExit('login message anchor not found')
+s=s.replace(needle,ui,1)
+js=r'''<script>/* WINTURBO_NATIVE_ACCESS_REQUEST_V42 */
+(function(){const $=x=>document.getElementById(x);function bind(){const show=$('showAccessRequestV42'),form=$('accessRequestFormV42'),submit=$('submitAccessRequestV42');if(!show||!form||!submit)return;show.onclick=e=>{e.preventDefault();form.style.display=form.style.display==='grid'?'none':'grid'};submit.onclick=async e=>{e.preventDefault();e.stopImmediatePropagation();const msg=$('accessRequestMsgV42'),email=$('accessEmailV42').value.trim(),full_name=$('accessNameV42').value.trim();if(!email){msg.textContent='Please enter your email.';return}submit.disabled=true;msg.textContent='Submitting request…';try{const r=await sb.functions.invoke('request-dashboard-access',{body:{email,full_name}});if(r.error)throw r.error;msg.textContent=r.data?.status==='approved'?'This email is already approved. Please use Log in.':'Request submitted. An administrator can now approve or reject it under Verification.'}catch(err){msg.textContent=err?.message||'Could not submit the access request.'}finally{submit.disabled=false}}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind()})();</script>'''
+s=s.replace('</body>',js+'\n</body>',1);p.write_text(s,encoding='utf-8')
