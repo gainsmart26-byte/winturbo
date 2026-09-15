@@ -22,6 +22,7 @@ on:
       - 'patch_dashboard_channel_workflow_v35.py'
       - 'patch_dashboard_telegram_verification_v36.py'
       - 'patch_dashboard_channel_user_access_v37.py'
+      - 'patch_dashboard_pending_channel_access_v38.py'
 permissions:
   contents: write
 jobs:
@@ -47,6 +48,7 @@ jobs:
       - {name: Add multi-channel verification and scoped approvals, run: 'python patch_dashboard_channel_workflow_v35.py'}
       - {name: Add Telegram channel verification status cards, run: 'python patch_dashboard_telegram_verification_v36.py'}
       - {name: Add channel-specific user posting access, run: 'python patch_dashboard_channel_user_access_v37.py'}
+      - {name: Show awaiting-login users and auto-link access, run: 'python patch_dashboard_pending_channel_access_v38.py'}
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with: {name: generated-dashboard, path: dashboard.html}
@@ -56,4 +58,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard.html
-          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Add channel-specific user posting access"; git push; fi
+          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Show awaiting-login users in channel posting access"; git push; fi
