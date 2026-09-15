@@ -35,6 +35,7 @@ jobs:
       - {name: Stop signup emails and use access requests, run: 'python patch_dashboard_signup_request_fix_v41.py || true'}
       - {name: Add native request access flow to login, run: 'python patch_dashboard_native_access_request_v42.py'}
       - {name: Clarify Telegram and Instagram posting authorization, run: 'python patch_dashboard_channel_authorization_v43.py'}
+      - {name: Add approved-user password registration, run: 'python patch_dashboard_complete_registration_v44.py'}
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with: {name: generated-dashboard, path: dashboard.html}
@@ -44,4 +45,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard.html
-          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Clarify per-user Telegram and Instagram posting authorization"; git push; fi
+          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Add approved-user password registration flow"; git push; fi
