@@ -39,6 +39,7 @@ jobs:
       - {name: Filter authorization users and fix registration handler, run: 'python patch_dashboard_registration_and_channel_users_v45.py'}
       - {name: Route Content Ideas to authorized channels for approval, run: 'python patch_dashboard_content_channel_approval_v46.py'}
       - {name: Enable Content Ideas generation for authorized creators, run: 'python patch_dashboard_content_creator_permissions_v47.py'}
+      - {name: Show logged-in user across dashboard, run: 'python patch_dashboard_logged_in_user_v48.py'}
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with: {name: generated-dashboard, path: dashboard.html}
@@ -48,4 +49,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard.html
-          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Enable Content Ideas generation for authorized creators"; git push; fi
+          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Show logged-in user across dashboard"; git push; fi
