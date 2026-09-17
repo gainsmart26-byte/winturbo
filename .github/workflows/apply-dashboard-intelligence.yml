@@ -42,6 +42,7 @@ jobs:
       - {name: Show logged-in user across dashboard, run: 'python patch_dashboard_logged_in_user_v48.py'}
       - {name: Make Content Ideas brand and channel aware, run: 'python patch_dashboard_brand_channel_content_v49.py'}
       - {name: Add Expense dashboard section, run: 'python patch_dashboard_expense_v50.py'}
+      - {name: Allow Expense through dashboard access controls, run: 'python patch_dashboard_expense_access_v51.py'}
       - name: Upload generated dashboard
         uses: actions/upload-artifact@v4
         with: {name: generated-dashboard, path: dashboard.html}
@@ -51,4 +52,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add dashboard.html
-          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Add Expense dashboard section"; git push; fi
+          if git diff --cached --quiet; then echo "No dashboard changes needed"; else git commit -m "Fix Expense dashboard visibility"; git push; fi
