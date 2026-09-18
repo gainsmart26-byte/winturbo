@@ -6331,10 +6331,15 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
 
   async function publishTelegramQueue(id){const {data,error}=await sb.functions.invoke('publish-telegram',{body:{action:'publish',queue_id:id}});if(error)throw error;if(!data?.ok)throw new Error(data?.error||'Telegram publish failed');return data}
   async function approveQueue(id,platform){
-    const account=publishingAccounts.find(a=>a.platform===platform&&a.connection_status==='connected')||publishingAccounts.find(a=>a.platform===platform)||null;
+    const {data:q,error:qErr}=await sb.from('publishing_queue').select('id,platform,publishing_account_id,status,publishing_accounts(account_name,username,connection_status)').eq('id',id).single();
+    if(qErr)throw qErr;
+    if(!q?.publishing_account_id)throw new Error('Publishing destination is missing. Return to Content Ideas and select the channel again.');
+    const account=q.publishing_accounts||publishingAccounts.find(a=>a.id===q.publishing_account_id)||null;
+    if(String(q.platform)!==String(platform))throw new Error('Queue platform mismatch. Refresh Approval before publishing.');
     if(platform==='telegram'){
-      if(!account||account.connection_status!=='connected')throw new Error('Telegram publishing account is not connected.');
-      if(account?.id){const {error}=await sb.from('publishing_queue').update({publishing_account_id:account.id,status:'approved'}).eq('id',id);if(error)throw error;}
+      if(!account||account.connection_status!=='connected')throw new Error('Selected Telegram publishing account is not connected.');
+      const {error}=await sb.from('publishing_queue').update({status:'approved'}).eq('id',id).eq('publishing_account_id',q.publishing_account_id);if(error)throw error;
+      if(!confirm('Publish this post to '+(account.account_name||account.username)+'?'))return;
       await publishTelegramQueue(id);
     }else if(platform==='instagram'){
       throw new Error('Instagram publishing is not connected yet. Content remains pending approval until Meta publishing is connected.');
