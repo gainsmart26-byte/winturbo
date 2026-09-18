@@ -6778,5 +6778,19 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
  new MutationObserver(()=>setTimeout(addButtons,50)).observe(document.documentElement,{childList:true,subtree:true});
  window.addEventListener('load',()=>setTimeout(addButtons,1000));
 })();</script>
-</body>
+<script>/* WINTURBO_EXPENSE_CLICK_V55 */
+(function(){
+ async function openExpense(){
+  const sec=document.getElementById('expense'); if(!sec)return;
+  document.querySelectorAll('main.main > section.section, section.section').forEach(x=>{x.classList.remove('on');x.style.setProperty('display','none','important');x.setAttribute('aria-hidden','true')});
+  sec.classList.add('on');sec.style.setProperty('display','block','important');sec.setAttribute('aria-hidden','false');
+  document.querySelectorAll('.nav button[data-s]').forEach(b=>b.classList.toggle('on',b.dataset.s==='expense'));
+  const t=document.getElementById('title');if(t)t.textContent='Expense';
+  const btn=document.querySelector('button[data-s="expense"]');if(btn)btn.style.display='';
+  try{const {data,error}=await sb.from('expenses').select('*').order('source_row',{ascending:true});if(error)throw error;const rows=data||[],money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));const total=rows.reduce((a,r)=>a+Number(r.amount||0),0),by={};rows.forEach(r=>{const k=r.purpose||r.category||'Uncategorised';by[k]=(by[k]||0)+Number(r.amount||0)});const cats=Object.entries(by).sort((a,b)=>b[1]-a[1]);const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};set('expenseTotalV52',money(total));set('expenseCountV52',rows.length);set('expenseLargestCatV52',cats[0]?.[0]||'—');set('expenseLargestAmtV52',money(cats[0]?.[1]||0));const sync=rows.map(r=>r.synced_at).filter(Boolean).sort().at(-1);set('expenseSyncV52',sync?new Date(sync).toLocaleString('en-IN'):'—');const tb=document.getElementById('expenseSheetRowsV52');if(tb)tb.innerHTML=rows.map(r=>'<tr><td>'+esc(r.expense_type)+'</td><td><b>'+money(r.amount)+'</b></td><td>'+esc(r.purpose)+'</td></tr>').join('');const ch=document.getElementById('expenseCategoriesV52');if(ch)ch.innerHTML=cats.map(([k,v])=>'<div class="sourceRow"><div><b>'+esc(k)+'</b></div><div style="font-weight:900">'+money(v)+'</div></div>').join('');}catch(e){console.error('Expense load failed',e)}
+ }
+ document.addEventListener('click',e=>{const b=e.target.closest('button[data-s="expense"]');if(b){e.preventDefault();e.stopImmediatePropagation();openExpense()}},true);
+ document.addEventListener('click',e=>{if(e.target.closest('#refreshExpenseV52'))openExpense()},true);
+ window.WinTurboOpenExpense=openExpense;
+})();</script>\n</body>
 </html>
