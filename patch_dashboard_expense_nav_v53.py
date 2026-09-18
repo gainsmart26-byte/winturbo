@@ -29,4 +29,4 @@ guard=r'''<script>/* WINTURBO_EXPENSE_NAV_V53 */
  new MutationObserver(()=>ensureExpenseNav()).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class']});
 })();</script>'''
 if 'WINTURBO_EXPENSE_NAV_V53' not in s:s=s.replace('</body>',guard+'\n</body>',1)
-p.write_text(s,encoding='utf-8')
+# v53 trigger: rebuild expense navigation after Approval\np.write_text(s,encoding='utf-8')
