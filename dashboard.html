@@ -1197,6 +1197,7 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 .successRec .recTitle{font-size:17px;font-weight:850;line-height:1.25}.successRec .recScore{font-size:27px;font-weight:900;color:#dfffe6}.successRec .recEvidence{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.successRec .metric{background:rgba(5,18,10,.5);border:1px solid rgba(127,255,158,.14);border-radius:10px;padding:8px}.successRec .metric b{display:block;font-size:15px}.successRec .metric span{font-size:10px;color:#a8cbb1}.recActions{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.recActions button{font-size:12px;padding:8px 10px}.greenPill{background:rgba(66,227,108,.15)!important;color:#b9ffc9!important;border-color:rgba(66,227,108,.35)!important}
 .qualitySource{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.qualitySource:last-child{border-bottom:0}.qualityState{text-transform:uppercase;font-size:10px;font-weight:850;color:#b7c6bd}
 .approvalGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.approvalCard{border:1px solid var(--line);border-radius:16px;padding:16px;background:#0d140f}.approvalCard .copy{white-space:pre-wrap;max-height:220px;overflow:auto;background:#09100b;border:1px solid var(--line);border-radius:10px;padding:10px;margin:10px 0}.approvalMedia{width:100%;max-height:280px;object-fit:contain;border-radius:10px;background:#070b08}.statusDraft{color:#ffd27f}.statusApproved{color:#89d5ff}.statusPublished{color:#8cff9d}.statusFailed{color:#ff8b8b}
+.approvalBrandBar{display:flex;align-items:end;gap:14px;flex-wrap:wrap;margin:14px 0}.approvalBrandBar label{min-width:min(360px,100%);flex:1}.approvalStatusTabs{display:flex;gap:8px;flex-wrap:wrap}.approvalStatusTab{border:1px solid var(--line);border-radius:999px;background:#111812;color:var(--muted);padding:9px 13px;font-weight:850;cursor:pointer}.approvalStatusTab.on{background:var(--green);border-color:var(--green);color:#071009}.approvalStatusTab .tabCount{display:inline-flex;min-width:20px;justify-content:center;margin-left:5px;padding:1px 6px;border-radius:999px;background:rgba(255,255,255,.13)}.approvalStatusTab.on .tabCount{background:rgba(0,0,0,.14)}.approvalPanel{display:none}.approvalPanel.on{display:block}.approvalBrandName{color:var(--green);font-weight:900}
 @media(max-width:900px){.recommendationGrid,.approvalGrid{grid-template-columns:1fr}.successRec .recEvidence{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 
@@ -1670,20 +1671,27 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
 
 <section id="approval" class="section">
   <div class="sectionHead"><div><h2>Approval</h2><div class="muted small">Every post, story and creative generated in the WinTurbo dashboard enters this queue before publishing. Approve means publish; Reject permanently marks the item rejected.</div></div><span class="pill">CONTENT CONTROL</span></div>
+  <div class="card approvalBrandBar">
+    <label><span class="k">SELECT BRAND</span><select id="approvalBrandFilter"><option value="all">All brands</option></select></label>
+    <div><div class="k" style="margin-bottom:8px">VIEW STATUS</div><div class="approvalStatusTabs" id="approvalStatusTabs">
+      <button type="button" class="approvalStatusTab on" data-approval-status="pending">Pending <span class="tabCount" id="approvalPendingTabCount">0</span></button>
+      <button type="button" class="approvalStatusTab" data-approval-status="approved">Approved <span class="tabCount" id="approvalApprovedTabCount">0</span></button>
+      <button type="button" class="approvalStatusTab" data-approval-status="published">Posted <span class="tabCount" id="approvalPublishedTabCount">0</span></button>
+      <button type="button" class="approvalStatusTab" data-approval-status="rejected">Rejected <span class="tabCount" id="approvalRejectedTabCount">0</span></button>
+      <button type="button" class="approvalStatusTab" data-approval-status="failed">Failed <span class="tabCount" id="approvalFailedTabCount">0</span></button>
+    </div></div>
+  </div>
   <div class="grid4">
     <div class="card"><div class="k">PENDING APPROVAL</div><div class="v" id="approvalPending">—</div><div class="subv">Waiting for action</div></div>
     <div class="card"><div class="k">APPROVED / PUBLISHED</div><div class="v" id="approvalApproved">—</div><div class="subv">Accumulated successfully posted</div></div>
     <div class="card"><div class="k">REJECTED</div><div class="v" id="approvalRejected">—</div><div class="subv">Accumulated rejected content</div></div>
     <div class="card"><div class="k">FAILED</div><div class="v" id="approvalFailed">—</div><div class="subv">Publishing needs attention</div></div>
   </div>
-  <div class="sectionHead" style="margin-top:20px"><div><h3>Pending Approval</h3><div class="muted small">Approve publishes immediately when the platform connection is available. Reject moves the content to the rejected archive.</div></div></div>
-  <div id="approvalPendingCards" class="approvalGrid"><div class="muted">Loading pending content…</div></div>
-  <div class="sectionHead" style="margin-top:24px"><div><h3>Approved / Published</h3><div class="muted small">Accumulated publishing history with exact publication date and time.</div></div></div>
-  <div id="approvalPublishedCards" class="approvalGrid"><div class="muted">Loading published content…</div></div>
-  <div class="sectionHead" style="margin-top:24px"><div><h3>Rejected</h3><div class="muted small">Accumulated rejected content with rejection date and time.</div></div></div>
-  <div id="approvalRejectedCards" class="approvalGrid"><div class="muted">Loading rejected content…</div></div>
-  <div class="sectionHead" style="margin-top:24px"><div><h3>Failed</h3><div class="muted small">Items that could not be published.</div></div></div>
-  <div id="approvalFailedCards" class="approvalGrid"><div class="muted">Loading failed content…</div></div>
+  <div class="approvalPanel on" data-approval-panel="pending"><div class="sectionHead" style="margin-top:20px"><div><h3>Pending Approval</h3><div class="muted small">Approve publishes immediately when the platform connection is available. Reject moves the content to the rejected archive.</div></div></div><div id="approvalPendingCards" class="approvalGrid"><div class="muted">Loading pending content…</div></div></div>
+  <div class="approvalPanel" data-approval-panel="approved"><div class="sectionHead" style="margin-top:24px"><div><h3>Approved</h3><div class="muted small">Approved content for the selected brand that is ready for publishing.</div></div></div><div id="approvalApprovedCards" class="approvalGrid"><div class="muted">Loading approved content…</div></div></div>
+  <div class="approvalPanel" data-approval-panel="published"><div class="sectionHead" style="margin-top:24px"><div><h3>Posted</h3><div class="muted small">Published history for the selected brand with exact publication date and time.</div></div></div><div id="approvalPublishedCards" class="approvalGrid"><div class="muted">Loading posted content…</div></div></div>
+  <div class="approvalPanel" data-approval-panel="rejected"><div class="sectionHead" style="margin-top:24px"><div><h3>Rejected</h3><div class="muted small">Rejected content for the selected brand with rejection date and time.</div></div></div><div id="approvalRejectedCards" class="approvalGrid"><div class="muted">Loading rejected content…</div></div></div>
+  <div class="approvalPanel" data-approval-panel="failed"><div class="sectionHead" style="margin-top:24px"><div><h3>Failed</h3><div class="muted small">Publishing items for the selected brand that need attention.</div></div></div><div id="approvalFailedCards" class="approvalGrid"><div class="muted">Loading failed content…</div></div></div>
 </section>
 
 
@@ -6308,26 +6316,41 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
 
   function renderApprovals(rows){
     queueRows=rows||[];
-    const pending=queueRows.filter(x=>x.status==='draft');
-    const published=queueRows.filter(x=>x.status==='published');
-    const rejected=queueRows.filter(x=>x.status==='rejected'||x.status==='cancelled');
-    const failed=queueRows.filter(x=>x.status==='failed');
+    const accountById=new Map(publishingAccounts.map(a=>[String(a.id),a]));
+    const brandFilter=$('approvalBrandFilter');
+    if(brandFilter){
+      const previous=brandFilter.value||'all';
+      const available=[...publishingAccounts].sort((a,b)=>String(a.account_name||a.username||'').localeCompare(String(b.account_name||b.username||'')));
+      brandFilter.innerHTML='<option value="all">All brands</option>'+available.map(a=>`<option value="${esc(a.id)}">${esc(a.account_name||a.username||a.platform||'Brand')} · ${esc(String(a.platform||'').toUpperCase())}</option>`).join('');
+      brandFilter.value=[...brandFilter.options].some(o=>o.value===previous)?previous:'all';
+    }
+    const selectedBrand=brandFilter?.value||'all';
+    const scoped=selectedBrand==='all'?queueRows:queueRows.filter(x=>String(x.publishing_account_id||'')===selectedBrand);
+    const pending=scoped.filter(x=>x.status==='draft');
+    const approved=scoped.filter(x=>x.status==='approved');
+    const published=scoped.filter(x=>x.status==='published');
+    const rejected=scoped.filter(x=>x.status==='rejected'||x.status==='cancelled');
+    const failed=scoped.filter(x=>x.status==='failed');
     set('approvalPending',pending.length);
-    set('approvalApproved',published.length);
+    set('approvalApproved',approved.length+published.length);
     set('approvalRejected',rejected.length);
     set('approvalFailed',failed.length);
+    set('approvalPendingTabCount',pending.length);set('approvalApprovedTabCount',approved.length);set('approvalPublishedTabCount',published.length);set('approvalRejectedTabCount',rejected.length);set('approvalFailedTabCount',failed.length);
 
     const card=q=>{
+      const account=accountById.get(String(q.publishing_account_id||''));
+      const brandName=account?.account_name||account?.username||q.brand_name||'Unassigned brand';
       const media=q.media_url?(q.media_type==='video'?`<video class="approvalMedia" controls playsinline src="${esc(url(q.media_url))}"></video>`:`<img class="approvalMedia" alt="Queued creative" src="${esc(url(q.media_url))}">`):'';
       const cls=q.status==='draft'?'statusDraft':q.status==='published'?'statusPublished':q.status==='rejected'||q.status==='cancelled'?'statusRejected':q.status==='failed'?'statusFailed':'statusApproved';
       const status=q.status==='cancelled'?'rejected':q.status;
       const publishedMeta=q.published_at?`<div><b>${dt(q.published_at)}</b><span>Published date & time</span></div>`:'';
       const rejectedMeta=q.rejected_at?`<div><b>${dt(q.rejected_at)}</b><span>Rejected date & time</span></div>`:'';
-      return `<article class="approvalCard"><div style="display:flex;justify-content:space-between;gap:10px"><div><b>${esc(String(q.platform||'').toUpperCase())}</b><div class="muted small">${esc(q.entity_category||'uncategorized')} · Created ${dt(q.created_at)}</div></div><b class="${cls}">${esc(status||'draft')}</b></div>${media}<div class="approvalMeta"><div><b>${dt(q.created_at)}</b><span>Created date & time</span></div>${publishedMeta}${rejectedMeta}</div><div class="copy">${esc(q.content_text||'')}</div>${q.published_url?`<a class="openExternal" target="_blank" rel="noopener noreferrer" href="${esc(url(q.published_url))}">Open published post ↗</a>`:''}<div class="recActions">${q.status==='draft'?`<button class="primary approveQueue" data-id="${esc(q.id)}" data-platform="${esc(q.platform)}">Approve & Publish</button><button class="ghost rejectQueue" data-id="${esc(q.id)}">Reject</button>`:''}</div>${q.error_message?`<div class="small statusFailed" style="margin-top:8px">${esc(q.error_message)}</div>`:''}</article>`;
+      return `<article class="approvalCard"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="approvalBrandName">${esc(brandName)}</div><b>${esc(String(q.platform||account?.platform||'').toUpperCase())}</b><div class="muted small">${esc(q.entity_category||'uncategorized')} · Created ${dt(q.created_at)}</div></div><b class="${cls}">${esc(status||'draft')}</b></div>${media}<div class="approvalMeta"><div><b>${dt(q.created_at)}</b><span>Created date & time</span></div>${publishedMeta}${rejectedMeta}</div><div class="copy">${esc(q.content_text||'')}</div>${q.published_url?`<a class="openExternal" target="_blank" rel="noopener noreferrer" href="${esc(url(q.published_url))}">Open published post ↗</a>`:''}<div class="recActions">${q.status==='draft'?`<button class="primary approveQueue" data-id="${esc(q.id)}" data-platform="${esc(q.platform)}">Approve & Publish</button><button class="ghost rejectQueue" data-id="${esc(q.id)}">Reject</button>`:''}</div>${q.error_message?`<div class="small statusFailed" style="margin-top:8px">${esc(q.error_message)}</div>`:''}</article>`;
     };
     const render=(id,arr,empty)=>{const host=$(id);if(host)host.innerHTML=arr.length?[...arr].sort((a,b)=>new Date(b.published_at||b.rejected_at||b.created_at)-new Date(a.published_at||a.rejected_at||a.created_at)).map(card).join(''):`<div class="muted">${empty}</div>`};
     render('approvalPendingCards',pending,'No content is waiting for approval.');
-    render('approvalPublishedCards',published,'No approved/published content yet.');
+    render('approvalApprovedCards',approved,'No approved content for this brand yet.');
+    render('approvalPublishedCards',published,'No posted content for this brand yet.');
     render('approvalRejectedCards',rejected,'No rejected content yet.');
     render('approvalFailedCards',failed,'No failed publishing items.');
   }
@@ -6379,13 +6402,14 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
   }
 
   document.addEventListener('click',async e=>{
+    const statusTab=e.target.closest?.('.approvalStatusTab');if(statusTab){e.preventDefault();const status=statusTab.dataset.approvalStatus;document.querySelectorAll('.approvalStatusTab').forEach(x=>x.classList.toggle('on',x===statusTab));document.querySelectorAll('.approvalPanel').forEach(x=>x.classList.toggle('on',x.dataset.approvalPanel===status));return}
     const rec=e.target.closest?.('.recCreate');if(rec){e.preventDefault();return createFromRecommendation(Number(rec.dataset.i),rec.dataset.platform,rec.dataset.format)}
     const ap=e.target.closest?.('.approveQueue');if(ap){e.preventDefault();ap.disabled=true;try{await approveQueue(ap.dataset.id,ap.dataset.platform)}catch(err){alert(err?.message||err)}finally{ap.disabled=false}return}
     const rej=e.target.closest?.('.rejectQueue');if(rej){e.preventDefault();if(confirm('Reject this queued content?')){try{await rejectQueue(rej.dataset.id)}catch(err){alert(err?.message||err)}}return}
     const pub=e.target.closest?.('.publishQueue');if(pub){e.preventDefault();pub.disabled=true;try{await publishTelegramQueue(pub.dataset.id);await hydrate()}catch(err){alert(err?.message||err)}finally{pub.disabled=false}}
   });
 
-  function boot(){bindNavigation();const selected=document.querySelector('.nav button.on[data-s]');show(selected&&IDS.includes(selected.dataset.s)?selected.dataset.s:'overview');$('refresh')?.addEventListener('click',()=>setTimeout(hydrate,50));$('accountFilter')?.addEventListener('change',hydrate);hydrate();setTimeout(hydrate,900);setTimeout(()=>{bindApprovalIntercept();hydrate()},2200)}
+  function boot(){bindNavigation();const selected=document.querySelector('.nav button.on[data-s]');show(selected&&IDS.includes(selected.dataset.s)?selected.dataset.s:'overview');$('refresh')?.addEventListener('click',()=>setTimeout(hydrate,50));$('accountFilter')?.addEventListener('change',hydrate);$('approvalBrandFilter')?.addEventListener('change',()=>renderApprovals(queueRows));hydrate();setTimeout(hydrate,900);setTimeout(()=>{bindApprovalIntercept();hydrate()},2200)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.WinTurboHydrate=hydrate;
 })();
