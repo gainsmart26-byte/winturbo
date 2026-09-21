@@ -1,4 +1,5 @@
 #trafficIntelligence{--ti-green:#42e36c;--ti-orange:#ff9d2e;--ti-blue:#67b7ff}
+#app .nav button[data-s="trafficIntelligence"]{visibility:visible!important;opacity:1!important}
 #trafficIntelligence .ti-hero{padding:22px;background:radial-gradient(circle at 88% 0,rgba(66,227,108,.13),transparent 34%),linear-gradient(135deg,#142018,#0d130f);border:1px solid #2b3b30;border-radius:18px}
 #trafficIntelligence .ti-hero-top,#trafficIntelligence .ti-controls,#trafficIntelligence .ti-source-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
 #trafficIntelligence h2,#trafficIntelligence h3{margin:0}
