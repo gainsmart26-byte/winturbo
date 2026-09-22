@@ -24,5 +24,12 @@
 #trafficIntelligence .ti-flag{display:inline-flex;padding:3px 7px;border-radius:999px;background:#382713;color:#ffbf73;font-size:10px;font-weight:850}
 #trafficIntelligence .ti-note{padding:13px 15px;border:1px solid #2a3a30;border-radius:12px;background:#0d140f;color:#aebbb3;margin-top:14px}
 #trafficIntelligence .ti-source-row{padding-top:13px;border-top:1px solid #223027;margin-top:14px}
+#trafficIntelligence .ti-link-card{margin-top:14px}
+#trafficIntelligence .ti-link-form{display:flex;gap:10px;flex-wrap:wrap}
+#trafficIntelligence .ti-link-form input{flex:1;min-width:280px}
+#trafficIntelligence .ti-source-bars{display:grid;gap:12px;margin-top:16px}
+#trafficIntelligence .ti-source-line>div:first-child{display:flex;justify-content:space-between;gap:10px;margin-bottom:5px}
+#trafficIntelligence .ti-channel-bar{height:9px;background:#202b23;border-radius:999px;overflow:hidden}
+#trafficIntelligence .ti-channel-bar span{display:block;height:100%;border-radius:999px}
 @media(max-width:1100px){#trafficIntelligence .ti-metrics{grid-template-columns:repeat(2,1fr)}#trafficIntelligence .ti-layout{grid-template-columns:1fr}}
 @media(max-width:700px){#trafficIntelligence .ti-metrics{grid-template-columns:1fr}#trafficIntelligence .ti-source-grid{grid-template-columns:repeat(2,1fr)}#trafficIntelligence .ti-country-row{grid-template-columns:28px 82px 1fr 60px}}
