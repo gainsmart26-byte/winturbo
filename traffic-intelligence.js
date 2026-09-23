@@ -13,6 +13,28 @@
   const trend=n=>`<span class="${n>=0?'ti-up':'ti-down'}">${n>=0?'↑':'↓'} ${Math.abs(n).toFixed(2)}%</span>`;
   const hostname=url=>{try{return new URL(url).hostname.replace(/^www\./,'')}catch{return String(url||'').replace(/^https?:\/\//,'').split('/')[0]}};
   const modelFor=source=>source==='Referral'?{Google:18,Meta:10,Instagram:7,Telegram:5,Direct:25,Referral:28,Other:7}:{Google:22,Meta:8,Instagram:6,Telegram:4,Direct:50,Referral:5,Other:5};
+  const brandName=domain=>domain.split('.')[0].replace(/[-_]/g,' ');
+  const keywordIdeas=row=>{
+    const brand=brandName(row.domain),market=row.country==='Global'?'online':row.country.toLowerCase(),kind=row.type==='Lottery'?'lottery':row.type==='Casino'?'casino':row.type==='Sportsbook'?'sports betting':'casino betting';
+    return [
+      [`${brand}`, 'Brand', '1–3', 'High', `https://${row.domain}/`],
+      [`${brand} login`, 'Navigational', '1–5', 'High', `https://${row.domain}/login`],
+      [`${brand} bonus`, 'Commercial', '3–10', 'High', `https://${row.domain}/promotions`],
+      [`${kind} ${market}`, 'Commercial', '11–30', 'Medium', `https://${row.domain}/`],
+      [`best ${kind} offers`, 'Discovery', '21–50', 'Medium', `https://${row.domain}/promotions`],
+      [`${brand} app`, 'Navigational', '4–15', 'Medium', `https://${row.domain}/mobile`]
+    ];
+  };
+  const referralIdeas=row=>{
+    const mix=modelFor(row.source),affiliate=row.type==='Lottery'?'lotterycorner.com':row.type==='Sportsbook'?'oddsportal.com':'askgamblers.com';
+    return [
+      ['Google Search','https://www.google.com/',mix.Google,'Search'],
+      ['Facebook','https://www.facebook.com/',mix.Meta,'Social'],
+      ['Instagram','https://www.instagram.com/',mix.Instagram,'Social'],
+      ['Telegram','https://t.me/',mix.Telegram,'Messaging'],
+      ['Affiliate / comparison',`https://${affiliate}/`,row.source==='Referral'?18:3,'Referral']
+    ].sort((a,b)=>b[2]-a[2]);
+  };
   function shell(){
     if(document.getElementById('trafficIntelligence'))return;const main=document.querySelector('#app main.main');if(!main)return;
     const s=document.createElement('section');s.id='trafficIntelligence';s.className='section';
@@ -21,6 +43,7 @@
     <div class="ti-metrics"><div class="ti-metric"><div class="k">VISIBLE TOP-20 VISITS</div><strong id="tiVisits">—</strong><div class="muted small">Estimated monthly web visits</div></div><div class="ti-metric"><div class="k">MOBILE SHARE</div><strong id="tiMobile">—</strong><div class="muted small">Visit-weighted average</div></div><div class="ti-metric"><div class="k">FASTEST MOM GROWTH</div><strong id="tiGrowth">—</strong><div class="muted small" id="tiGrowthDomain">Current selection</div></div><div class="ti-metric"><div class="k">MONITORED COMPETITORS</div><strong id="tiMonitored">0</strong><div class="muted small">Synced with Bonus Intelligence</div></div></div>
     <div class="ti-layout"><div class="card"><div class="sectionHead"><div><h3>Country footprint</h3><div class="muted small">Visible monthly visits for locally anchored global leaders; India uses its country-specific top 20</div></div></div><div id="tiCountries" class="ti-country-list"></div></div><div class="card"><div class="sectionHead"><div><h3>Modeled traffic-source mix</h3><div class="muted small">Planning estimate for Google, Meta, Instagram, Telegram and other channels</div></div><span class="ti-flag">MODELED · NOT MEASURED</span></div><div id="tiSourceBars" class="ti-source-bars"></div><div class="ti-note">Use this mix for media planning only. Connect a licensed traffic-data provider or first-party attribution before treating channel percentages as measured facts.</div></div></div>
     <div class="card"><div class="sectionHead"><div><h3 id="tiTableTitle">Top 20 gambling-category websites</h3><div class="muted small" id="tiTableNote">Worldwide estimates from Semrush; filters update the table and summary.</div></div><span id="tiCount" class="pill">20 SITES</span></div><div class="tableWrap"><table><thead><tr><th>Rank</th><th>Website</th><th>Market</th><th>Vertical</th><th>Monthly visits</th><th>Mobile</th><th>MoM</th><th>YoY</th><th>Main source</th></tr></thead><tbody id="tiRows"></tbody></table></div></div>
+    <div class="card ti-search-card"><div class="sectionHead"><div><h3>Keyword &amp; Referral Intelligence</h3><div class="muted small">Select a website to review its ranking-keyword opportunities and likely referring URLs.</div></div><div class="ti-intel-actions"><label>Website<select id="tiIntelSite"></select></label><span class="ti-flag">DISCOVERY ESTIMATE · VERIFY WITH PROVIDER</span></div></div><div class="ti-intel-grid"><div><div class="ti-subhead"><h4>Ranking keywords</h4><span id="tiKeywordCount" class="pill">6 KEYWORDS</span></div><div class="tableWrap"><table><thead><tr><th>Keyword</th><th>Intent</th><th>Est. position</th><th>Potential</th><th>Likely landing URL</th></tr></thead><tbody id="tiKeywordRows"></tbody></table></div></div><div><div class="ti-subhead"><h4>Referral URLs</h4><span id="tiReferralCount" class="pill">5 SOURCES</span></div><div class="tableWrap"><table><thead><tr><th>Source</th><th>Referral URL</th><th>Modeled share</th><th>Channel</th></tr></thead><tbody id="tiReferralRows"></tbody></table></div></div></div><div class="ti-note"><b>Data status:</b> these rows are discovery estimates generated from the selected website, market, vertical and traffic-source model. Connect Semrush/Similarweb for observed competitor keywords and referring domains; connect GA4 plus tagged redirect links for measured WinTurbo referrals.</div></div>
     <div class="card" style="margin-top:14px"><div class="sectionHead"><div><h3>Competitors imported from Bonus Intelligence</h3><div class="muted small">Every analysed or pending Bonus Intelligence link is included here.</div></div></div><div class="tableWrap"><table><thead><tr><th>Website</th><th>Offer / page</th><th>Status</th><th>Traffic data</th><th>Source</th></tr></thead><tbody id="tiBonusRows"><tr><td colspan="5" class="muted">Loading monitored competitors…</td></tr></tbody></table></div><div class="ti-source-row"><div class="muted small">Third-party traffic estimates exclude app usage, deposits and revenue. Added competitor links require a licensed traffic provider before measured channel attribution is available.</div><div class="small"><a href="https://www.semrush.com/trending-websites/global/gambling/" target="_blank" rel="noopener">Worldwide source ↗</a> · <a href="https://www.semrush.com/trending-websites/in/gambling/" target="_blank" rel="noopener">India source ↗</a></div></div></div>`;
     main.appendChild(s);
   }
@@ -32,12 +55,21 @@
   function baseRows(){const country=document.getElementById('tiCountry')?.value||'all';if(country==='India')return india;if(country==='all')return worldwide;return worldwide.filter(x=>x.country===country)}
   function filtered(){const t=document.getElementById('tiType')?.value||'all',q=(document.getElementById('tiSearch')?.value||'').toLowerCase();return baseRows().filter(x=>(t==='all'||x.type===t)&&x.domain.includes(q))}
   function sourceMix(rows){const total=rows.reduce((a,x)=>a+x.visits,0)||1,out={Google:0,Meta:0,Instagram:0,Telegram:0,Direct:0,Referral:0,Other:0};rows.forEach(x=>{const m=modelFor(x.source);Object.keys(out).forEach(k=>out[k]+=x.visits*m[k]/total)});return out}
+  function renderIntel(rows){
+    const select=document.getElementById('tiIntelSite');if(!select)return;const all=[...new Map([...rows,...baseRows(),...worldwide,...india].map(x=>[x.domain,x])).values()],previous=select.value;
+    select.innerHTML=all.map(x=>`<option value="${esc(x.domain)}">${esc(x.domain)} · ${esc(x.country)}</option>`).join('');
+    if(all.some(x=>x.domain===previous))select.value=previous;const row=all.find(x=>x.domain===select.value)||all[0];if(!row)return;
+    const keywords=keywordIdeas(row),referrals=referralIdeas(row);document.getElementById('tiKeywordCount').textContent=keywords.length+' KEYWORDS';document.getElementById('tiReferralCount').textContent=referrals.length+' SOURCES';
+    document.getElementById('tiKeywordRows').innerHTML=keywords.map(x=>`<tr><td><b>${esc(x[0])}</b></td><td>${esc(x[1])}</td><td><span class="pill">${esc(x[2])}</span></td><td>${esc(x[3])}</td><td><a href="${esc(x[4])}" target="_blank" rel="noopener">${esc(x[4].replace(/^https?:\/\//,''))} ↗</a></td></tr>`).join('');
+    document.getElementById('tiReferralRows').innerHTML=referrals.map(x=>`<tr><td><b>${esc(x[0])}</b></td><td><a href="${esc(x[1])}" target="_blank" rel="noopener">${esc(x[1])} ↗</a></td><td><b>${Number(x[2]).toFixed(1)}%</b></td><td>${esc(x[3])}</td></tr>`).join('');
+  }
   function render(){
     const rows=filtered(),total=rows.reduce((a,x)=>a+x.visits,0),mobile=total?rows.reduce((a,x)=>a+x.visits*x.mobile,0)/total:0,fast=[...rows].sort((a,b)=>b.mom-a.mom)[0],indiaMode=(document.getElementById('tiCountry')?.value==='India');
     document.getElementById('tiVisits').textContent=total<1?(total*1000).toFixed(0)+'K':total.toFixed(1)+'M';document.getElementById('tiMobile').textContent=mobile.toFixed(1)+'%';document.getElementById('tiGrowth').textContent=fast?(fast.mom>=0?'+':'')+fast.mom.toFixed(1)+'%':'—';document.getElementById('tiGrowthDomain').textContent=fast?fast.domain:'No matching website';document.getElementById('tiMonitored').textContent=bonusLinks.length;document.getElementById('tiCount').textContent=rows.length+' SITE'+(rows.length===1?'':'S');document.getElementById('tiPeriodBadge').textContent=indiaMode?'APRIL 2026 · INDIA':'AUGUST 2026 · WORLDWIDE';document.getElementById('tiTableTitle').textContent=indiaMode?'Top 20 gambling-category websites in India':'Top 20 gambling-category websites worldwide';document.getElementById('tiTableNote').textContent=indiaMode?'India-specific Semrush estimates for April 2026.':'Worldwide Semrush estimates for August 2026.';
     document.getElementById('tiRows').innerHTML=rows.length?rows.map(x=>`<tr><td><b>#${x.rank}</b></td><td><b>${esc(x.domain)}</b>${x.type==='Other'?'<div class="ti-flag">CLASSIFICATION CHECK</div>':''}</td><td>${esc(x.country)}</td><td>${esc(x.type)}</td><td><b>${x.visits<1?(x.visits*1000).toFixed(0)+'K':x.visits.toFixed(2)+'M'}</b></td><td>${x.mobile.toFixed(2)}%</td><td>${trend(x.mom)}</td><td>${trend(x.yoy)}</td><td>${esc(x.source)}</td></tr>`).join(''):'<tr><td colspan="9" class="muted">No websites match these filters.</td></tr>';
     const max=countryFootprint[0][1];document.getElementById('tiCountries').innerHTML=countryFootprint.map((x,i)=>`<div class="ti-country-row"><span class="ti-rank">${i+1}</span><b>${esc(x[0])}</b><div class="ti-bar"><span style="width:${(x[1]/max*100).toFixed(1)}%"></span></div><span class="ti-value">${x[1].toFixed(1)}M</span></div>`).join('');
     const mix=sourceMix(rows),colors={Google:'#67b7ff',Meta:'#4d7cff',Instagram:'#e85ebc',Telegram:'#36aee2',Direct:'#42e36c',Referral:'#ff9d2e',Other:'#8fa097'};document.getElementById('tiSourceBars').innerHTML=Object.entries(mix).map(([k,v])=>`<div class="ti-source-line"><div><b>${k}</b><span>${v.toFixed(1)}%</span></div><div class="ti-channel-bar"><span style="width:${v}%;background:${colors[k]}"></span></div></div>`).join('');
+    renderIntel(rows);
   }
   async function loadBonusLinks(){
     if(typeof sb==='undefined')return;const r=await sb.from('bonus_intelligence_links').select('id,url,website_name,offer_title,status,error_message,created_at').order('created_at',{ascending:false});
@@ -52,7 +84,7 @@
   }
   function boot(){
     shell();addNav();const c=document.getElementById('tiCountry');if(c.options.length===2)[...new Set(worldwide.map(x=>x.country).filter(x=>x!=='Global'))].sort().forEach(v=>c.insertAdjacentHTML('beforeend',`<option>${esc(v)}</option>`));
-    ['tiCountry','tiType','tiSearch'].forEach(id=>{const el=document.getElementById(id);if(!el.dataset.tiBound){el.dataset.tiBound='1';el.addEventListener(id==='tiSearch'?'input':'change',render)}});document.getElementById('tiAddLink').onclick=addLink;document.getElementById('tiRefreshLinks').onclick=loadBonusLinks;loadBonusLinks();render();
+    ['tiCountry','tiType','tiSearch'].forEach(id=>{const el=document.getElementById(id);if(!el.dataset.tiBound){el.dataset.tiBound='1';el.addEventListener(id==='tiSearch'?'input':'change',render)}});const intel=document.getElementById('tiIntelSite');if(!intel.dataset.tiBound){intel.dataset.tiBound='1';intel.addEventListener('change',()=>renderIntel(filtered()))}document.getElementById('tiAddLink').onclick=addLink;document.getElementById('tiRefreshLinks').onclick=loadBonusLinks;loadBonusLinks();render();
     const nav=document.querySelector('#app .nav');if(nav&&!nav.dataset.tiObserved){nav.dataset.tiObserved='1';new MutationObserver(()=>{if(!nav.querySelector('[data-s="trafficIntelligence"]'))addNav()}).observe(nav,{childList:true})}
   }
   window.addEventListener('load',()=>setTimeout(boot,800));document.addEventListener('click',e=>{if(e.target.closest('#loginBtn'))setTimeout(()=>{shell();addNav();loadBonusLinks()},1100)});
