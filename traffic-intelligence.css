@@ -40,9 +40,13 @@
 #trafficIntelligence .ti-subhead h4{margin:0;font-size:14px}
 #trafficIntelligence .ti-search-card td a{word-break:break-word}
 #trafficIntelligence .ti-gap-card{margin-top:14px}
+#trafficIntelligence .ti-gap-controls{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;margin-top:16px}
+#trafficIntelligence .ti-gap-controls label{display:grid;gap:5px;color:var(--muted);font-size:11px;font-weight:800}
+#trafficIntelligence .ti-gap-controls select,#trafficIntelligence .ti-gap-controls input{min-width:220px}
 #trafficIntelligence .ti-gap-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
 #trafficIntelligence .ti-gap-item{padding:16px;border:1px solid #2a3830;border-radius:15px;background:linear-gradient(180deg,#111913,#0c120e)}
 #trafficIntelligence .ti-gap-item.featured{grid-column:1/-1;border-color:rgba(66,227,108,.5);background:radial-gradient(circle at 95% 0,rgba(66,227,108,.12),transparent 35%),linear-gradient(180deg,#121d15,#0c120e)}
+#trafficIntelligence .ti-brand-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:10px;margin-bottom:12px;border-bottom:1px solid #243128}.ti-brand-line b{font-size:13px}.ti-brand-line span{color:var(--muted);font-size:10px;word-break:break-all}
 #trafficIntelligence .ti-gap-top{display:grid;grid-template-columns:32px 1fr auto;align-items:start;gap:10px}
 #trafficIntelligence .ti-gap-top h4{margin:4px 0 0;font-size:15px}
 #trafficIntelligence .ti-gap-top>strong{color:var(--ti-green);font-size:21px}.ti-gap-top>strong small{font-size:10px;color:var(--muted)}
@@ -51,4 +55,4 @@
 #trafficIntelligence .ti-gap-format{margin-top:13px;padding-top:10px;border-top:1px solid #243128;color:#78cfff;font-size:11px;font-weight:800}
 @media(max-width:1100px){#trafficIntelligence .ti-metrics{grid-template-columns:repeat(2,1fr)}#trafficIntelligence .ti-layout{grid-template-columns:1fr}}
 @media(max-width:1100px){#trafficIntelligence .ti-intel-grid{grid-template-columns:1fr}}
-@media(max-width:700px){#trafficIntelligence .ti-metrics,#trafficIntelligence .ti-gap-grid{grid-template-columns:1fr}#trafficIntelligence .ti-gap-item.featured{grid-column:auto}#trafficIntelligence .ti-source-grid{grid-template-columns:repeat(2,1fr)}#trafficIntelligence .ti-country-row{grid-template-columns:28px 82px 1fr 60px}#trafficIntelligence .ti-intel-actions,#trafficIntelligence .ti-intel-actions label,#trafficIntelligence .ti-intel-actions select{width:100%}}
+@media(max-width:700px){#trafficIntelligence .ti-metrics,#trafficIntelligence .ti-gap-grid{grid-template-columns:1fr}#trafficIntelligence .ti-gap-item.featured{grid-column:auto}#trafficIntelligence .ti-source-grid{grid-template-columns:repeat(2,1fr)}#trafficIntelligence .ti-country-row{grid-template-columns:28px 82px 1fr 60px}#trafficIntelligence .ti-intel-actions,#trafficIntelligence .ti-intel-actions label,#trafficIntelligence .ti-intel-actions select,#trafficIntelligence .ti-gap-controls,#trafficIntelligence .ti-gap-controls label,#trafficIntelligence .ti-gap-controls select,#trafficIntelligence .ti-gap-controls input{width:100%}}
