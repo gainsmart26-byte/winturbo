@@ -3394,21 +3394,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    const by={};recent.forEach(r=>{const k=r.handle||r.account_name||r.post_url||String(r.id);if(!by[k]||Number(r.views||0)>Number(by[k].views||0))by[k]=r});const per=Object.values(by).sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,12);const ot=$('overviewTrending');if(ot)ot.innerHTML=per.length?per.map((r,i)=>`<div class="trendItem"><div class="trendTop"><div><b>#${i+1} ${esc(r.account_name||r.handle||'Source')}</b><div class="muted small">@${esc(r.handle||'')} · ${dt(r.posted_at)}</div></div><span class="pill blue">${fmt(r.views)} views</span></div><div class="trendText">${esc((r.hook||r.post_text||'Media post').slice(0,160))}</div>${r.post_url?`<div style="margin-top:6px"><a target="_blank" rel="noopener noreferrer" href="${esc(safeUrl(r.post_url))}">Open post ↗</a></div>`:''}</div>`).join(''):'<div class="muted">No recent posts available.</div>';
    const tb=$('topicBody');if(tb)tb.innerHTML=tr.length?tr.slice(0,15).map((r,i)=>`<tr><td>#${i+1}</td><td><b>${esc(r.topic)}</b></td><td>${fmt(r.posts)}</td><td>${fmt(r.views)}</td><td>${fmt(Math.round(r.avg))}</td><td>${fmt(r.top)}</td><td>${r.score==null?'—':r.score.toFmt6o+^םE_V26_START */
 (function(){
- const $=id=>document.getE��vo+^����םat).getTime()>=cut7); const recent24=cr.filter(r=>r.posted_at&&new Date(r.posted_at).getTime()>=cut24);
-   set('accounts',gr.length); set('members',fmt(gr.reduce((a,r)=>a+Number(r.followers_current||0),0))); set('overviewPosts',cr.length);
-   const scored=cr.filter(r=>r.creative_score!=null).sort((a,b)=>Number(b.creative_score)-Number(a.creative_score)); const top=scored[0]; set('overviewTopScore',top?Number(top.creative_score).toFixed(0):'—'); set('overviewTopName',top?.account_name||'No scored posts');
-   const countPlatform=p=>src.filter(x=>String(x.platform||'').toLowerCase()===p).length; const tg=countPlatform('telegram'),ig=countPlatform('instagram'),webc=src.length-tg-ig;
-   set('overviewTelegramLinks',tg);set('overviewInstagramLinks',ig);set('overviewWebLinks',webc);set('overviewTotalLinks',src.length);set('overviewLinkBreakdown',`Telegram ${tg} · Instagram ${ig} · Web ${webc}`);
-   set('posts24h',recent24.length);set('posts24hSub',recent24.length?`${new Set(recent24.map(x=>x.handle).filter(Boolean)).size} channel(s) contributed`:'No posts observed in last 24 hours');
-   const last=src.map(x=>x.last_scraped_at).filter(Boolean).sort().pop();set('lastDataUpdate',last?dt(last):'Waiting for scrape');
-   const topics={};recent.forEach(r=>{const k=r.theme||'Unclassified',x=topics[k]||(topics[k]={topic:k,posts:0,views:0,top:0,scores:[]});x.posts++;x.views+=Number(r.views||0);x.top=Math.max(x.top,Number(r.views||0));if(r.creative_score!=null)x.scores.push(Number(r.creative_score))});
-   const tr=Object.values(topics).map(x=>({...x,avg:x.posts?x.views/x.posts:0,score:x.scores.length?x.scores.reduce((a,b)=>a+b,0)/x.scores.length:null})).sort((a,b)=>b.posts-a.posts||b.views-a.views); const tt=tr[0];set('topTopic',tt?.topic||'No topic data');set('topTopicSub',tt?`${fmt(tt.posts)} posts · ${fmt(tt.views)} views`:'—');
-   const trending=[...recent].sort((a,b)=>Number(b.views||0)-Number(a.views||0));set('topTrendingViews',trending[0]?fmt(trending[0].views):'—');set('topTrendingName',trending[0]?.account_name||'No recent post');
-   const ar=$('audienceRankingList');if(ar)ar.innerHTML=gr.length?gr.slice(0,12).map(r=>`<div class="audienceRow"><div class="audienceRank">#${esc(r.audience_rank??'—')}</div><div class="audienceMeta"><b>${esc(r.account_name||r.handle)}</b><div class="muted small">@${esc(r.handle||'')} · ${fmt(r.posts_7d||0)} posts / 7d${r.avg_views_7d!=null?' · '+fmt(Math.round(r.avg_views_7d))+' avg views':''}</div></div><div class="audienceValue">${fmt(r.followers_current)}</div></div>`).join(''):'<div class="muted">No audience ranking data.</div>';
-   const os=$('overviewSources');if(os){const groups={Telegram:src.filter(x=>String(x.platform).toLowerCase()==='telegram'),Instagram:src.filter(x=>String(x.platform).toLowerCase()==='instagram'),Web:src.filter(x=>!['telegram','instagram'].includes(String(x.platform).toLowerCase()))};os.innerHTML=Object.entries(groups).map(([name,rows])=>`<div class="overviewSourceGroup"><h4>${name} · ${rows.length}</h4>${rows.length?rows.map(x=>{const u=safeUrl(x.source_url);return `<div class="overviewSourceRow"><div><b>${esc(x.source_name||x.handle||x.source_url)}</b><div class="muted small">${esc(x.handle||'')} · ${esc(x.scrape_status||'queued')} · ${x.last_scraped_at?dt(x.last_scraped_at):'not fetched'}</div></div>${u?`<a target="_blank" rel="noopener noreferrer" href="${esc(u)}">Open ↗</a>`:''}</div>`}).join(''):'<div class="muted small">No active links</div>'}</div>`).join('')}
-   const by={};recent.forEach(r=>{const k=r.handle||r.account_name||r.post_url||String(r.id);if(!by[k]||Number(r.views||0)>Number(by[k].views||0))by[k]=r});const per=Object.values(by).sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,12);const ot=$('overviewTrending');if(ot)ot.innerHTML=per.length?per.map((r,i)=>`<div class="trendItem"><div class="trendTop"><div><b>#${i+1} ${esc(r.account_name||r.handle||'Source')}</b><div class="muted small">@${esc(r.handle||'')} · ${dt(r.posted_at)}</div></div><span class="pill blue">${fmt(r.views)} views</span></div><div class="trendText">${esc((r.hook||r.post_text||'Media post').slice(0,160))}</div>${r.post_url?`<div style="margin-top:6px"><a target="_blank" rel="noopener noreferrer" href="${esc(safeUrl(r.post_url))}">Open post ↗</a></div>`:''}</div>`).join(''):'<div class="muted">No recent posts available.</div>';
-   const tb=$('topicBody');if(tb)tb.innerHTML=tr.length?tr.slice(0,15).map((r,i)=>`<tr><td>#${i+1}</td><td><b>${esc(r.topic)}</b></td><td>${fmt(r.posts)}</td><td>${fmt(r.views)}</td><td>${fmt(Math.round(r.avg))}</td><td>${fmt(r.top)}</td><td>${r.score==null?'—':r.score.toFixed(1)}</td><td>${recent.length?((r.posts/recent.length)*100).toFixed(1):'0.0'}%</td></tr>`).join(''):'<tr><td colspan="8" class="muted">No topic analytics available.</td></tr>';
-   const ai=$('aiOverview');if(ai){const bestSuc=suc[0],bestTopic=[...tr].sort((a,b)=>b.avg-a.avg)[0],bestChannel=gr.filter(x=>x.avg_views_7d!=null).sort((a,b)=>Number(b.avg_views_7d)-Number(a.avg_views_7d))[0],bestTime=(await sb.from('posting_intelligence').select('*').order('performance_rank').limit(1)).data?.[0];const learns=[];if(bestSuc)learns.push(`<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">${esc(bestSuc.theme||'Content pattern')} · ${Number(bestSuc.success_likelihood_score||0).toFixed(0)}% likelihood · ${fmt(bestSuc.views||0)} observed views.</div></div>`);if(bestTopic)learns.push(`<div class="aiLearn"><b>Highest-view topic</b><div class="muted small">${esc(bestTopic.topic)} averages ${fmt(Math.round(bestTopic.avg))} views across ${fmt(bestTopic.posts)} posts.</div></div>`);if(bestChannel)learns.push(`<div class="aiLearn"><b>Strongest channel by average views</b><div class="muted small">${esc(bestChannel.account_name||bestChannel.handle)} · ${fmt(Math.round(bestChannel.avg_views_7d))} avg views in the 7-day window.</div></div>`);if(bestTime)learns.push(`<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">${esc(bestTime.post_hour_label||bestTime.post_hour_ist)} · ${bestTime.avg_views==null?'—':fmt(Math.round(bestTime.avg_views))} avg views.</div></div>`);ai.innerHTML=learns.join('')||'<div class="muted">Not enough current evidence for AI learnings.</div>'}
+ const $=id=>document.getE�vo+^����םTopic=[...tr].sort((a,b)=>b.avg-a.avg)[0],bestChannel=gr.filter(x=>x.avg_views_7d!=null).sort((a,b)=>Number(b.avg_views_7d)-Number(a.avg_views_7d))[0],bestTime=(await sb.from('posting_intelligence').select('*').order('performance_rank').limit(1)).data?.[0];const learns=[];if(bestSuc)learns.push(`<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">${esc(bestSuc.theme||'Content pattern')} · ${Number(bestSuc.success_likelihood_score||0).toFixed(0)}% likelihood · ${fmt(bestSuc.views||0)} observed views.</div></div>`);if(bestTopic)learns.push(`<div class="aiLearn"><b>Highest-view topic</b><div class="muted small">${esc(bestTopic.topic)} averages ${fmt(Math.round(bestTopic.avg))} views across ${fmt(bestTopic.posts)} posts.</div></div>`);if(bestChannel)learns.push(`<div class="aiLearn"><b>Strongest channel by average views</b><div class="muted small">${esc(bestChannel.account_name||bestChannel.handle)} · ${fmt(Math.round(bestChannel.avg_views_7d))} avg views in the 7-day window.</div></div>`);if(bestTime)learns.push(`<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">${esc(bestTime.post_hour_label||bestTime.post_hour_ist)} · ${bestTime.avg_views==null?'—':fmt(Math.round(bestTime.avg_views))} avg views.</div></div>`);ai.innerHTML=learns.join('')||'<div class="muted">Not enough current evidence for AI learnings.</div>'}
  }
  function boot(){renderExecutive();setTimeout(renderExecutive,900);document.getElementById('accountFilter')?.addEventListener('change',renderExecutive);document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(renderExecutive,150));}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();window.WinTurboExecutiveRefresh=renderExecutive;
@@ -6255,6 +6241,68 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
   new MutationObserver(bindRefreshButton).observe(document.documentElement,{childList:true,subtree:true});
   window.addEventListener('load',()=>window.setTimeout(startAutoRefresh,850));
   window.WinTurboRefreshBonus=refreshBonus;
+})();
+</script>
+<script>/* WINTURBO_OVERVIEW_INTELLIGENCE_V72 */
+(function(){
+  const q=id=>document.getElementById(id);
+  const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const format=value=>new Intl.NumberFormat('en-IN').format(Number(value)||0);
+  const date=value=>new Date(value).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'});
+  let activeRefresh=null;
+
+  async function refreshOverviewIntelligence(){
+    if(activeRefresh)return activeRefresh;
+    activeRefresh=(async()=>{
+      if(typeof sb==='undefined')return;
+      const since=new Date(Date.now()-7*86400000).toISOString();
+      const [successResult,postsResult,timingResult]=await Promise.all([
+        sb.from('content_success_intelligence').select('*').order('success_likelihood_score',{ascending:false}).limit(100),
+        sb.from('posts').select('platform_post_id,post_url,post_text,posted_at,views,reactions_count,media_type,theme,hook,accounts(account_name,handle,platform)').gte('posted_at',since).not('post_url','is',null).order('views',{ascending:false,nullsFirst:false}).limit(300),
+        sb.from('posting_intelligence').select('*').order('performance_rank').limit(24)
+      ]);
+      const error=successResult.error||postsResult.error||timingResult.error;
+      if(error)throw error;
+      const success=successResult.data||[],posts=postsResult.data||[],timing=timingResult.data||[];
+
+      const byAccount=new Map();
+      for(const post of posts){
+        const key=post.accounts?.handle||post.accounts?.account_name||post.post_url;
+        const current=byAccount.get(key);
+        if(!current||Number(post.views||0)>Number(current.views||0))byAccount.set(key,post);
+      }
+      const trending=[...byAccount.values()].sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,9);
+      const trendingHost=q('overviewTrending');
+      if(trendingHost)trendingHost.innerHTML=trending.length?trending.map((post,index)=>
+        '<div class="aiItem"><div style="display:flex;justify-content:space-between;gap:10px"><b>#'+(index+1)+' '+escape(post.accounts?.account_name||post.accounts?.handle||'Source')+'</b><span class="pill blue">'+format(post.views)+' views</span></div><div class="muted small" style="margin-top:5px">'+escape(post.accounts?.platform||'')+' · '+date(post.posted_at)+'</div><div style="margin-top:6px">'+escape(String(post.hook||post.post_text||'Media post').slice(0,140))+'</div><div style="margin-top:7px"><a target="_blank" rel="noopener noreferrer" href="'+escape(post.post_url)+'">Open post ↗</a></div></div>'
+      ).join(''):'<div class="muted">No posts with links were collected in the last seven days.</div>';
+
+      const aiHost=q('aiOverview');
+      if(aiHost){
+        const best=success[0];
+        const bestPost=posts.find(post=>post.views!=null)||posts[0];
+        const bestTime=timing.find(row=>row.avg_views!=null)||timing[0];
+        const learnings=[];
+        if(best)learnings.push('<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">'+escape(best.theme||best.media_type||'Recent content')+' · '+Number(best.success_likelihood_score||0).toFixed(0)+'% likelihood · '+format(best.views)+' observed views.</div></div>');
+        if(bestPost)learnings.push('<div class="aiLearn"><b>Highest-view recent post</b><div class="muted small">'+escape(bestPost.accounts?.account_name||bestPost.accounts?.handle||'Source')+' · '+format(bestPost.views)+' views · '+escape(bestPost.media_type||'post')+'.</div></div>');
+        if(bestTime)learnings.push('<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">'+escape(bestTime.post_hour_label||bestTime.post_hour_ist)+' IST · '+format(Math.round(bestTime.avg_views||0))+' average views across '+format(bestTime.posts_count)+' posts.</div></div>');
+        aiHost.innerHTML=learnings.join('')||'<div class="muted">Not enough recent evidence for AI learnings.</div>';
+      }
+    })().catch(error=>{
+      const message='<div class="muted">Unable to refresh recent intelligence: '+escape(error?.message||String(error))+'</div>';
+      if(q('aiOverview'))q('aiOverview').innerHTML=message;
+      if(q('overviewTrending'))q('overviewTrending').innerHTML=message;
+    }).finally(()=>{activeRefresh=null});
+    return activeRefresh;
+  }
+
+  document.addEventListener('click',event=>{
+    if(event.target.closest('#loginBtn, #refresh, button[data-s="overview"]'))setTimeout(refreshOverviewIntelligence,500);
+  });
+  window.addEventListener('load',()=>setTimeout(refreshOverviewIntelligence,1400));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshOverviewIntelligence()});
+  setInterval(refreshOverviewIntelligence,15*60*1000);
+  window.WinTurboRefreshOverviewIntelligence=refreshOverviewIntelligence;
 })();
 </script>
 <link rel="stylesheet" href="./traffic-intelligence.css">

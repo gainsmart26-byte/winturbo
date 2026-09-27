@@ -88,7 +88,7 @@ Deno.serve(async (request) => {
           targets: telegram.map((source) => source.source_url),
           maxMessages: 150,
           dateFrom: new Date(Date.now() - 8 * 86400000).toISOString(),
-          sortOrder: "newest",
+          sortOrder: "newest_first",
           mediaMode: "metadata",
         });
         summary.fetched += items.length;

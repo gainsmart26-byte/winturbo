@@ -44,19 +44,5 @@ select dense_rank() over (partition by entity_category order by avg_views desc n
   top_views,avg_reactions,avg_creative_score,posts_detail,entity_category
 from grouped;
 
-select cron.unschedule(jobid)
-from cron.job
-where jobname = 'daily-apify-posting-intelligence';
-
-select cron.schedule(
-  'daily-apify-posting-intelligence',
-  '30 0 * * *',
-  $$
-  select net.http_post(
-    url := 'https://kxspsqtdvngiovjvskuq.supabase.co/functions/v1/apify-collector',
-    headers := '{"Content-Type":"application/json","x-winturbo-cron":"posting-intelligence-daily-v1"}'::jsonb,
-    body := '{"action":"collect"}'::jsonb,
-    timeout_milliseconds := 300000
-  );
-  $$
-);
+-- Daily collection is scheduled through the connected Apify automation.
+-- The Edge Function remains available for direct-token deployments.
