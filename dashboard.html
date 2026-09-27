@@ -3394,7 +3394,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    const by={};recent.forEach(r=>{const k=r.handle||r.account_name||r.post_url||String(r.id);if(!by[k]||Number(r.views||0)>Number(by[k].views||0))by[k]=r});const per=Object.values(by).sort((a,b)=>Number(b.views||0)-Number(a.views||0)).slice(0,12);const ot=$('overviewTrending');if(ot)ot.innerHTML=per.length?per.map((r,i)=>`<div class="trendItem"><div class="trendTop"><div><b>#${i+1} ${esc(r.account_name||r.handle||'Source')}</b><div class="muted small">@${esc(r.handle||'')} · ${dt(r.posted_at)}</div></div><span class="pill blue">${fmt(r.views)} views</span></div><div class="trendText">${esc((r.hook||r.post_text||'Media post').slice(0,160))}</div>${r.post_url?`<div style="margin-top:6px"><a target="_blank" rel="noopener noreferrer" href="${esc(safeUrl(r.post_url))}">Open post ↗</a></div>`:''}</div>`).join(''):'<div class="muted">No recent posts available.</div>';
    const tb=$('topicBody');if(tb)tb.innerHTML=tr.length?tr.slice(0,15).map((r,i)=>`<tr><td>#${i+1}</td><td><b>${esc(r.topic)}</b></td><td>${fmt(r.posts)}</td><td>${fmt(r.views)}</td><td>${fmt(Math.round(r.avg))}</td><td>${fmt(r.top)}</td><td>${r.score==null?'—':r.score.toFmt6o+^םE_V26_START */
 (function(){
- const $=id=>document.getE�vo+^����םTopic=[...tr].sort((a,b)=>b.avg-a.avg)[0],bestChannel=gr.filter(x=>x.avg_views_7d!=null).sort((a,b)=>Number(b.avg_views_7d)-Number(a.avg_views_7d))[0],bestTime=(await sb.from('posting_intelligence').select('*').order('performance_rank').limit(1)).data?.[0];const learns=[];if(bestSuc)learns.push(`<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">${esc(bestSuc.theme||'Content pattern')} · ${Number(bestSuc.success_likelihood_score||0).toFixed(0)}% likelihood · ${fmt(bestSuc.views||0)} observed views.</div></div>`);if(bestTopic)learns.push(`<div class="aiLearn"><b>Highest-view topic</b><div class="muted small">${esc(bestTopic.topic)} averages ${fmt(Math.round(bestTopic.avg))} views across ${fmt(bestTopic.posts)} posts.</div></div>`);if(bestChannel)learns.push(`<div class="aiLearn"><b>Strongest channel by average views</b><div class="muted small">${esc(bestChannel.account_name||bestChannel.handle)} · ${fmt(Math.round(bestChannel.avg_views_7d))} avg views in the 7-day window.</div></div>`);if(bestTime)learns.push(`<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">${esc(bestTime.post_hour_label||bestTime.post_hour_ist)} · ${bestTime.avg_views==null?'—':fmt(Math.round(bestTime.avg_views))} avg views.</div></div>`);ai.innerHTML=learns.join('')||'<div class="muted">Not enough current evidence for AI learnings.</div>'}
+ const $=id=>document.getE�vo+^����םTopic=[...tr].sort((a,b)=>b.avg-a.avg)[0],bestChannel=gr.filter(x=>x.avg_views_7d!=null).sort((a,b)=>Number(b.avg_views_7d)-Number(a.avg_views_7d))[0],bestTime=(await sb.from('posting_intelligence').select('*').order('performance_rank').limit(1)).data?.[0];const learns=[];if(bestSuc)learns.push(`<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">${esc(bestSuc.theme||'Content pattern')} · ${Number(bestSuc.success_likelihood_score||0).toFixed(0)}% likelihood · ${fmt(bestSuc.views||0)} observed views.</div></div>`);if(bestTopic)learns.push(`<div class="aiLearn"><b>Highest-view topic</b><div class="muted small">${esc(bestTopic.topic)} averages ${fmt(Math.round(bestTopic.avg))} views across ${fmt(bestTopic.posts)} posts.</div></div>`);if(bestChannel)learns.push(`<div class="aiLearn"><b>Strongest channel by average views</b><div class="muted small">${esc(bestChannel.account_name||bestChannel.handle)} · ${fmt(Math.round(bestChannel.avg_views_7d))} avg views in the 7-day window.</div></div>`);if(bestTime)learns.push(`<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">${esc(bestTime.post_hour_label||bestTime.post_hour_ist)} · ${bestTime.avg_views==null?'—':fmt(Math.round(bestTime.avg_views))} avg views.</div></div>`);ai.innerHTML=learns.join('')||'<div class="muted">Not enough current evidence for AI learnings.</div>'}
  }
  function boot(){renderExecutive();setTimeout(renderExecutive,900);document.getElementById('accountFilter')?.addEventListener('change',renderExecutive);document.getElementById('refresh')?.addEventListener('click',()=>setTimeout(renderExecutive,150));}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();window.WinTurboExecutiveRefresh=renderExecutive;
@@ -6303,6 +6303,46 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshOverviewIntelligence()});
   setInterval(refreshOverviewIntelligence,15*60*1000);
   window.WinTurboRefreshOverviewIntelligence=refreshOverviewIntelligence;
+})();
+</script>
+<script>/* WINTURBO_SUCCESS_CARDS_V73 */
+(function(){
+  const q=id=>document.getElementById(id);
+  const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+  const format=value=>new Intl.NumberFormat('en-IN').format(Number(value)||0);
+  const postType=value=>{
+    const type=String(value||'post').toLowerCase();
+    if(type.includes('reel'))return 'Reel';
+    if(type.includes('video'))return 'Video Post';
+    if(type.includes('carousel')||type.includes('sidecar'))return 'Carousel Post';
+    if(type.includes('image')||type.includes('photo'))return 'Image Post';
+    if(type==='text')return 'Text Post';
+    return 'Media Post';
+  };
+  let active=null;
+
+  async function refreshSuccessCards(){
+    if(active)return active;
+    active=(async()=>{
+      if(typeof sb==='undefined'||!q('successIntelligence'))return;
+      const result=await sb.from('content_success_intelligence').select('*').order('success_likelihood_score',{ascending:false}).limit(100);
+      if(result.error)throw result.error;
+      const rows=(result.data||[]).slice(0,Math.max(15,window.successVisible||15));
+      window.successRows=rows;
+      q('successIntelligence').innerHTML=rows.length?rows.map((r,i)=>{
+        const type=postType(r.media_type);
+        const reactions=r.reactions_count==null?'Reactions unavailable':format(r.reactions_count)+' reactions';
+        const creative=r.creative_score==null?'Creative score pending':Number(r.creative_score).toFixed(1)+' creative score';
+        return '<div class="successCard"><div class="successHead"><div><span class="successBadge">'+(Number(r.success_likelihood_score)>=75?'LIKELY TO BE SUCCESSFUL':'PROMISING PATTERN')+'</span><h3 style="margin:10px 0 2px">'+escape(type)+'</h3><div class="muted small">'+escape(r.account_name)+' · '+escape(r.platform||'')+' · '+(typeof dateFmt==='function'?dateFmt(r.posted_at):escape(r.posted_at))+'</div></div><div class="successScore">'+Number(r.success_likelihood_score||0).toFixed(0)+'</div></div><div class="recLine"><b>Content signal:</b> '+escape(String(r.hook||r.post_text||'Media-led content').slice(0,140))+'</div><div class="recLine"><b>Why:</b> '+escape(r.rationale||'Strong observed recent evidence.')+'</div><div class="recLine"><b>Evidence source:</b> '+escape(r.account_name||r.handle||'Observed public source')+' · '+escape(r.platform||'Telegram/Web')+'</div><div class="recLine"><b>Recommended channel:</b> '+escape(typeof recommendedChannel==='function'?recommendedChannel(r):(r.platform||'Telegram'))+'</div><div class="recMeta"><span class="pill">'+escape(r.confidence||'Directional')+' confidence</span><span class="pill blue">'+format(r.views)+' views</span><span class="pill orange">'+escape(reactions)+'</span><span class="pill greenPill">'+escape(creative)+'</span><span class="pill">'+(r.observed_view_rate_pct==null?'View rate n/a':Number(r.observed_view_rate_pct).toFixed(2)+'% view rate')+'</span></div><div class="small muted">Pattern evidence: '+format(r.pattern_sample_size)+' posts · '+format(r.pattern_competitors)+' competitor(s). Creative score is a reach, engagement and content-completeness heuristic; directional, not a guarantee.</div><div class="recActions"><button class="mini" onclick="generateSuccessPost('+i+',\'Telegram\',this)">Generate Telegram</button><button class="mini" onclick="generateSuccessPost('+i+',\'Instagram\',this)">Generate Instagram</button><button class="mini" onclick="generateHiggsfieldImage('+i+')">Generate Image · ChatGPT</button><a class="mini" target="_blank" rel="noopener" href="'+escape(r.post_url||'#')+'">Source</a></div></div>';
+      }).join(''):'<div class="muted">No last-7-day intelligence is available yet for this selection.</div>';
+    })().catch(error=>{if(q('successIntelligence'))q('successIntelligence').innerHTML='<div class="muted">Unable to refresh success intelligence: '+escape(error?.message||String(error))+'</div>';}).finally(()=>{active=null});
+    return active;
+  }
+  document.addEventListener('click',event=>{if(event.target.closest('#loginBtn, #refresh, button[data-s="creative"]'))setTimeout(refreshSuccessCards,500);});
+  window.addEventListener('load',()=>setTimeout(refreshSuccessCards,1500));
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshSuccessCards();});
+  setInterval(refreshSuccessCards,15*60*1000);
+  window.WinTurboRefreshSuccessCards=refreshSuccessCards;
 })();
 </script>
 <link rel="stylesheet" href="./traffic-intelligence.css">
