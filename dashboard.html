@@ -6382,6 +6382,17 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
  window.WinTurboManualComposer={loadChannels};
 })();
 </script>
+<style>/* WINTURBO_REMOVE_SOCIAL_MANAGER_V75 */#app .nav button[data-s="socialManagement"],#socialManagement{display:none!important}</style>
+<script>/* WINTURBO_REMOVE_SOCIAL_MANAGER_V75 */
+(function(){
+ function removeSocialManager(){
+  document.querySelectorAll('#app .nav button[data-s="socialManagement"],#socialManagement').forEach(element=>element.remove());
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',removeSocialManager,{once:true});else removeSocialManager();
+ window.addEventListener('load',()=>setTimeout(removeSocialManager,900));
+ document.addEventListener('click',event=>{if(event.target.closest('#loginBtn'))setTimeout(removeSocialManager,1200)});
+})();
+</script>
 <link rel="stylesheet" href="./traffic-intelligence.css">
 <script src="./traffic-intelligence.js"></script>
 </html>
