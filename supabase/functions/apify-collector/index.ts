@@ -29,6 +29,21 @@ const reactionTotal = (value: unknown) => {
   if (value && typeof value === "object") return Object.values(value).reduce((sum: number, count) => sum + (number(count) || 0), 0);
   return number(value);
 };
+const postTypeLabel = (value: string) => {
+  const type = value.toLowerCase();
+  if (type.includes("reel")) return "Reel";
+  if (type.includes("video")) return "Video Post";
+  if (type.includes("carousel") || type.includes("sidecar")) return "Carousel Post";
+  if (type.includes("image") || type.includes("photo")) return "Image Post";
+  if (type === "text") return "Text Post";
+  return "Media Post";
+};
+const creativeScore = (views: number | null, reactions: number | null, postText: string) => Math.min(100, Math.round((
+  30
+  + Math.min(45, Math.log(Math.max(0, views || 0) + 1) * 5)
+  + (reactions == null ? 0 : Math.min(15, Math.log(Math.max(0, reactions) + 1) * 3))
+  + (postText.length >= 40 ? 10 : postText.length ? 5 : 0)
+) * 10) / 10);
 
 async function runActor(token: string, actor: string, input: Record<string, unknown>) {
   const response = await fetch(`${APIFY_BASE}/${actor}/run-sync-get-dataset-items?timeout=240&clean=true&format=json`, {
@@ -168,9 +183,11 @@ Deno.serve(async (request) => {
         post_text: postText || null,
         posted_at: postedAt,
         media_type: mediaType || "text",
+        theme: postTypeLabel(mediaType || "text"),
         media_url: telegramRow ? text(media?.[0]?.url) || null : text(item.displayUrl || item.imageUrl || item.videoUrl) || null,
         views,
         reactions_count: reactions,
+        creative_score: creativeScore(views, reactions, postText),
         first_seen_at: startedAt,
         last_seen_at: startedAt,
       };
