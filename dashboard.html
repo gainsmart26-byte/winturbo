@@ -6264,6 +6264,7 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
   const escape=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const format=value=>new Intl.NumberFormat('en-IN').format(Number(value)||0);
   const date=value=>new Date(value).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'});
+  const postTypeOverview=value=>{const type=String(value||'post').toLowerCase();if(type.includes('reel'))return'Reel';if(type.includes('video'))return'Video';if(type.includes('carousel')||type.includes('sidecar'))return'Carousel';if(type.includes('image')||type.includes('photo'))return'Image';if(type==='text')return'Text';return'Media'};
   let activeRefresh=null;
 
   async function refreshOverviewIntelligence(){
@@ -6271,14 +6272,15 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
     activeRefresh=(async()=>{
       if(typeof sb==='undefined')return;
       const since=new Date(Date.now()-7*86400000).toISOString();
-      const [successResult,postsResult,timingResult]=await Promise.all([
+      const [successResult,postsResult,timingResult,sourcesResult]=await Promise.all([
         sb.from('content_success_intelligence').select('*').order('success_likelihood_score',{ascending:false}).limit(100),
-        sb.from('posts').select('platform_post_id,post_url,post_text,posted_at,views,reactions_count,media_type,theme,hook,accounts(account_name,handle,platform)').gte('posted_at',since).not('post_url','is',null).order('views',{ascending:false,nullsFirst:false}).limit(300),
-        sb.from('posting_intelligence').select('*').order('performance_rank').limit(24)
+        sb.from('posts').select('platform_post_id,post_url,post_text,posted_at,views,reactions_count,creative_score,media_type,theme,hook,accounts(account_name,handle,platform)').gte('posted_at',since).not('post_url','is',null).order('views',{ascending:false,nullsFirst:false}).limit(300),
+        sb.from('posting_intelligence').select('*').order('performance_rank').limit(24),
+        sb.from('monitored_sources').select('platform,source_name,handle,last_scraped_at,scrape_status').eq('is_active',true).order('last_scraped_at',{ascending:false,nullsFirst:false})
       ]);
-      const error=successResult.error||postsResult.error||timingResult.error;
+      const error=successResult.error||postsResult.error||timingResult.error||sourcesResult.error;
       if(error)throw error;
-      const success=successResult.data||[],posts=postsResult.data||[],timing=timingResult.data||[];
+      const success=successResult.data||[],posts=postsResult.data||[],timing=timingResult.data||[],sources=sourcesResult.data||[];
 
       const byAccount=new Map();
       for(const post of posts){
@@ -6297,10 +6299,24 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
         const best=success[0];
         const bestPost=posts.find(post=>post.views!=null)||posts[0];
         const bestTime=timing.find(row=>row.avg_views!=null)||timing[0];
+        const bestCreative=[...posts].filter(post=>post.creative_score!=null).sort((a,b)=>Number(b.creative_score)-Number(a.creative_score))[0];
+        const bestEngagement=[...posts].filter(post=>post.reactions_count!=null).sort((a,b)=>Number(b.reactions_count)-Number(a.reactions_count))[0];
+        const activity=new Map(),formats=new Map();
+        posts.forEach(post=>{const account=post.accounts?.account_name||post.accounts?.handle||'Unknown channel',a=activity.get(account)||{name:account,count:0,views:0};a.count++;a.views+=Number(post.views||0);activity.set(account,a);const type=postTypeOverview(post.media_type),f=formats.get(type)||{type,count:0,views:0};f.count++;f.views+=Number(post.views||0);formats.set(type,f)});
+        const mostActive=[...activity.values()].sort((a,b)=>b.count-a.count||b.views-a.views)[0];
+        const strongestFormat=[...formats.values()].sort((a,b)=>(b.views/Math.max(1,b.count))-(a.views/Math.max(1,a.count)))[0];
+        const formatMix=[...formats.values()].sort((a,b)=>b.count-a.count).map(x=>x.type+' '+Math.round(x.count/Math.max(1,posts.length)*100)+'%').slice(0,4).join(' · ');
+        const newestSource=sources.find(source=>source.last_scraped_at);
         const learnings=[];
         if(best)learnings.push('<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">'+escape(best.theme||best.media_type||'Recent content')+' · '+Number(best.success_likelihood_score||0).toFixed(0)+'% likelihood · '+format(best.views)+' observed views.</div></div>');
         if(bestPost)learnings.push('<div class="aiLearn"><b>Highest-view recent post</b><div class="muted small">'+escape(bestPost.accounts?.account_name||bestPost.accounts?.handle||'Source')+' · '+format(bestPost.views)+' views · '+escape(bestPost.media_type||'post')+'.</div></div>');
         if(bestTime)learnings.push('<div class="aiLearn"><b>Best observed posting window</b><div class="muted small">'+escape(bestTime.post_hour_label||bestTime.post_hour_ist)+' IST · '+format(Math.round(bestTime.avg_views||0))+' average views across '+format(bestTime.posts_count)+' posts.</div></div>');
+        if(bestCreative)learnings.push('<div class="aiLearn"><b>Best creative quality signal</b><div class="muted small">'+escape(bestCreative.accounts?.account_name||bestCreative.accounts?.handle||'Source')+' · '+Number(bestCreative.creative_score).toFixed(1)+' creative score · '+escape(postTypeOverview(bestCreative.media_type))+'.</div></div>');
+        if(mostActive)learnings.push('<div class="aiLearn"><b>Most active recent channel</b><div class="muted small">'+escape(mostActive.name)+' · '+format(mostActive.count)+' posts · '+format(mostActive.views)+' combined observed views.</div></div>');
+        if(strongestFormat)learnings.push('<div class="aiLearn"><b>Strongest format by average views</b><div class="muted small">'+escape(strongestFormat.type)+' · '+format(Math.round(strongestFormat.views/Math.max(1,strongestFormat.count)))+' average views across '+format(strongestFormat.count)+' posts.</div></div>');
+        if(bestEngagement)learnings.push('<div class="aiLearn"><b>Highest visible engagement</b><div class="muted small">'+escape(bestEngagement.accounts?.account_name||bestEngagement.accounts?.handle||'Source')+' · '+format(bestEngagement.reactions_count)+' visible reactions · '+escape(postTypeOverview(bestEngagement.media_type))+'.</div></div>');
+        if(formatMix)learnings.push('<div class="aiLearn"><b>Recent content-format mix</b><div class="muted small">'+escape(formatMix)+' across '+format(posts.length)+' recent posts.</div></div>');
+        if(newestSource)learnings.push('<div class="aiLearn"><b>Source freshness and coverage</b><div class="muted small">'+format(sources.length)+' active sources · latest '+escape(newestSource.source_name||newestSource.handle||newestSource.platform||'source')+' update '+date(newestSource.last_scraped_at)+'.</div></div>');
         aiHost.innerHTML=learnings.join('')||'<div class="muted">Not enough recent evidence for AI learnings.</div>';
       }
     })().catch(error=>{
