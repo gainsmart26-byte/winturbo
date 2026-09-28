@@ -6301,12 +6301,23 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
         const bestTime=timing.find(row=>row.avg_views!=null)||timing[0];
         const bestCreative=[...posts].filter(post=>post.creative_score!=null).sort((a,b)=>Number(b.creative_score)-Number(a.creative_score))[0];
         const bestEngagement=[...posts].filter(post=>post.reactions_count!=null).sort((a,b)=>Number(b.reactions_count)-Number(a.reactions_count))[0];
-        const activity=new Map(),formats=new Map();
-        posts.forEach(post=>{const account=post.accounts?.account_name||post.accounts?.handle||'Unknown channel',a=activity.get(account)||{name:account,count:0,views:0};a.count++;a.views+=Number(post.views||0);activity.set(account,a);const type=postTypeOverview(post.media_type),f=formats.get(type)||{type,count:0,views:0};f.count++;f.views+=Number(post.views||0);formats.set(type,f)});
+        const activity=new Map(),formats=new Map(),days=new Map(),captionBands=new Map(),platforms=new Map();
+        posts.forEach(post=>{const account=post.accounts?.account_name||post.accounts?.handle||'Unknown channel',a=activity.get(account)||{name:account,count:0,views:0,days:new Set()};a.count++;a.views+=Number(post.views||0);if(post.posted_at)a.days.add(String(post.posted_at).slice(0,10));activity.set(account,a);const type=postTypeOverview(post.media_type),f=formats.get(type)||{type,count:0,views:0};f.count++;f.views+=Number(post.views||0);formats.set(type,f);if(post.posted_at){const day=new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:'Asia/Kolkata'}).format(new Date(post.posted_at)),d=days.get(day)||{day,count:0,views:0};d.count++;d.views+=Number(post.views||0);days.set(day,d)}const length=String(post.post_text||post.hook||'').trim().length,band=length<80?'Short · under 80 chars':length<=220?'Medium · 80–220 chars':'Long · over 220 chars',c=captionBands.get(band)||{band,count:0,views:0};c.count++;c.views+=Number(post.views||0);captionBands.set(band,c);const platform=post.accounts?.platform||'Unknown',p=platforms.get(platform)||{platform,count:0,views:0};p.count++;p.views+=Number(post.views||0);platforms.set(platform,p)});
         const mostActive=[...activity.values()].sort((a,b)=>b.count-a.count||b.views-a.views)[0];
         const strongestFormat=[...formats.values()].sort((a,b)=>(b.views/Math.max(1,b.count))-(a.views/Math.max(1,a.count)))[0];
         const formatMix=[...formats.values()].sort((a,b)=>b.count-a.count).map(x=>x.type+' '+Math.round(x.count/Math.max(1,posts.length)*100)+'%').slice(0,4).join(' · ');
         const newestSource=sources.find(source=>source.last_scraped_at);
+        const mostConsistent=[...activity.values()].sort((a,b)=>b.days.size-a.days.size||b.count-a.count)[0];
+        const bestDay=[...days.values()].sort((a,b)=>(b.views/Math.max(1,b.count))-(a.views/Math.max(1,a.count)))[0];
+        const bestCaption=[...captionBands.values()].sort((a,b)=>(b.views/Math.max(1,b.count))-(a.views/Math.max(1,a.count)))[0];
+        const strongestPlatform=[...platforms.values()].sort((a,b)=>(b.views/Math.max(1,b.count))-(a.views/Math.max(1,a.count)))[0];
+        const visibleReactions=posts.filter(post=>post.reactions_count!=null).length;
+        const totalViews=posts.reduce((sum,post)=>sum+Number(post.views||0),0),topChannelViews=mostActive?.views||0;
+        const viewConcentration=totalViews?Math.round(topChannelViews/totalViews*100):0;
+        const scored=posts.filter(post=>post.creative_score!=null&&post.views!=null),highScore=scored.filter(post=>Number(post.creative_score)>=75),lowerScore=scored.filter(post=>Number(post.creative_score)<75);
+        const averageViews=rows=>rows.length?rows.reduce((sum,row)=>sum+Number(row.views||0),0)/rows.length:0;
+        const qualityLift=lowerScore.length&&highScore.length?Math.round((averageViews(highScore)/Math.max(1,averageViews(lowerScore))-1)*100):null;
+        const formatOpportunity=[...formats.values()].filter(item=>item.count<Math.max(2,posts.length*.2)).sort((a,b)=>(b.views/Math.max(1,b.count))-(a.views/Math.max(1,a.count)))[0];
         const learnings=[];
         if(best)learnings.push('<div class="aiLearn"><b>Likely winning pattern</b><div class="muted small">'+escape(best.theme||best.media_type||'Recent content')+' · '+Number(best.success_likelihood_score||0).toFixed(0)+'% likelihood · '+format(best.views)+' observed views.</div></div>');
         if(bestPost)learnings.push('<div class="aiLearn"><b>Highest-view recent post</b><div class="muted small">'+escape(bestPost.accounts?.account_name||bestPost.accounts?.handle||'Source')+' · '+format(bestPost.views)+' views · '+escape(bestPost.media_type||'post')+'.</div></div>');
@@ -6317,7 +6328,16 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
         if(bestEngagement)learnings.push('<div class="aiLearn"><b>Highest visible engagement</b><div class="muted small">'+escape(bestEngagement.accounts?.account_name||bestEngagement.accounts?.handle||'Source')+' · '+format(bestEngagement.reactions_count)+' visible reactions · '+escape(postTypeOverview(bestEngagement.media_type))+'.</div></div>');
         if(formatMix)learnings.push('<div class="aiLearn"><b>Recent content-format mix</b><div class="muted small">'+escape(formatMix)+' across '+format(posts.length)+' recent posts.</div></div>');
         if(newestSource)learnings.push('<div class="aiLearn"><b>Source freshness and coverage</b><div class="muted small">'+format(sources.length)+' active sources · latest '+escape(newestSource.source_name||newestSource.handle||newestSource.platform||'source')+' update '+date(newestSource.last_scraped_at)+'.</div></div>');
-        aiHost.innerHTML=learnings.join('')||'<div class="muted">Not enough recent evidence for AI learnings.</div>';
+        if(mostConsistent)learnings.push('<div class="aiLearn"><b>Most consistent publisher</b><div class="muted small">'+escape(mostConsistent.name)+' posted on '+format(mostConsistent.days.size)+' of the last 7 days, with '+format(mostConsistent.count)+' observed posts.</div></div>');
+        if(bestDay)learnings.push('<div class="aiLearn"><b>Strongest day of the week</b><div class="muted small">'+escape(bestDay.day)+' · '+format(Math.round(bestDay.views/Math.max(1,bestDay.count)))+' average views across '+format(bestDay.count)+' posts.</div></div>');
+        if(bestCaption)learnings.push('<div class="aiLearn"><b>Best-performing caption length</b><div class="muted small">'+escape(bestCaption.band)+' · '+format(Math.round(bestCaption.views/Math.max(1,bestCaption.count)))+' average views across '+format(bestCaption.count)+' posts.</div></div>');
+        if(strongestPlatform)learnings.push('<div class="aiLearn"><b>Platform performance leader</b><div class="muted small">'+escape(strongestPlatform.platform)+' · '+format(Math.round(strongestPlatform.views/Math.max(1,strongestPlatform.count)))+' average views from '+format(strongestPlatform.count)+' posts.</div></div>');
+        if(posts.length)learnings.push('<div class="aiLearn"><b>Reaction-data visibility</b><div class="muted small">Reactions are measurable on '+format(visibleReactions)+' of '+format(posts.length)+' posts ('+Math.round(visibleReactions/posts.length*100)+'%). Missing reactions are treated as unavailable, not zero.</div></div>');
+        if(mostActive&&totalViews)learnings.push('<div class="aiLearn"><b>Audience concentration signal</b><div class="muted small">'+escape(mostActive.name)+' contributes '+viewConcentration+'% of observed views. '+(viewConcentration>=60?'Diversify creative evidence across more channels.':'Performance is reasonably distributed across monitored channels.')+'</div></div>');
+        if(qualityLift!=null)learnings.push('<div class="aiLearn"><b>Creative quality impact</b><div class="muted small">Posts scoring 75+ deliver '+(qualityLift>=0?format(qualityLift)+'% more':format(Math.abs(qualityLift))+'% fewer')+' average views than lower-scored posts in the current sample.</div></div>');
+        if(formatOpportunity)learnings.push('<div class="aiLearn"><b>Underused format opportunity</b><div class="muted small">'+escape(formatOpportunity.type)+' appears only '+format(formatOpportunity.count)+' time(s) but averages '+format(Math.round(formatOpportunity.views/Math.max(1,formatOpportunity.count)))+' views. Test more before scaling.</div></div>');
+        if(bestTime&&bestDay&&strongestFormat)learnings.push('<div class="aiLearn"><b>Recommended WinTurbo test</b><div class="muted small">Test a '+escape(strongestFormat.type.toLowerCase())+' on '+escape(bestDay.day)+' around '+escape(bestTime.post_hour_label||bestTime.post_hour_ist)+' IST, using the strongest observed caption-length pattern.</div></div>');
+        if(learnings.length){const initiallyVisible=9;aiHost.innerHTML=learnings.map((item,index)=>index<initiallyVisible?item:'<div class="aiLearningExtra" hidden>'+item+'</div>').join('')+(learnings.length>initiallyVisible?'<button type="button" class="secondary" id="toggleAiLearnings" aria-expanded="false" style="width:100%;margin-top:10px">Show '+(learnings.length-initiallyVisible)+' more learnings</button>':'')}else aiHost.innerHTML='<div class="muted">Not enough recent evidence for AI learnings.</div>';
       }
     })().catch(error=>{
       const message='<div class="muted">Unable to refresh recent intelligence: '+escape(error?.message||String(error))+'</div>';
@@ -6328,6 +6348,8 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
   }
 
   document.addEventListener('click',event=>{
+    const toggle=event.target.closest('#toggleAiLearnings');
+    if(toggle){const expanded=toggle.getAttribute('aria-expanded')==='true';q('aiOverview')?.querySelectorAll('.aiLearningExtra').forEach(item=>item.hidden=expanded);toggle.setAttribute('aria-expanded',String(!expanded));toggle.textContent=expanded?'Show more learnings':'Show fewer learnings';return}
     if(event.target.closest('#loginBtn, #refresh, button[data-s="overview"]'))setTimeout(refreshOverviewIntelligence,500);
   });
   window.addEventListener('load',()=>setTimeout(refreshOverviewIntelligence,1400));
