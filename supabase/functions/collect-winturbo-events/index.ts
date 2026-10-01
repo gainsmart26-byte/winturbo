@@ -1,9 +1,15 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+const corsHeaders = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "POST, OPTIONS",
+  "access-control-allow-headers": "authorization, x-client-info, apikey, content-type, x-event-refresh",
+};
+
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
   status,
-  headers: { "content-type": "application/json", "cache-control": "no-store" },
+  headers: { ...corsHeaders, "content-type": "application/json", "cache-control": "no-store" },
 });
 
 const text = (value: unknown) => typeof value === "string" ? value.trim() : "";
@@ -13,6 +19,7 @@ const splitTeams = (name: string) => {
 };
 
 Deno.serve(async (request: Request) => {
+  if (request.method === "OPTIONS") return new Response("ok", { status: 200, headers: corsHeaders });
   if (request.method !== "POST") return response({ ok: false, error: "POST required" }, 405);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
