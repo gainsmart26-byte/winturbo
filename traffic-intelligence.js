@@ -113,3 +113,6 @@
   }
   window.addEventListener('load',()=>setTimeout(boot,800));document.addEventListener('click',e=>{if(e.target.closest('#loginBtn'))setTimeout(()=>{shell();addNav();loadBonusLinks()},1100)});
 })();
+
+/* WINTURBO_MONTHLY_CALENDAR_LOADER_V80 */
+(()=>{if(!document.querySelector('link[href="./monthly-calendar.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./monthly-calendar.css';document.head.appendChild(l)}if(!document.querySelector('script[src="./monthly-calendar.js"]')){const s=document.createElement('script');s.src='./monthly-calendar.js';s.defer=true;document.head.appendChild(s)}})();
