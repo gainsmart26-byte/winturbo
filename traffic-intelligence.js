@@ -136,3 +136,9 @@
   script.dataset.winturboBrandGuidelines='true';
   document.head.appendChild(script);
 })();
+
+/* WINTURBO_AD_INTELLIGENCE_LOADER_V1 */
+(()=>{
+  if(!document.querySelector('link[href="./ad-intelligence.css"]')){const link=document.createElement('link');link.rel='stylesheet';link.href='./ad-intelligence.css';document.head.appendChild(link)}
+  if(!document.querySelector('script[src="./ad-intelligence.js"]')){const script=document.createElement('script');script.src='./ad-intelligence.js';script.defer=true;document.head.appendChild(script)}
+})();
