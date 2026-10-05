@@ -1,0 +1,16 @@
+#adIntelligence .adHero{padding:22px;border-radius:18px;background:linear-gradient(135deg,rgba(57,255,136,.12),rgba(255,122,26,.11));border:1px solid var(--line);margin-bottom:14px}
+#adIntelligence .adGrid{display:grid;grid-template-columns:minmax(290px,.85fr) minmax(360px,1.15fr);gap:14px}
+#adIntelligence .adForm{display:grid;gap:12px}
+#adIntelligence .adForm label{display:grid;gap:6px;font-size:12px;color:var(--muted)}
+#adIntelligence .adForm select,#adIntelligence .adForm input,#adIntelligence .adForm textarea{width:100%}
+#adIntelligence .adFormats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#adIntelligence .adPlatform{padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card);cursor:pointer;text-align:left}
+#adIntelligence .adPlatform.on{border-color:#39ff88;box-shadow:0 0 0 1px #39ff88 inset}
+#adIntelligence .adResult{display:grid;gap:12px}
+#adIntelligence .adCopyBox{white-space:pre-wrap;padding:14px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid var(--line)}
+#adIntelligence .adAssets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#adIntelligence .adAsset{padding:10px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.025)}
+#adIntelligence .adAsset img,#adIntelligence .adAsset video{width:100%;max-height:440px;object-fit:contain;border-radius:10px;background:#080a0d}
+#adIntelligence .adAssetActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#adIntelligence .adSpec{padding:10px;border-left:3px solid #39ff88;background:rgba(57,255,136,.06);font-size:12px}
+@media(max-width:900px){#adIntelligence .adGrid{grid-template-columns:1fr}#adIntelligence .adAssets{grid-template-columns:1fr}}
