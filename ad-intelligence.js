@@ -4,7 +4,7 @@
  const formats={
   telegram:[
    {id:'sponsored_text',name:'Sponsored Message · Text',kind:'text',sizes:['Text only · maximum 160 characters'],note:'Telegram Ads sponsored message with CTA button.'},
-   {id:'sponsored_photo',name:'Sponsored Message · Photo',kind:'image',sizes:['1080 × 1080 · 1:1','1200 × 628 · 1.91:1'],note:'Sponsored message with media and link button.'},
+   {id:'sponsored_photo',name:'Sponsored Message · Photo',kind:'image',sizes:['1200 × 675 · 16:9'],note:'Telegram photo ads are locked to the required 16:9 aspect ratio.'},
    {id:'sponsored_video',name:'Sponsored Message · Video',kind:'video',sizes:['1080 × 1920 · 9:16','1920 × 1080 · 16:9','1080 × 1080 · 1:1'],note:'10-second video asset with sponsored-message copy.'}
   ],
   facebook:[
