@@ -116,3 +116,13 @@
 
 /* WINTURBO_MONTHLY_CALENDAR_LOADER_V80 */
 (()=>{if(!document.querySelector('link[href="./monthly-calendar.css"]')){const l=document.createElement('link');l.rel='stylesheet';l.href='./monthly-calendar.css';document.head.appendChild(l)}if(!document.querySelector('script[src="./monthly-calendar.js"]')){const s=document.createElement('script');s.src='./monthly-calendar.js';s.defer=true;document.head.appendChild(s)}})();
+
+/* WINTURBO_VIDEO_DURATION_LOADER_V1 */
+(()=>{
+  if(document.querySelector('script[data-winturbo-video-duration-limit]'))return;
+  const script=document.createElement('script');
+  script.src='./video-duration-limit.js';
+  script.defer=true;
+  script.dataset.winturboVideoDurationLimit='true';
+  document.head.appendChild(script);
+})();
