@@ -126,3 +126,13 @@
   script.dataset.winturboVideoDurationLimit='true';
   document.head.appendChild(script);
 })();
+
+/* WINTURBO_BRAND_GUIDELINE_LOADER_V1 */
+(()=>{
+  if(document.querySelector('script[data-winturbo-brand-guidelines]'))return;
+  const script=document.createElement('script');
+  script.src='./brand-guideline-enforcer.js';
+  script.defer=true;
+  script.dataset.winturboBrandGuidelines='true';
+  document.head.appendChild(script);
+})();
