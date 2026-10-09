@@ -75,9 +75,17 @@ Deno.serve(async (request) => {
   if (request.method !== "POST") return json({ ok: false, error: "POST required" }, 405);
   try {
     const url = Deno.env.get("SUPABASE_URL") || "";
-    const anon = Deno.env.get("SUPABASE_ANON_KEY") || "";
+    let publishable = "";
+    try {
+      const keys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
+      publishable = clean(keys.default || Object.values(keys)[0], 500);
+    } catch { /* fall back to the legacy key below */ }
+    const anon = Deno.env.get("SUPABASE_ANON_KEY") || publishable;
     const apify = Deno.env.get("APIFY_API_TOKEN") || "";
-    if (!apify || !url || !anon) throw new Error("Influencer search secrets are incomplete");
+    if (!apify || !url || !anon) {
+      const missing = [!apify && "APIFY_API_TOKEN", !url && "SUPABASE_URL", !anon && "SUPABASE_PUBLISHABLE_KEYS"].filter(Boolean);
+      throw new Error(`Influencer search configuration is incomplete: ${missing.join(", ")}`);
+    }
     const auth = request.headers.get("Authorization") || "";
     const client = createClient(url, anon, { global: { headers: { Authorization: auth } } });
     const { data: { user } } = await client.auth.getUser();
