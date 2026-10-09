@@ -27,7 +27,10 @@ async function runActor(token: string, actor: string, input: Record<string, unkn
     body: JSON.stringify(input),
   });
   const payload = await response.json().catch(() => []);
-  if (!response.ok) throw new Error(payload?.error?.message || `${actor} failed with HTTP ${response.status}`);
+  if (!response.ok) {
+    const detail = payload?.error?.message || payload?.message || (typeof payload === "string" ? payload : "");
+    throw new Error(`${actor} failed with HTTP ${response.status}${detail ? `: ${clean(detail, 500)}` : ""}`);
+  }
   return Array.isArray(payload) ? payload : [];
 }
 
@@ -98,7 +101,7 @@ Deno.serve(async (request) => {
       const queries = sources.map((source) => `${intent} site:${sourceConfig[source].site}`);
       const pages = Math.max(1, Math.min(3, Math.ceil(limit / (sources.length * 10))));
       const serpPages = await runActor(apify, GOOGLE_ACTOR, {
-        queries: queries.join("\n"), maxPagesPerQuery: pages, resultsPerPage: 10,
+        queries: queries.join("\n"), maxPagesPerQuery: pages,
         countryCode: String(body.country_code || "in").toLowerCase(), languageCode: "en", mobileResults: false,
       });
       const candidates = new Map<string, Record<string, unknown>>();
@@ -155,6 +158,8 @@ Deno.serve(async (request) => {
       throw error;
     }
   } catch (error) {
-    return json({ ok: false, error: error instanceof Error ? error.message : String(error) }, 500);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("search-influencers failed", message);
+    return json({ ok: false, error: message }, 502);
   }
 });
