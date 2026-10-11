@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { casinoUpdates } from "./casino-updates.js";
 
 const corsHeaders = {
   "access-control-allow-origin": "*",
@@ -67,11 +68,27 @@ Deno.serve(async (request: Request) => {
           provider: text(entry?.provider) || null,
           source_url: "https://winturbo.com/",
           is_active: entry?.isActive !== false && startsAt.getTime() >= now.getTime() - 6 * 60 * 60_000,
-          raw_data: { eventTypeId: entry?.eventTypeId || sport?.id, competitionId: entry?.competitionId || tournament?.id },
+          raw_data: { content_category: text(sport?.name).toLowerCase() === "cricket" ? "cricket" : "sports", eventTypeId: entry?.eventTypeId || sport?.id, competitionId: entry?.competitionId || tournament?.id },
           last_seen_at: now.toISOString(),
           updated_at: now.toISOString(),
         });
       }
+    }
+    let casinoWarning: string | null = null;
+    let casinoCount = 0;
+    try {
+      const casinoSource = await fetch("https://winturbo.com/api/public/banners", {
+        headers: { accept: "application/json", origin: "https://winturbo.com", referer: "https://winturbo.com/" },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!casinoSource.ok) throw new Error(`WinTurbo casino updates returned HTTP ${casinoSource.status}`);
+      const casinoPayload = await casinoSource.json();
+      if (casinoPayload?.status === "error") throw new Error(text(casinoPayload.message) || "Casino updates are unavailable");
+      const casinoRows = casinoUpdates(casinoPayload, now);
+      casinoCount = casinoRows.length;
+      rows.push(...casinoRows);
+    } catch (error) {
+      casinoWarning = error instanceof Error ? error.message : String(error);
     }
     if (!rows.length) throw new Error("WinTurbo returned no valid events");
     const upsert = await db.from("winturbo_events").upsert(rows, { onConflict: "external_event_id" });
@@ -81,7 +98,7 @@ Deno.serve(async (request: Request) => {
     if (runId) await db.from("event_collection_runs").update({
       status: "completed", finished_at: new Date().toISOString(), events_received: rows.length, events_upserted: rows.length,
     }).eq("id", runId);
-    return response({ ok: true, events_received: rows.length, events_upserted: rows.length });
+    return response({ ok: true, events_received: rows.length, events_upserted: rows.length, casino_events: casinoCount, casino_warning: casinoWarning });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (runId) await db.from("event_collection_runs").update({ status: "failed", finished_at: new Date().toISOString(), error_message: message }).eq("id", runId);
