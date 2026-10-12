@@ -56,10 +56,11 @@
       return original(name,options);
     };
     sb.rpc=async(name,args={},options)=>{
-      if(['prepare_publishing_item_now','schedule_publishing_item'].includes(name)){
+      if(['prepare_publishing_item_now','schedule_publishing_item','cancel_scheduled_publishing_item'].includes(name)){
         const item=await sb.from('publishing_queue').select('platform').eq('id',args.p_queue_id).single();
         if(item.error)return {data:null,error:item.error};
         if(item.data?.platform==='instagram'){
+          if(name==='cancel_scheduled_publishing_item')return {data:null,error:new Error('This schedule is held by Buffer. Cancel it in Buffer before changing the dashboard record.')};
           // Check configuration before changing the queue to a publishing state.
           const check=await original('publish-instagram',{body:{action:'check',queue_id:args.p_queue_id}});
           if(check.error||!check.data?.ok)return {data:null,error:new Error(check.data?.error||check.error?.message||'Buffer server connection is required.')};
