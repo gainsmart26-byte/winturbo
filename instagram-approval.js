@@ -43,6 +43,20 @@
       button.textContent='Send to WinTurbo Instagram Approval';button.onclick=()=>send(key);anchor.after(button);
     });
   }
+  window.WinTurboInvokePublisher=async(options={})=>{
+    const id=options.body?.queue_id;
+    if(!id)return {data:null,error:new Error('Queue item is required')};
+    const item=await sb.from('publishing_queue').select('platform').eq('id',id).single();
+    if(item.error)return {data:null,error:item.error};
+    const instagram=item.data?.platform==='instagram';
+    const result=await sb.functions.invoke(instagram?'publish-instagram':'publish-telegram',instagram?{...options,body:{...options.body,action:'now'}}:options);
+    if(result.error){
+      let detail=result.data?.error;
+      try{if(!detail&&result.error.context?.clone)detail=(await result.error.context.clone().json()).error;}catch{}
+      return {data:result.data,error:new Error(detail||result.error.message)};
+    }
+    return result;
+  };
   // Route existing publisher and timing controls by the queue item's platform.
   function route(){
     if(typeof sb==='undefined'||sb.functions.__instagramApprovalRoute)return false;
