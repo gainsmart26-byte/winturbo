@@ -1,37 +1,18 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type"};
+const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS","Access-Control-Max-Age":"86400"};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,"Content-Type":"application/json"}});
-const sleep=(ms:number)=>new Promise(resolve=>setTimeout(resolve,ms));
+const endpoint="bytedance/seedance-2.5/text-to-video";
 const message=(value:any,fallback:string)=>{const found=value?.detail??value?.message??value?.error;if(typeof found==="string")return found;if(Array.isArray(found))return found.map((item:any)=>item?.msg||item?.message||JSON.stringify(item)).join("; ");if(found&&typeof found==="object")return found.msg||found.message||JSON.stringify(found);return fallback};
-
-async function runFal(key:string,endpoint:string,input:Record<string,unknown>,timeoutMs=300000){
-  const submitted=await fetch(`https://queue.fal.run/${endpoint}`,{method:"POST",headers:{Authorization:`Key ${key}`,"Content-Type":"application/json"},body:JSON.stringify(input)});
-  const first=await submitted.json().catch(()=>({}));
-  if(!submitted.ok)throw new Error(message(first,`${endpoint} submit failed (${submitted.status})`));
-  const requestId=first?.request_id;
-  if(!requestId)throw new Error(`${endpoint} returned no request_id`);
-  const statusUrl=first?.status_url||`https://queue.fal.run/${endpoint}/requests/${requestId}/status`;
-  const responseUrl=first?.response_url||`https://queue.fal.run/${endpoint}/requests/${requestId}`;
-  const deadline=Date.now()+timeoutMs;
-  while(Date.now()<deadline){
-    await sleep(2500);
-    const statusResponse=await fetch(statusUrl,{headers:{Authorization:`Key ${key}`}});
-    const status=await statusResponse.json().catch(()=>({}));
-    if(!statusResponse.ok)throw new Error(message(status,`${endpoint} status failed`));
-    const state=String(status?.status||"").toUpperCase();
-    if(state==="COMPLETED"){
-      const resultResponse=await fetch(responseUrl,{headers:{Authorization:`Key ${key}`}});
-      const result=await resultResponse.json().catch(()=>({}));
-      if(!resultResponse.ok)throw new Error(message(result,`${endpoint} result failed`));
-      return {result,requestId};
-    }
-    if(["FAILED","CANCELLED","CANCELED"].includes(state))throw new Error(message(status,`${endpoint} generation ${state.toLowerCase()}`));
-  }
-  throw new Error(`${endpoint} generation timed out`);
-}
-
 const videoUrl=(result:any)=>result?.video?.url||result?.videos?.[0]?.url||result?.data?.video?.url;
+
+async function falJson(key:string,url:string,init:RequestInit={}){
+  const response=await fetch(url,{...init,headers:{Authorization:`Key ${key}`,...(init.headers||{})}});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(message(data,`FAL request failed (${response.status})`));
+  return data;
+}
 
 Deno.serve(async(request:Request)=>{
   if(request.method==="OPTIONS")return new Response("ok",{headers:cors});
@@ -39,34 +20,40 @@ Deno.serve(async(request:Request)=>{
   try{
     const key=(Deno.env.get("FAL_KEY")||"").trim();
     if(!key)return json({ok:false,error:"FAL_KEY is not configured",error_type:"missing_credentials"},500);
+    const auth=request.headers.get("Authorization")||"";
+    const supabase=createClient(Deno.env.get("SUPABASE_URL")||"",Deno.env.get("SUPABASE_ANON_KEY")||"",{global:{headers:{Authorization:auth}}});
+    const {data:{user}}=await supabase.auth.getUser();
+    if(!user)return json({ok:false,error:"Authentication required",error_type:"authentication_required"},401);
     const body=await request.json().catch(()=>({}));
+    const action=String(body?.action||"submit").toLowerCase();
+
+    if(action==="status"){
+      const requestId=String(body?.request_id||"").trim();
+      if(!/^[A-Za-z0-9_-]{8,200}$/.test(requestId))return json({ok:false,error:"Valid request_id is required",error_type:"bad_request"},400);
+      const base=`https://queue.fal.run/${endpoint}/requests/${requestId}`;
+      const status=await falJson(key,`${base}/status`);
+      const state=String(status?.status||"IN_QUEUE").toUpperCase();
+      if(state==="COMPLETED"){
+        const result=await falJson(key,base);
+        const url=videoUrl(result);
+        if(!url)throw new Error("Video generation completed without a video URL");
+        return json({ok:true,status:"COMPLETED",type:"video",video_url:url,duration:10,model:endpoint});
+      }
+      if(["FAILED","CANCELLED","CANCELED"].includes(state))return json({ok:false,status:state,error:message(status,`Video generation ${state.toLowerCase()}`),error_type:"generation_failed"},502);
+      return json({ok:true,status:state,request_id:requestId,queue_position:status?.queue_position??null});
+    }
+
+    if(action!=="submit")return json({ok:false,error:"Unsupported action",error_type:"bad_request"},400);
     const prompt=String(body?.prompt||"").trim();
     if(!prompt)return json({ok:false,error:"prompt is required",error_type:"bad_request"},400);
-    const requested=Math.round(Number(body?.duration));
-    if(!Number.isFinite(requested)||requested<1||requested>60)return json({ok:false,error:"duration must be an integer from 1 to 60 seconds",error_type:"bad_request"},400);
+    const supplied=body?.duration;
+    const requested=supplied===undefined||supplied===null||supplied===""?10:Math.round(Number(supplied));
+    if(!Number.isFinite(requested)||requested!==10)return json({ok:false,error:"Video duration is fixed at 10 seconds.",error_type:"duration_limit"},400);
     const aspectRatio=String(body?.aspect_ratio||"9:16");
-    const segments:number[]=[];
-    let remaining=requested;
-    while(remaining>0){segments.push(Math.min(30,remaining));remaining-=segments.at(-1)!}
-    const generated=await Promise.all(segments.map(async(seconds,index)=>{
-      const nativeSeconds=Math.max(4,seconds);
-      const segmentPrompt=segments.length===1?prompt:`${prompt}\nThis is segment ${index+1} of ${segments.length}. Maintain the same subject, wardrobe, lighting and visual direction. ${index===0?"Establish the story.":index===segments.length-1?"Continue naturally and conclude the story.":"Continue the previous action naturally."}`;
-      const generation=await runFal(key,"bytedance/seedance-2.5/text-to-video",{prompt:segmentPrompt,duration:String(nativeSeconds),aspect_ratio:aspectRatio,resolution:"720p",generate_audio:true});
-      let url=videoUrl(generation.result);
-      if(!url)throw new Error("Video generation completed without a video URL");
-      if(seconds<nativeSeconds){
-        const trimmed=await runFal(key,"fal-ai/workflow-utilities/trim-video",{video_url:url,start_time:0,duration:seconds});
-        url=videoUrl(trimmed.result);
-        if(!url)throw new Error("Video trim completed without a video URL");
-      }
-      return url;
-    }));
-    let finalUrl=generated[0];
-    if(generated.length>1){
-      const merged=await runFal(key,"fal-ai/ffmpeg-api/merge-videos",{video_urls:generated,resolution_aspect_ratio_video_index:0});
-      finalUrl=videoUrl(merged.result);
-      if(!finalUrl)throw new Error("Video merge completed without a video URL");
-    }
-    return json({ok:true,type:"video",video_url:finalUrl,duration:requested,segments:segments.length,model:"bytedance/seedance-2.5/text-to-video"});
+    if(!["21:9","16:9","4:3","1:1","3:4","9:16"].includes(aspectRatio))return json({ok:false,error:"Unsupported aspect ratio",error_type:"bad_request"},400);
+    const submitted=await falJson(key,`https://queue.fal.run/${endpoint}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt,duration:"10",aspect_ratio:aspectRatio,resolution:"720p",generate_audio:true,end_user_id:user.id})});
+    const requestId=String(submitted?.request_id||"");
+    if(!requestId)throw new Error("FAL returned no request_id");
+    return json({ok:true,status:"IN_QUEUE",request_id:requestId,duration:10,model:endpoint});
   }catch(error){return json({ok:false,error:error instanceof Error?error.message:String(error),error_type:"generation_failed"},502)}
 });

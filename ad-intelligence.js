@@ -42,11 +42,51 @@
  function sync(){const list=formats[platform];$('adFormat').innerHTML=list.map(x=>`<option value="${x.id}">${x.name}</option>`).join('');syncFormat()}
  function syncFormat(){const f=chosen();$('adSize').innerHTML=f.sizes.map(x=>`<option>${x}</option>`).join('');$('adSpec').textContent=f.note;$('adCardsWrap').style.display=f.kind==='carousel'?'grid':'none';$('adGenerate').textContent=f.kind==='text'?'Create Ad Copy':'Create Complete Ad + Assets'}
  function copyText(x){return [x.primary_text,x.ad_text,x.headline&&`Headline: ${x.headline}`,x.description&&`Description: ${x.description}`,x.headlines?.length&&`Headlines:\n• ${x.headlines.join('\n• ')}`,x.descriptions?.length&&`Descriptions:\n• ${x.descriptions.join('\n• ')}`,x.cta&&`CTA: ${x.cta}`,x.disclaimer].filter(Boolean).join('\n\n')}
+ async function invokeError(result,fallback){if(!result?.error)return fallback;try{const body=await result.error.context?.clone?.().json();return body?.error||body?.message||result.error.message||fallback}catch{return result.error.message||fallback}}
+ async function queueVideoApproval(url){const account=accounts.find(x=>x.id===$('adBrand')?.value);if(!account)throw new Error('Selected publishing account is unavailable');const user=(await sb.auth.getUser()).data?.user;if(!user)throw new Error('Sign in required');const row=await sb.from('publishing_queue').insert({platform:account.platform,publishing_account_id:account.id,content_text:copyText(ad),media_url:url,media_type:'video',status:'draft',created_by:user.id,requested_by:user.id}).select('id').single();if(row.error)throw row.error;return row.data}
  async function create(){const btn=$('adGenerate'),f=chosen(),size=$('adSize').value,brand=$('adBrand').value,brief=$('adBrief').value.trim();if(!brand)return alert('Select a brand first.');if(!brief)return alert('Add a creative brief.');btn.disabled=true;assets=[];$('adAssets').innerHTML='';$('adStatus').textContent='Creating platform-ready ad copy…';try{const r=await sb.functions.invoke('generate-ad-copy',{body:{publishing_account_id:brand,platform,format:f.id,size,objective:$('adObjective').value,destination_url:$('adUrl').value.trim(),brief,carousel_cards:+$('adCards').value}});if(r.error||!r.data?.ok)throw new Error(r.data?.error||r.error?.message||'Ad copy generation failed');ad=r.data.ad;$('adCopy').textContent=copyText(ad);$('adCopy').classList.remove('muted');$('adDownloadCopy').disabled=false;if(f.kind==='image')await imageAsset(ad.visual_prompt||brief,size,0);else if(f.kind==='video')await videoAsset(ad.video_prompt||brief,size);else if(f.kind==='carousel'){const cards=(ad.carousel_cards||[]).slice(0,+$('adCards').value);for(let i=0;i<cards.length;i++){ $('adStatus').textContent=`Creating carousel card ${i+1} of ${cards.length}…`;await imageAsset(cards[i].visual_prompt||`${brief}. Card ${i+1}`,size,i,cards[i].headline)}}$('adStatus').textContent='Ad package ready for review and download ✓'}catch(e){$('adStatus').textContent='Could not create ad: '+(e.message||e)}finally{btn.disabled=false}}
  async function imageAsset(prompt,size,index,label){const r=await sb.functions.invoke('generate-openai-image',{body:{prompt:`${prompt}\nRequired delivery format: ${size}.`,aspect_ratio:ratio(size),quality:'high'}});if(r.error||!r.data?.ok)throw new Error(r.data?.error||r.error?.message||'Image generation failed');const url=r.data.image_url;assets.push({type:'image',url,size,index});$('adAssets').insertAdjacentHTML('beforeend',`<article class="adAsset"><b>${esc(label||`Image Asset ${index+1}`)}</b><div class="muted small">${esc(size)}</div><img src="${esc(url)}" alt="Generated ad creative"><div class="adAssetActions"><button class="ghost adDownload" data-url="${esc(url)}" data-name="ad-${index+1}.png">Download Image</button></div></article>`)}
- async function videoAsset(prompt,size){const r=await sb.functions.invoke('generate-fal-video',{body:{prompt:`${prompt}\nRequired delivery format: ${size}.`,aspect_ratio:ratio(size),duration:10}});if(r.error||!r.data?.ok)throw new Error(r.data?.error||r.error?.message||'Video generation failed');const url=r.data.video_url;assets.push({type:'video',url,size,index:0});$('adAssets').innerHTML=`<article class="adAsset"><b>10-second Video Asset</b><div class="muted small">${esc(size)}</div><video src="${esc(url)}" controls playsinline></video><div class="adAssetActions"><button class="ghost adDownload" data-url="${esc(url)}" data-name="ad-video.mp4">Download Video</button></div></article>`}
+ const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+ async function videoAsset(prompt,size){
+  $('adStatus').textContent='Submitting 10-second video…';
+  const submitted=await sb.functions.invoke('generate-fal-video',{body:{action:'submit',prompt:`${prompt}\nRequired delivery format: ${size}.`,aspect_ratio:ratio(size),duration:10}});
+  if(submitted.error||!submitted.data?.ok)throw new Error(submitted.data?.error||await invokeError(submitted,'Video submission failed'));
+  const requestId=submitted.data.request_id;
+  if(!requestId)throw new Error('Video provider returned no request ID');
+  const started=Date.now(),timeout=12*60*1000;
+  while(Date.now()-started<timeout){
+   await wait(5000);
+   const checked=await sb.functions.invoke('generate-fal-video',{body:{action:'status',request_id:requestId}});
+   if(checked.error||!checked.data?.ok)throw new Error(checked.data?.error||await invokeError(checked,'Video status check failed'));
+   const state=String(checked.data.status||'IN_QUEUE').toUpperCase();
+   if(state==='COMPLETED'){
+    const url=checked.data.video_url;
+    if(!url)throw new Error('Video completed without a playable URL');
+    assets.push({type:'video',url,size,index:0});
+    $('adAssets').innerHTML=`<article class="adAsset"><b>10-second Video Asset</b><div class="muted small">${esc(size)}</div><video src="${esc(url)}" controls playsinline></video><div class="adAssetActions"><button class="ghost adDownload" data-url="${esc(url)}" data-name="ad-video.mp4">Download Video</button></div></article>`;
+    $('adStatus').textContent='Video ready · sending to Approval…';
+    await queueVideoApproval(url);
+    $('adStatus').textContent='Video ready and sent to Approval ✓';
+    return;
+   }
+   const position=checked.data.queue_position;
+   $('adStatus').textContent=state==='IN_QUEUE'?`Video queued${position===null||position===undefined?'':` · position ${position}`}…`:'Generating 10-second video…';
+  }
+  throw new Error('Video generation is still processing after 12 minutes. Please try again.');
+ }
  async function download(url,name){try{const r=await fetch(url);if(!r.ok)throw 0;const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}catch{window.open(url,'_blank','noopener')}}
  function bind(){document.querySelectorAll('[data-ad-platform]').forEach(b=>b.onclick=()=>{platform=b.dataset.adPlatform;document.querySelectorAll('[data-ad-platform]').forEach(x=>x.classList.toggle('on',x===b));sync()});$('adFormat').onchange=syncFormat;$('adBrand').onchange=brandNote;$('adGenerate').onclick=create;$('adDownloadCopy').onclick=()=>{const blob=new Blob([JSON.stringify(ad,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${ad?.brand||'brand'}-${platform}-ad.json`;a.click();URL.revokeObjectURL(a.href)};document.addEventListener('click',e=>{const b=e.target.closest('.adDownload');if(b)download(b.dataset.url,b.dataset.name)})}
  function boot(){shell();nav();sync();bind();const n=document.querySelector('#app .nav');if(n)new MutationObserver(()=>{if(!n.querySelector('[data-s="adIntelligence"]'))nav()}).observe(n,{childList:true});document.addEventListener('click',e=>{if(e.target.closest('#loginBtn'))setTimeout(()=>{shell();nav();loadBrands()},1000)})}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,300),{once:true});else setTimeout(boot,300);
 })();
+
+/* WINTURBO_ASYNC_VIDEO_RUNTIME_LOADER_V1 */
+(()=>{
+ const src='./video-generation-runtime.js';
+ if(document.querySelector(`script[src="${src}"]`))return;
+ const script=document.createElement('script');
+ script.src=src;
+ script.defer=true;
+ document.head.appendChild(script);
+})();
+07bd6ceec263747d34c685503f20a642b31ccd85 e384afbfa57a19722e2ccae225268d518d9dae06
