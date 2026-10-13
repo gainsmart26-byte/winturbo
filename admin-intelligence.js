@@ -33,7 +33,7 @@
       <div class="adminSegments">
         <button data-segment="all" class="on">All players <b id="segAll">—</b></button>
         <button data-segment="new">Registered today <b id="segNew">—</b></button>
-        <button data-segment="ftd">FTD <b id="segFtd">—</b></button>
+        <button data-segment="nonftd">Non FTD <b id="segNonFtd">—</b></button><button data-segment="ftd">FTD <b id="segFtd">—</b></button>
         <button data-segment="inactive">Inactive 30d <b id="segInactive">—</b></button>
         <button data-segment="high">High value <b id="segHigh">—</b></button>
         <button data-segment="negative">Negative GGR <b id="segNegative">—</b></button>
@@ -82,7 +82,7 @@
     $("admFtd").textContent=num(t.ftd); $("admFtdRate").textContent=`${t.ftd_rate||0}% conversion`;
     $("admDeposits").textContent=money(t.lifetime_deposits); $("admToday").textContent=`${num(t.registrations_today)} registrations · ${num(t.ftd_today)} FTD today`;
     $("admNgr").textContent=money(t.ngr); $("admGgr").textContent=`GGR ${money(t.ggr)}`;
-    $("segAll").textContent=num(t.players); $("segNew").textContent=num(t.registrations_today); $("segFtd").textContent=num(t.ftd);
+    $("segAll").textContent=num(t.players); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Number(t.players||0)-Number(t.ftd||0)); $("segFtd").textContent=num(t.ftd);
     $("segInactive").textContent=num(t.inactive_30d); $("segHigh").textContent=num(t.high_value); $("segNegative").textContent=num(t.negative_ggr);
     renderTrend(data?.trend||[]); renderAgents(data?.agents||[]);
   }
@@ -103,6 +103,7 @@
     if(status) q=q.eq("status",status);
     const today=new Date(); today.setHours(0,0,0,0);
     if(segment==="new") q=q.gte("registered_at",today.toISOString());
+    if(segment==="nonftd") q=q.eq("ftd",false);
     if(segment==="ftd") q=q.eq("ftd",true);
     if(segment==="inactive") q=q.or(`last_deposit_at.is.null,last_deposit_at.lt.${new Date(Date.now()-30*86400000).toISOString()}`);
     if(segment==="high") q=q.gte("lifetime_deposits",100000);
