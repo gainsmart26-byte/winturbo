@@ -74,7 +74,7 @@
   }
   throw new Error('Video generation is still processing after 12 minutes. Please try again.');
  }
- async function download(url,name){try{const r=await fetch(url);if(!r.ok)throw 0;const blob=await r.blob(),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500)}catch{window.open(url,'_blank','noopener')}}
+ async function download(url,name){try{const r=await fetch(url);if(!r.ok)throw new Error(`Download failed (${r.status})`);const bytes=await r.arrayBuffer();if(bytes.byteLength<100000)throw new Error('Downloaded video is incomplete');const type=r.headers.get('content-type')||'video/mp4';if(!type.includes('video')&&!type.includes('octet-stream'))throw new Error('Download did not return a video file');const blob=new Blob([bytes],{type:'video/mp4'}),a=document.createElement('a'),objectUrl=URL.createObjectURL(blob);a.href=objectUrl;a.download=name.endsWith('.mp4')?name:`${name}.mp4`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(objectUrl),10000)}catch(e){$('adStatus').textContent='Could not download playable MP4: '+(e.message||e)}}
  function bind(){document.querySelectorAll('[data-ad-platform]').forEach(b=>b.onclick=()=>{platform=b.dataset.adPlatform;document.querySelectorAll('[data-ad-platform]').forEach(x=>x.classList.toggle('on',x===b));sync()});$('adFormat').onchange=syncFormat;$('adBrand').onchange=brandNote;$('adGenerate').onclick=create;$('adDownloadCopy').onclick=()=>{const blob=new Blob([JSON.stringify(ad,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${ad?.brand||'brand'}-${platform}-ad.json`;a.click();URL.revokeObjectURL(a.href)};document.addEventListener('click',e=>{const b=e.target.closest('.adDownload');if(b)download(b.dataset.url,b.dataset.name)})}
  function boot(){shell();nav();sync();bind();const n=document.querySelector('#app .nav');if(n)new MutationObserver(()=>{if(!n.querySelector('[data-s="adIntelligence"]'))nav()}).observe(n,{childList:true});document.addEventListener('click',e=>{if(e.target.closest('#loginBtn'))setTimeout(()=>{shell();nav();loadBrands()},1000)})}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,300),{once:true});else setTimeout(boot,300);
@@ -89,4 +89,3 @@
  script.defer=true;
  document.head.appendChild(script);
 })();
-07bd6ceec263747d34c685503f20a642b31ccd85 e384afbfa57a19722e2ccae225268d518d9dae06
