@@ -52,3 +52,23 @@
 .adminTrendDetails[open] summary{margin-bottom:12px}
 @media(max-width:900px){.adminTrendSummary{grid-template-columns:repeat(2,minmax(0,1fr))}.adminTrendChart svg{width:auto}}
 @media(max-width:520px){.adminTrendSummary{grid-template-columns:1fr}.adminTrendSummary b{font-size:18px}}
+
+
+/* Animated bar-only acquisition chart */
+.adminBarChart{display:flex;height:310px;padding:14px 12px 4px 0}
+.adminBarScale{width:44px;flex:0 0 44px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding:2px 8px 39px 0;color:#819086;font-size:10px}
+.adminBarPlot{position:relative;display:flex;align-items:stretch;gap:7px;flex:1;min-width:0;border-left:1px solid #2a382f;border-bottom:1px solid #2a382f}
+.adminBarGrid{position:absolute;inset:0 0 38px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.adminBarGrid i{display:block;border-top:1px dashed #26342b}
+.adminBarGroup{position:relative;z-index:1;display:grid;grid-template-rows:1fr 32px;min-width:48px;flex:1}
+.adminBarValues{display:flex;align-items:flex-end;justify-content:center;gap:3px;min-height:0;padding:28px 3px 0}
+.adminAnimatedBar{position:relative;width:min(13px,28%);height:var(--bar-height);min-height:0;border-radius:6px 6px 2px 2px;transform-origin:bottom;animation:adminBarRise .75s cubic-bezier(.22,.8,.25,1) var(--bar-delay) both;box-shadow:0 0 14px currentColor;transition:filter .18s,transform .18s}
+.adminAnimatedBar:hover{filter:brightness(1.35);transform:translateY(-3px)}
+.adminAnimatedBar.registrations{color:#42e36c;background:linear-gradient(180deg,#70f58f,#24a84a)}
+.adminAnimatedBar.ftd{color:#ff9c45;background:linear-gradient(180deg,#ffc078,#e66c1e)}
+.adminAnimatedBar.deposits{color:#4ea7ff;background:linear-gradient(180deg,#7fc1ff,#2577ce)}
+.adminAnimatedBar em{position:absolute;left:50%;top:-20px;transform:translateX(-50%);color:#dce8df;font-size:9px;font-style:normal;font-weight:800;white-space:nowrap;opacity:0;transition:opacity .18s}
+.adminAnimatedBar:hover em{opacity:1}
+.adminBarDate{display:flex;align-items:center;justify-content:center;text-align:center;color:#819086;font-size:9px;white-space:nowrap}
+@keyframes adminBarRise{from{transform:scaleY(0);opacity:.15}to{transform:scaleY(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.adminAnimatedBar{animation:none}}
