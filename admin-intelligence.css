@@ -30,7 +30,7 @@
 
 
 /* Detailed acquisition analytics */
-.adminAcquisitionCard{min-width:0}
+.adminAcquisitionCard{min-width:0;grid-column:1/-1}
 .adminTrendSummary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:4px 0 14px}
 .adminTrendSummary>div{padding:13px 14px;border:1px solid #29372e;border-radius:12px;background:linear-gradient(145deg,rgba(66,227,108,.07),rgba(10,15,12,.2))}
 .adminTrendSummary span,.adminTrendSummary small{display:block;color:var(--muted);font-size:11px}
