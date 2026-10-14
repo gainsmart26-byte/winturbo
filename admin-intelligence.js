@@ -369,13 +369,13 @@
       </div>
       <div id="reportPerformance" class="reportPane"><div id="reportMetrics" class="reportMetrics"></div><div class="card"><div class="sectionHead"><div><h3>Daily spend vs acquisition</h3><div class="muted small">Blended Facebook + Google cost efficiency.</div></div></div><div class="tableWrap"><table class="adminTable"><thead><tr><th>Date</th><th>Spend</th><th>Registrations / Sign-ups</th><th>FTD</th><th>Cost / Sign-up</th><th>Cost / FTD</th><th>Conversion</th></tr></thead><tbody id="reportDailyRows"></tbody></table></div></div></div>
       <div id="reportProjection" class="reportPane">
-        <div class="card"><div class="sectionHead"><div><h3>Budget projection</h3><div class="muted small">Forecast based on actual blended results from the selected date range.</div></div></div><div class="reportProjectionInput"><label>Expected daily budget (₹)<input id="projectionBudget" type="number" min="0" step="1000" value="100000"></label><button id="projectionCalculate" class="primary">Calculate projection</button></div><div id="projectionResults" class="projectionResults"></div><div class="muted small reportCaveat">Projection uses historical cost per registration and cost per FTD. Results are estimates and will change as new spend and conversion data is added.</div></div>
+        <div class="card"><div class="sectionHead"><div><h3>500 daily live depositor projection</h3><div class="muted small">Combines new FTDs with retained sign-ups who continue depositing every day.</div></div></div><div class="reportProjectionInput"><label>Expected daily budget (₹)<input id="projectionBudget" type="number" min="0" step="1000" value="100000"></label><label>Retain percentage from sign-ups<input id="projectionRetention" type="number" min="0" max="100" step="1" value="25"></label><label>Target period<select id="projectionHorizon"><option value="90">3 months</option><option value="180">6 months</option><option value="270">9 months</option><option value="365">1 year</option></select></label><button id="projectionCalculate" class="primary">Calculate projection</button></div><div id="projectionResults" class="projectionResults"></div><div class="tableWrap"><table class="adminTable"><thead><tr><th>Milestone</th><th>Required daily budget</th><th>New sign-ups / day</th><th>New FTD / day</th><th>Retained depositors / day</th><th>Total live depositors / day</th></tr></thead><tbody id="projectionMilestones"></tbody></table></div><div class="muted small reportCaveat">Retention is configurable. The model assumes the selected percentage of each day's sign-ups becomes a retained depositor and continues depositing daily through the selected target period, with no cohort churn. It uses the selected range's blended cost and conversion trend; projections are estimates, not guarantees.</div></div>
       </div>`;
     main.appendChild(section);
     const today=istDate(),month=today.slice(0,8)+"01";$("reportFrom").value=month;$("reportTo").value=today;
     navButton.onclick=()=>openReport();
     document.querySelectorAll("[data-report-tab]").forEach(b=>b.onclick=()=>showReportTab(b.dataset.reportTab));
-    $("reportApply").onclick=loadReport;$("projectionCalculate").onclick=renderProjection;
+    $("reportApply").onclick=loadReport;$("projectionCalculate").onclick=renderProjection;$("projectionRetention").oninput=renderProjection;$("projectionHorizon").onchange=renderProjection;
   }
   function openReport(){
     document.querySelectorAll("main.main > section.section").forEach(s=>{const on=s.id==="adminReportIntelligence";s.classList.toggle("on",on);s.style.setProperty("display",on?"block":"none","important")});
@@ -404,15 +404,33 @@
     $("reportDailyRows").innerHTML=(reportData.daily||[]).slice().reverse().map(d=>{const cpr=Number(d.registrations)?Number(d.spend)/Number(d.registrations):null,cpf=Number(d.ftd)?Number(d.spend)/Number(d.ftd):null,conv=Number(d.registrations)?100*Number(d.ftd)/Number(d.registrations):0;return`<tr><td><b>${esc(d.date_value)}</b></td><td>${money(d.spend)}</td><td>${num(d.registrations)}</td><td>${num(d.ftd)}</td><td>${cpr==null?"—":money(cpr)}</td><td>${cpf==null?"—":money(cpf)}</td><td>${conv.toFixed(1)}%</td></tr>`}).join("");
   }
   function renderProjection(){
-    if(!reportData)return;const t=reportData.totals||{},budget=Number($("projectionBudget").value||0),cpr=Number(t.cost_per_registration||0),cpf=Number(t.cost_per_ftd||0),conversion=Number(t.ftd_conversion||0)/100;
-    if(!cpr||!cpf||!conversion)return $("projectionResults").innerHTML='<div class="adminMessage error">Add spend and ensure the selected range contains registrations and FTDs before creating a projection.</div>';
-    const projectedRegs=budget/cpr,projectedFtd=budget/cpf,targetFtd=500,requiredBudget=targetFtd*cpf,requiredRegs=targetFtd/conversion,gap=Math.max(0,requiredBudget-budget);
+    if(!reportData)return;
+    const t=reportData.totals||{},budget=Math.max(0,Number($("projectionBudget").value||0)),cpr=Number(t.cost_per_registration||0),cpf=Number(t.cost_per_ftd||0),conversion=Number(t.ftd_conversion||0)/100;
+    const retention=Math.min(1,Math.max(0,Number($("projectionRetention").value||0)/100)),days=Number($("projectionHorizon").value||90),target=500;
+    if(!cpr||!cpf||!conversion){
+      $("projectionResults").innerHTML='<div class="adminMessage error">The selected range needs advertising spend, registrations and FTDs before a retained-player projection can be calculated.</div>';
+      $("projectionMilestones").innerHTML="";
+      return;
+    }
+    const dailyRegs=budget/cpr,dailyNewFtd=dailyRegs*conversion,dailyRetainedAdds=dailyRegs*retention;
+    const projectedRetained=dailyRetainedAdds*days,projectedLive=dailyNewFtd+projectedRetained;
+    const requiredDailyRegs=target/(conversion+retention*days),requiredBudget=requiredDailyRegs*cpr;
+    const requiredNewFtd=requiredDailyRegs*conversion,requiredRetainedAdds=requiredDailyRegs*retention;
+    const gap=Math.max(0,requiredBudget-budget),horizonLabel=days===365?"1 year":days/30+" months";
+    const daysToTarget=dailyRetainedAdds>0?Math.max(0,Math.ceil((target-dailyNewFtd)/dailyRetainedAdds)):(dailyNewFtd>=target?0:null);
     $("projectionResults").innerHTML=[
-      ["Projected registrations / day",num(Math.floor(projectedRegs)),`At ${money(cpr)} per sign-up`],
-      ["Projected FTD / day",num(Math.floor(projectedFtd)),`At ${money(cpf)} per FTD`],
-      ["Budget needed for 500 FTD/day",money(requiredBudget),`Requires about ${num(Math.ceil(requiredRegs))} registrations/day`],
-      ["Additional daily budget needed",money(gap),gap?"Above entered budget":"Entered budget meets the historical target"]
+      ["Projected live depositors / day",num(Math.floor(projectedLive)),`${horizonLabel} at entered budget`],
+      ["New FTD / day",num(Math.floor(dailyNewFtd)),`Historical conversion ${(conversion*100).toFixed(1)}%`],
+      ["Retained depositors / day",num(Math.floor(projectedRetained)),`${(retention*100).toFixed(1)}% of daily sign-ups retained`],
+      [`Budget needed for 500 / day`,money(requiredBudget),`Target reached by ${horizonLabel}`],
+      ["Required new sign-ups / day",num(Math.ceil(requiredDailyRegs)),`${num(Math.ceil(requiredNewFtd))} new FTD/day plus retained cohorts`],
+      ["Estimated time at entered budget",daysToTarget==null?"Not reached":daysToTarget+" days",gap?money(gap)+" additional daily budget for selected target":"Entered budget meets selected target"]
     ].map(x=>`<div><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
+    const monthCount=days===365?12:Math.round(days/30),milestones=Array.from({length:monthCount},(_,i)=>{
+      const elapsed=i===monthCount-1?days:(i+1)*30,retained=requiredRetainedAdds*elapsed,live=requiredNewFtd+retained;
+      return `<tr><td><b>${i===monthCount-1?horizonLabel:"Month "+(i+1)}</b></td><td>${money(requiredBudget)}</td><td>${num(Math.ceil(requiredDailyRegs))}</td><td>${num(Math.ceil(requiredNewFtd))}</td><td>${num(Math.floor(retained))}</td><td><b>${num(Math.min(target,Math.floor(live)))}</b></td></tr>`;
+    });
+    $("projectionMilestones").innerHTML=milestones.join("");
   }
 
   async function boot(){
