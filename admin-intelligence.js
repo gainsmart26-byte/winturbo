@@ -29,6 +29,8 @@
         <div class="card"><div class="k">FTD PLAYERS</div><div id="admFtd" class="v">—</div><div id="admFtdRate" class="subv">— conversion</div></div>
         <div class="card"><div class="k">LIFETIME DEPOSITS</div><div id="admDeposits" class="v">—</div><div id="admToday" class="subv">— registrations today</div></div>
         <div class="card"><div class="k">NET GAMING REVENUE</div><div id="admNgr" class="v">—</div><div id="admGgr" class="subv">GGR —</div></div>
+        <div class="card adminDailyDepositMetric"><div class="k">DEPOSITS RECEIVED TODAY</div><div id="admDailyDeposits" class="v">—</div><div id="admDailyDepositors" class="subv">— depositors</div></div>
+        <div class="card"><div class="k">REGISTERED VS FTD TODAY</div><div id="admRegVsFtd" class="v">—</div><div id="admTodayConversion" class="subv">— conversion</div></div>
       </div>
       <div class="adminSegments">
         <button data-segment="all" class="on">All players <b id="segAll">—</b></button>
@@ -41,6 +43,10 @@
       <div class="adminGrid">
         <div class="card"><div class="sectionHead"><div><h3>30-day acquisition</h3><div class="muted small">Registrations and first-time deposits</div></div></div><div id="adminTrend" class="adminTrend"></div></div>
         <div class="card"><div class="sectionHead"><div><h3>Agent performance</h3><div class="muted small">Ranked by net gaming revenue</div></div></div><div id="adminAgents" class="adminAgentList"></div></div>
+      </div>
+      <div class="card adminDailyDepositsCard">
+        <div class="sectionHead"><div><h3>Daily deposits received</h3><div class="muted small">Positive lifetime-deposit changes detected by secure API sync. Tracking begins from this feature's activation.</div></div><span class="pill">LIVE LEDGER</span></div>
+        <div class="tableWrap"><table class="adminTable"><thead><tr><th>Username</th><th>Deposit received</th><th>Detected at</th><th>Lifetime total</th><th>Phone</th><th>Agent</th></tr></thead><tbody id="adminDailyDepositRows"></tbody></table></div>
       </div>
       <div class="card adminPlayersCard">
         <div class="sectionHead adminPlayerHead"><div><h3>Player databank</h3><div id="adminResultCount" class="muted small">Loading…</div></div>
@@ -82,18 +88,25 @@
     $("admFtd").textContent=num(t.ftd); $("admFtdRate").textContent=`${t.ftd_rate||0}% conversion`;
     $("admDeposits").textContent=money(t.lifetime_deposits); $("admToday").textContent=`${num(t.registrations_today)} registrations · ${num(t.ftd_today)} FTD today`;
     $("admNgr").textContent=money(t.ngr); $("admGgr").textContent=`GGR ${money(t.ggr)}`;
+    $("admDailyDeposits").textContent=money(t.deposits_today); $("admDailyDepositors").textContent=`${num(t.depositors_today)} depositors · ${num(t.deposit_transactions_today)} detected deposits`;
+    const todayRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
+    $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% same-day ratio`;
     $("segAll").textContent=num(t.players); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Number(t.players||0)-Number(t.ftd||0)); $("segFtd").textContent=num(t.ftd);
     $("segInactive").textContent=num(t.inactive_30d); $("segHigh").textContent=num(t.high_value); $("segNegative").textContent=num(t.negative_ggr);
-    renderTrend(data?.trend||[]); renderAgents(data?.agents||[]);
+    renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(data?.today_deposits||[]);
   }
 
   function renderTrend(rows){
     const max=Math.max(1,...rows.flatMap(x=>[Number(x.registrations),Number(x.ftd)]));
-    $("adminTrend").innerHTML=rows.map((x,i)=>`<div class="adminDay" title="${esc(x.date_value)} · ${x.registrations} registrations · ${x.ftd} FTD"><div class="adminBars"><i style="height:${Math.max(2,Number(x.registrations)/max*100)}%"></i><i style="height:${Math.max(2,Number(x.ftd)/max*100)}%"></i></div><span>${i%5===0?esc(String(x.date_value).slice(5)):""}</span></div>`).join("");
+    $("adminTrend").innerHTML=rows.map((x,i)=>`<div class="adminDay" title="${esc(x.date_value)} · ${x.registrations} registrations · ${x.ftd} FTD · ${money(x.deposit_amount)} deposits detected"><div class="adminBars"><i style="height:${Math.max(2,Number(x.registrations)/max*100)}%"></i><i style="height:${Math.max(2,Number(x.ftd)/max*100)}%"></i></div><span>${i%5===0?esc(String(x.date_value).slice(5)):""}</span></div>`).join("");
   }
 
   function renderAgents(rows){
     $("adminAgents").innerHTML=rows.length?rows.slice(0,12).map((x,i)=>`<div class="adminAgent"><b>#${i+1} ${esc(x.agent_name)}</b><span>${num(x.players)} players · ${x.ftd_rate||0}% FTD</span><strong>${money(x.ngr)}</strong></div>`).join(""):'<div class="muted">No agent data yet.</div>';
+  }
+
+  function renderDailyDeposits(rows){
+    $("adminDailyDepositRows").innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.username)}</b></td><td class="adminDepositAmount"><b>${money(x.amount)}</b></td><td>${when(x.detected_at)}</td><td>${money(x.lifetime_after)}</td><td>${esc(x.phone||"—")}</td><td>${esc(x.agent?.username||"Unassigned")}</td></tr>`).join(""):'<tr><td colspan="6" class="muted">No deposit increases have been detected today yet. Press Sync now to check for updates.</td></tr>';
   }
 
   function query(){
