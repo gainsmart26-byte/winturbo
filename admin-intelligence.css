@@ -27,3 +27,28 @@
   #adminApplyDates{flex:1 1 100%}
   .adminDatePresets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
 }
+
+
+/* Detailed acquisition analytics */
+.adminAcquisitionCard{min-width:0}
+.adminTrendSummary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:4px 0 14px}
+.adminTrendSummary>div{padding:13px 14px;border:1px solid #29372e;border-radius:12px;background:linear-gradient(145deg,rgba(66,227,108,.07),rgba(10,15,12,.2))}
+.adminTrendSummary span,.adminTrendSummary small{display:block;color:var(--muted);font-size:11px}
+.adminTrendSummary b{display:block;margin:5px 0 3px;color:#f4fff7;font-size:20px;line-height:1.15}
+.adminChartLegend{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:2px 0 10px;color:#b9c6bd;font-size:11px}
+.adminChartLegend span{display:flex;align-items:center;gap:6px}
+.adminChartLegend i{width:10px;height:10px;border-radius:99px}
+.adminChartLegend .registrations{background:#42e36c}.adminChartLegend .ftd{background:#ff9c45}.adminChartLegend .deposits{background:#4ea7ff}
+.adminTrendChart{width:100%;overflow-x:auto;overflow-y:hidden;border:1px solid #26342b;border-radius:14px;background:radial-gradient(circle at 25% 0,rgba(66,227,108,.07),transparent 38%),#0a0f0c;padding:8px 5px 0}
+.adminTrendChart svg{display:block;width:100%;height:300px;overflow:visible}
+.adminChartGrid{stroke:#253229;stroke-width:1;stroke-dasharray:4 5}
+.adminChartAxis{fill:#819086;font-size:10px}
+.adminRegLine,.adminFtdLine{fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.adminRegLine{stroke:#42e36c}.adminFtdLine{stroke:#ff9c45}
+.adminRegPoint{fill:#0d1711;stroke:#42e36c;stroke-width:3}.adminFtdPoint{fill:#0d1711;stroke:#ff9c45;stroke-width:3}
+.adminDepositBar{fill:#4ea7ff;opacity:.42}
+.adminTrendDetails{margin-top:12px;border-top:1px solid #28362d;padding-top:11px}
+.adminTrendDetails summary{cursor:pointer;color:#d9e5dc;font-weight:700;font-size:12px;list-style-position:inside}
+.adminTrendDetails[open] summary{margin-bottom:12px}
+@media(max-width:900px){.adminTrendSummary{grid-template-columns:repeat(2,minmax(0,1fr))}.adminTrendChart svg{width:auto}}
+@media(max-width:520px){.adminTrendSummary{grid-template-columns:1fr}.adminTrendSummary b{font-size:18px}}
