@@ -5,7 +5,7 @@
   const money = (v) => new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0}).format(Number(v||0));
   const num = (v) => new Intl.NumberFormat("en-IN").format(Number(v||0));
   const when = (v) => v ? new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Kolkata"}).format(new Date(v)) : "—";
-  let page=0, lastRows=[], busy=false;
+  let page=0, lastRows=[], busy=false, summaryRequest=0;
   const istDate=(value=new Date())=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(value);
   const range=()=>({start:$("adminDateFrom")?.value||istDate(),end:$("adminDateTo")?.value||istDate()});
   const rangeLabel=()=>{const r=range();return r.start===r.end?new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:"Asia/Kolkata"}).format(new Date(r.start+"T12:00:00+05:30")):`${new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:"Asia/Kolkata"}).format(new Date(r.start+"T12:00:00+05:30"))} – ${new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:"Asia/Kolkata"}).format(new Date(r.end+"T12:00:00+05:30"))}`;};
@@ -42,8 +42,8 @@
         <div id="adminRangeLabel" class="muted small">Showing Today · Times shown in IST</div>
       </div>
       <div class="adminMetrics">
-        <div class="card"><div class="k">TOTAL PLAYERS</div><div id="admPlayers" class="v">—</div><div id="admActive" class="subv">— active</div></div>
-        <div class="card"><div class="k">FTD PLAYERS</div><div id="admFtd" class="v">—</div><div id="admFtdRate" class="subv">— conversion</div></div>
+        <div class="card"><div class="k">REGISTERED IN RANGE</div><div id="admPlayers" class="v">—</div><div id="admActive" class="subv">— total players</div></div>
+        <div class="card"><div class="k">FTD IN RANGE</div><div id="admFtd" class="v">—</div><div id="admFtdRate" class="subv">— conversion</div></div>
         <div class="card"><div class="k">LIFETIME DEPOSITS</div><div id="admDeposits" class="v">—</div><div id="admToday" class="subv">— registrations today</div></div>
         <div class="card"><div class="k">NET GAMING REVENUE</div><div id="admNgr" class="v">—</div><div id="admGgr" class="subv">GGR —</div></div>
         <div class="card adminDailyDepositMetric"><div id="admDepositPeriodLabel" class="k">DEPOSITS RECEIVED</div><div id="admDailyDeposits" class="v">—</div><div id="admDailyDepositors" class="subv">— depositors</div></div>
@@ -110,7 +110,10 @@
     if(!r.start||!r.end||r.end<r.start)return message("Select a valid From and To date.",true);
     const days=(new Date(r.end)-new Date(r.start))/86400000;
     if(days>366)return message("Date range cannot exceed 366 days.",true);
-    page=0; message(""); loadAll();
+    page=0;
+    $("adminRangeLabel").textContent=`Loading ${rangeLabel()}…`;
+    message("Applying selected date range…");
+    loadAll();
   }
 
   async function loadAll(){
@@ -118,22 +121,26 @@
   }
 
   async function loadSummary(){
-    const r=range();
+    const request=++summaryRequest, r={...range()}, button=$("adminApplyDates");
+    button.disabled=true; button.textContent="Loading…";
     const {data,error}=await sb.rpc("get_admin_intelligence_summary_range",{p_start_date:r.start,p_end_date:r.end});
-    if(error){message(error.message,true);return}
+    if(request!==summaryRequest)return;
+    button.disabled=false; button.textContent="Apply date range";
+    if(error){message(error.hint||error.message,true);return}
     const t=data?.totals||{}, label=rangeLabel();
     $("adminRangeLabel").textContent=`Showing ${label} · Times shown in IST`;
     $("admDepositPeriodLabel").textContent=`DEPOSITS RECEIVED · ${label}`;
     $("admRegPeriodLabel").textContent=`REGISTERED VS FTD · ${label}`;
     $("adminDepositRangeNote").textContent=`Positive lifetime-deposit changes detected from ${label}. Tracking begins from this feature's activation.`;
-    $("admPlayers").textContent=num(t.players); $("admActive").textContent=`${num(t.active)} active · ${num(t.blocked)} blocked`;
-    $("admFtd").textContent=num(t.ftd); $("admFtdRate").textContent=`${t.ftd_rate||0}% conversion`;
+    $("admPlayers").textContent=num(t.registrations_today); $("admActive").textContent=`of ${num(t.players)} total players`;
+    const selectedRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
+    $("admFtd").textContent=num(t.ftd_today); $("admFtdRate").textContent=`${selectedRate}% selected-range ratio`;
     $("admDeposits").textContent=money(t.lifetime_deposits); $("admToday").textContent=`${num(t.registrations_today)} registrations · ${num(t.ftd_today)} FTD in range`;
     $("admNgr").textContent=money(t.ngr); $("admGgr").textContent=`GGR ${money(t.ggr)}`;
     $("admDailyDeposits").textContent=money(t.deposits_today); $("admDailyDepositors").textContent=`${num(t.depositors_today)} depositors · ${num(t.deposit_transactions_today)} detected deposits in range`;
     const todayRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
     $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% same-day ratio`;
-    $("segAll").textContent=num(t.players); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Number(t.players||0)-Number(t.ftd||0)); $("segFtd").textContent=num(t.ftd);
+    $("segAll").textContent=num(t.registrations_today); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Math.max(0,Number(t.registrations_today||0)-Number(t.ftd_today||0))); $("segFtd").textContent=num(t.ftd_today);
     $("segInactive").textContent=num(t.inactive_30d); $("segHigh").textContent=num(t.high_value); $("segNegative").textContent=num(t.negative_ggr);
     renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(data?.today_deposits||[]);
   }
@@ -154,10 +161,11 @@
   function query(){
     let q=sb.from("admin_players").select("*",{count:"exact"}).order("source_updated_at",{ascending:false});
     const search=$("adminSearch").value.trim(), status=$("adminStatus").value, segment=document.querySelector(".adminSegments button.on")?.dataset.segment||"all";
+    const r=range(), startISO=new Date(r.start+"T00:00:00+05:30").toISOString(), endISO=new Date(new Date(r.end+"T00:00:00+05:30").getTime()+86400000).toISOString();
+    if(segment==="ftd") q=q.gte("ftd_at",startISO).lt("ftd_at",endISO);
+    else q=q.gte("registered_at",startISO).lt("registered_at",endISO);
     if(search) q=q.or(`username.ilike.%${search.replace(/[%_,()]/g,"")}%,phone.ilike.%${search.replace(/[%_,()]/g,"")}%,email.ilike.%${search.replace(/[%_,()]/g,"")}%`);
     if(status) q=q.eq("status",status);
-    const today=new Date(); today.setHours(0,0,0,0);
-    if(segment==="new"){const r=range();q=q.gte("registered_at",new Date(r.start+"T00:00:00+05:30").toISOString()).lt("registered_at",new Date(new Date(r.end+"T00:00:00+05:30").getTime()+86400000).toISOString());}
     if(segment==="nonftd") q=q.eq("ftd",false);
     if(segment==="ftd") q=q.eq("ftd",true);
     if(segment==="inactive") q=q.or(`last_deposit_at.is.null,last_deposit_at.lt.${new Date(Date.now()-30*86400000).toISOString()}`);
