@@ -165,19 +165,21 @@
       ["Best acquisition day",shortDate(best.date_value),num(best.registrations)+" registered · "+num(best.ftd)+" FTD"]
     ].map(x=>`<div><span>${esc(x[0])}</span><b>${esc(x[1])}</b><small>${esc(x[2])}</small></div>`).join("");
 
-    const width=Math.max(760,rows.length*58),height=300,left=48,right=22,top=24,bottom=48,plotW=width-left-right,plotH=height-top-bottom;
-    const maxCount=Math.max(1,...rows.flatMap(x=>[Number(x.registrations||0),Number(x.ftd||0)])),maxDeposit=Math.max(1,...rows.map(x=>Number(x.deposit_amount||0)));
-    const x=i=>left+(rows.length===1?plotW/2:i*plotW/(rows.length-1)),y=v=>top+plotH-(Number(v||0)/maxCount)*plotH,depositH=v=>Math.max(0,Number(v||0)/maxDeposit*plotH*.28);
-    const regPoints=rows.map((r,i)=>x(i)+","+y(r.registrations)).join(" "),ftdPoints=rows.map((r,i)=>x(i)+","+y(r.ftd)).join(" ");
-    const ticks=[0,.25,.5,.75,1],labelEvery=Math.max(1,Math.ceil(rows.length/10));
-    chart.innerHTML=`<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Daily registrations, FTD and deposit trend" style="min-width:${width}px">
-      <defs><linearGradient id="adminRegArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#42e36c" stop-opacity=".24"/><stop offset="1" stop-color="#42e36c" stop-opacity="0"/></linearGradient></defs>
-      ${ticks.map(t=>`<g><line x1="${left}" y1="${top+plotH*(1-t)}" x2="${width-right}" y2="${top+plotH*(1-t)}" class="adminChartGrid"/><text x="${left-10}" y="${top+plotH*(1-t)+4}" text-anchor="end" class="adminChartAxis">${Math.round(maxCount*t)}</text></g>`).join("")}
-      <polygon points="${left},${top+plotH} ${regPoints} ${width-right},${top+plotH}" fill="url(#adminRegArea)"/>
-      ${rows.map((r,i)=>`<rect x="${x(i)-8}" y="${top+plotH-depositH(r.deposit_amount)}" width="16" height="${depositH(r.deposit_amount)}" rx="4" class="adminDepositBar"><title>${shortDate(r.date_value)} · Deposits ${money(r.deposit_amount)} · ${num(r.depositors)} depositors</title></rect>`).join("")}
-      <polyline points="${regPoints}" class="adminRegLine"/><polyline points="${ftdPoints}" class="adminFtdLine"/>
-      ${rows.map((r,i)=>`<g><circle cx="${x(i)}" cy="${y(r.registrations)}" r="5" class="adminRegPoint"><title>${shortDate(r.date_value)} · ${r.registrations} registrations</title></circle><circle cx="${x(i)}" cy="${y(r.ftd)}" r="5" class="adminFtdPoint"><title>${shortDate(r.date_value)} · ${r.ftd} FTD</title></circle>${i%labelEvery===0||i===rows.length-1?`<text x="${x(i)}" y="${height-18}" text-anchor="middle" class="adminChartAxis">${shortDate(r.date_value)}</text>`:""}</g>`).join("")}
-    </svg>`;
+    const width=Math.max(760,rows.length*64),maxCount=Math.max(1,...rows.flatMap(x=>[Number(x.registrations||0),Number(x.ftd||0)])),maxDeposit=Math.max(1,...rows.map(x=>Number(x.deposit_amount||0))),labelEvery=Math.max(1,Math.ceil(rows.length/12));
+    chart.innerHTML=`<div class="adminBarChart" role="img" aria-label="Animated daily registration, FTD and deposit bars" style="min-width:${width}px">
+      <div class="adminBarScale"><span>${num(maxCount)}</span><span>${num(Math.round(maxCount/2))}</span><span>0</span></div>
+      <div class="adminBarPlot">
+        <div class="adminBarGrid"><i></i><i></i><i></i><i></i><i></i></div>
+        ${rows.map((r,i)=>{const reg=Number(r.registrations||0),ftd=Number(r.ftd||0),deposit=Number(r.deposit_amount||0),delay=Math.min(i*35,700);return`<div class="adminBarGroup" title="${shortDate(r.date_value)} · ${reg} registrations · ${ftd} FTD · ${money(deposit)} deposits">
+          <div class="adminBarValues">
+            <div class="adminAnimatedBar registrations" style="--bar-height:${Math.max(reg?4:0,reg/maxCount*100)}%;--bar-delay:${delay}ms"><em>${reg}</em></div>
+            <div class="adminAnimatedBar ftd" style="--bar-height:${Math.max(ftd?4:0,ftd/maxCount*100)}%;--bar-delay:${delay+70}ms"><em>${ftd}</em></div>
+            <div class="adminAnimatedBar deposits" style="--bar-height:${Math.max(deposit?4:0,deposit/maxDeposit*100)}%;--bar-delay:${delay+140}ms"><em>${deposit?money(deposit):"₹0"}</em></div>
+          </div>
+          <span class="adminBarDate">${i%labelEvery===0||i===rows.length-1?shortDate(r.date_value):""}</span>
+        </div>`}).join("")}
+      </div>
+    </div>`;
     body.innerHTML=rows.slice().reverse().map(r=>{const rate=Number(r.registrations)>0?(100*Number(r.ftd||0)/Number(r.registrations)).toFixed(1):"0.0";return`<tr><td><b>${esc(shortDate(r.date_value))}</b></td><td>${num(r.registrations)}</td><td>${num(r.ftd)}</td><td><b>${rate}%</b></td><td>${num(r.depositors)}</td><td class="adminDepositAmount"><b>${money(r.deposit_amount)}</b></td></tr>`}).join("");
   }
 
