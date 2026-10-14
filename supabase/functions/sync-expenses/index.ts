@@ -8,6 +8,7 @@ const headerIndex=(headers:string[],...aliases:string[])=>{
   return normalized.findIndex(value=>aliases.includes(value));
 };
 function csv(t:string){const z:string[][]=[];let r:string[]=[],v="",q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'&&t[i+1]=='"'){v+='"';i++}else if(c=='"')q=false;else v+=c}else if(c=='"')q=true;else if(c==','){r.push(v);v=''}else if(c=='\n'){r.push(v.replace(/\r$/,''));z.push(r);r=[];v=''}else v+=c}if(v||r.length){r.push(v.replace(/\r$/,''));z.push(r)}return z}
+function sheetDate(v:string){const s=(v||"").trim();if(!s)return null;let m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(m)return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(m)return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;return null}
 Deno.serve(async(req)=>{
   if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
   try{
@@ -24,7 +25,7 @@ Deno.serve(async(req)=>{
     const ei=headerIndex(h,"expense type","expense","type"),ai=headerIndex(h,"amount","expense amount","cost"),pi=headerIndex(h,"purpose","category","description");
     if(ei<0||ai<0||pi<0)throw new Error(`Required columns not found. Received: ${h.filter(Boolean).join(", ")||"empty header row"}`);
     const now=new Date().toISOString();
-    const data=rows.map((x,i)=>{const et=(x[ei]||"").trim(),purpose=(x[pi]||"").trim(),amount=Number(String(x[ai]||"0").replace(/[^0-9.-]/g,""))||0;return{source_key:`expense-sheet-row-${i+2}`,expense_type:et,amount,purpose,category:purpose||"Other",source_sheet:"Expense Sheet",source_row:i+2,synced_at:now,updated_at:now}}).filter(x=>x.expense_type||x.amount||x.purpose);
+    const data=rows.map((x,i)=>{const et=(x[ei]||"").trim(),purpose=(x[pi]||"").trim(),amount=Number(String(x[ai]||"0").replace(/[^0-9.-]/g,""))||0;return{source_key:`expense-sheet-row-${i+2}`,expense_type:et,amount,purpose,category:purpose||"Other",source_sheet:"Expense Sheet",source_row:i+2,expense_date:di>=0?sheetDate(x[di]):null,synced_at:now,updated_at:now}}).filter(x=>x.expense_type||x.amount||x.purpose);
     const replaced=await sb.rpc("replace_expense_sheet_rows",{p_rows:data});
     if(replaced.error)throw new Error(`Database replace failed: ${replaced.error.message}`);
     return Response.json({ok:true,rows:data.length,total:data.reduce((a,x)=>a+x.amount,0),synced_at:now},{headers:{...cors,"cache-control":"no-store"}});
