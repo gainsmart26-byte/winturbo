@@ -6,6 +6,9 @@
   const num = (v) => new Intl.NumberFormat("en-IN").format(Number(v||0));
   const when = (v) => v ? new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Kolkata"}).format(new Date(v)) : "—";
   let page=0, lastRows=[], busy=false;
+  const istDate=(value=new Date())=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(value);
+  const range=()=>({start:$("adminDateFrom")?.value||istDate(),end:$("adminDateTo")?.value||istDate()});
+  const rangeLabel=()=>{const r=range();return r.start===r.end?new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:"Asia/Kolkata"}).format(new Date(r.start+"T12:00:00+05:30")):`${new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:"Asia/Kolkata"}).format(new Date(r.start+"T12:00:00+05:30"))} – ${new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:"Asia/Kolkata"}).format(new Date(r.end+"T12:00:00+05:30"))}`;};
 
   function mount() {
     if ($("adminIntelligence")) return;
@@ -24,28 +27,42 @@
         <div class="adminHeroActions"><span id="adminSyncBadge" class="adminBadge">Not synced</span><button id="adminSync" class="primary">Sync now</button></div>
       </div>
       <div id="adminMessage" class="adminMessage"></div>
+      <div class="card adminDatePanel">
+        <div class="adminDateFields">
+          <label>From date<input type="date" id="adminDateFrom"></label>
+          <label>To date<input type="date" id="adminDateTo"></label>
+          <button id="adminApplyDates" class="primary">Apply date range</button>
+        </div>
+        <div class="adminDatePresets" aria-label="Quick date ranges">
+          <button class="ghost" data-admin-range="today">Today</button>
+          <button class="ghost" data-admin-range="yesterday">Yesterday</button>
+          <button class="ghost" data-admin-range="week">This week</button>
+          <button class="ghost" data-admin-range="month">This month</button>
+        </div>
+        <div id="adminRangeLabel" class="muted small">Showing Today · Times shown in IST</div>
+      </div>
       <div class="adminMetrics">
         <div class="card"><div class="k">TOTAL PLAYERS</div><div id="admPlayers" class="v">—</div><div id="admActive" class="subv">— active</div></div>
         <div class="card"><div class="k">FTD PLAYERS</div><div id="admFtd" class="v">—</div><div id="admFtdRate" class="subv">— conversion</div></div>
         <div class="card"><div class="k">LIFETIME DEPOSITS</div><div id="admDeposits" class="v">—</div><div id="admToday" class="subv">— registrations today</div></div>
         <div class="card"><div class="k">NET GAMING REVENUE</div><div id="admNgr" class="v">—</div><div id="admGgr" class="subv">GGR —</div></div>
-        <div class="card adminDailyDepositMetric"><div class="k">DEPOSITS RECEIVED TODAY</div><div id="admDailyDeposits" class="v">—</div><div id="admDailyDepositors" class="subv">— depositors</div></div>
-        <div class="card"><div class="k">REGISTERED VS FTD TODAY</div><div id="admRegVsFtd" class="v">—</div><div id="admTodayConversion" class="subv">— conversion</div></div>
+        <div class="card adminDailyDepositMetric"><div id="admDepositPeriodLabel" class="k">DEPOSITS RECEIVED</div><div id="admDailyDeposits" class="v">—</div><div id="admDailyDepositors" class="subv">— depositors</div></div>
+        <div class="card"><div id="admRegPeriodLabel" class="k">REGISTERED VS FTD</div><div id="admRegVsFtd" class="v">—</div><div id="admTodayConversion" class="subv">— conversion</div></div>
       </div>
       <div class="adminSegments">
         <button data-segment="all" class="on">All players <b id="segAll">—</b></button>
-        <button data-segment="new">Registered today <b id="segNew">—</b></button>
+        <button data-segment="new">Registered in range <b id="segNew">—</b></button>
         <button data-segment="nonftd">Non FTD <b id="segNonFtd">—</b></button><button data-segment="ftd">FTD <b id="segFtd">—</b></button>
         <button data-segment="inactive">Inactive 30d <b id="segInactive">—</b></button>
         <button data-segment="high">High value <b id="segHigh">—</b></button>
         <button data-segment="negative">Negative GGR <b id="segNegative">—</b></button>
       </div>
       <div class="adminGrid">
-        <div class="card"><div class="sectionHead"><div><h3>30-day acquisition</h3><div class="muted small">Registrations and first-time deposits</div></div></div><div id="adminTrend" class="adminTrend"></div></div>
+        <div class="card"><div class="sectionHead"><div><h3>Acquisition trend</h3><div class="muted small">Registrations and first-time deposits for the selected range</div></div></div><div id="adminTrend" class="adminTrend"></div></div>
         <div class="card"><div class="sectionHead"><div><h3>Agent performance</h3><div class="muted small">Ranked by net gaming revenue</div></div></div><div id="adminAgents" class="adminAgentList"></div></div>
       </div>
       <div class="card adminDailyDepositsCard">
-        <div class="sectionHead"><div><h3>Daily deposits received</h3><div class="muted small">Positive lifetime-deposit changes detected by secure API sync. Tracking begins from this feature's activation.</div></div><span class="pill">LIVE LEDGER</span></div>
+        <div class="sectionHead"><div><h3>Deposits received</h3><div id="adminDepositRangeNote" class="muted small">Positive lifetime-deposit changes for the selected date range. Tracking begins from this feature's activation.</div></div><span class="pill">LIVE LEDGER</span></div>
         <div class="tableWrap"><table class="adminTable"><thead><tr><th>Username</th><th>Deposit received</th><th>Detected at</th><th>Lifetime total</th><th>Phone</th><th>Agent</th></tr></thead><tbody id="adminDailyDepositRows"></tbody></table></div>
       </div>
       <div class="card adminPlayersCard">
@@ -67,6 +84,9 @@
     $("adminPrev").addEventListener("click",()=>{if(page>0){page--;loadPlayers()}});
     $("adminNext").addEventListener("click",()=>{page++;loadPlayers()});
     $("adminExport").addEventListener("click",exportCsv);
+    const today=istDate(); $("adminDateFrom").value=today; $("adminDateTo").value=today;
+    $("adminApplyDates").addEventListener("click",applyRange);
+    document.querySelectorAll("[data-admin-range]").forEach(b=>b.addEventListener("click",()=>setPreset(b.dataset.adminRange)));
   }
 
   function open(){
@@ -76,19 +96,41 @@
     loadAll();
   }
 
+  function setPreset(preset){
+    const now=new Date(), end=istDate(now); let start=end;
+    if(preset==="yesterday"){const d=new Date(now);d.setDate(d.getDate()-1);start=istDate(d);$("adminDateTo").value=start}
+    else if(preset==="week"){const d=new Date(now);const weekday=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Kolkata",weekday:"short"}).format(d),day=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].indexOf(weekday);d.setDate(d.getDate()-day);start=istDate(d);$("adminDateTo").value=end}
+    else if(preset==="month"){start=end.slice(0,8)+"01";$("adminDateTo").value=end}
+    else $("adminDateTo").value=end;
+    $("adminDateFrom").value=start; applyRange();
+  }
+
+  function applyRange(){
+    const r=range();
+    if(!r.start||!r.end||r.end<r.start)return message("Select a valid From and To date.",true);
+    const days=(new Date(r.end)-new Date(r.start))/86400000;
+    if(days>366)return message("Date range cannot exceed 366 days.",true);
+    page=0; message(""); loadAll();
+  }
+
   async function loadAll(){
     await Promise.all([loadSummary(),loadPlayers(),loadState()]);
   }
 
   async function loadSummary(){
-    const {data,error}=await sb.rpc("get_admin_intelligence_summary");
+    const r=range();
+    const {data,error}=await sb.rpc("get_admin_intelligence_summary_range",{p_start_date:r.start,p_end_date:r.end});
     if(error){message(error.message,true);return}
-    const t=data?.totals||{};
+    const t=data?.totals||{}, label=rangeLabel();
+    $("adminRangeLabel").textContent=`Showing ${label} · Times shown in IST`;
+    $("admDepositPeriodLabel").textContent=`DEPOSITS RECEIVED · ${label}`;
+    $("admRegPeriodLabel").textContent=`REGISTERED VS FTD · ${label}`;
+    $("adminDepositRangeNote").textContent=`Positive lifetime-deposit changes detected from ${label}. Tracking begins from this feature's activation.`;
     $("admPlayers").textContent=num(t.players); $("admActive").textContent=`${num(t.active)} active · ${num(t.blocked)} blocked`;
     $("admFtd").textContent=num(t.ftd); $("admFtdRate").textContent=`${t.ftd_rate||0}% conversion`;
-    $("admDeposits").textContent=money(t.lifetime_deposits); $("admToday").textContent=`${num(t.registrations_today)} registrations · ${num(t.ftd_today)} FTD today`;
+    $("admDeposits").textContent=money(t.lifetime_deposits); $("admToday").textContent=`${num(t.registrations_today)} registrations · ${num(t.ftd_today)} FTD in range`;
     $("admNgr").textContent=money(t.ngr); $("admGgr").textContent=`GGR ${money(t.ggr)}`;
-    $("admDailyDeposits").textContent=money(t.deposits_today); $("admDailyDepositors").textContent=`${num(t.depositors_today)} depositors · ${num(t.deposit_transactions_today)} detected deposits`;
+    $("admDailyDeposits").textContent=money(t.deposits_today); $("admDailyDepositors").textContent=`${num(t.depositors_today)} depositors · ${num(t.deposit_transactions_today)} detected deposits in range`;
     const todayRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
     $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% same-day ratio`;
     $("segAll").textContent=num(t.players); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Number(t.players||0)-Number(t.ftd||0)); $("segFtd").textContent=num(t.ftd);
@@ -106,7 +148,7 @@
   }
 
   function renderDailyDeposits(rows){
-    $("adminDailyDepositRows").innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.username)}</b></td><td class="adminDepositAmount"><b>${money(x.amount)}</b></td><td>${when(x.detected_at)}</td><td>${money(x.lifetime_after)}</td><td>${esc(x.phone||"—")}</td><td>${esc(x.agent?.username||"Unassigned")}</td></tr>`).join(""):'<tr><td colspan="6" class="muted">No deposit increases have been detected today yet. Press Sync now to check for updates.</td></tr>';
+    $("adminDailyDepositRows").innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.username)}</b></td><td class="adminDepositAmount"><b>${money(x.amount)}</b></td><td>${when(x.detected_at)}</td><td>${money(x.lifetime_after)}</td><td>${esc(x.phone||"—")}</td><td>${esc(x.agent?.username||"Unassigned")}</td></tr>`).join(""):'<tr><td colspan="6" class="muted">No deposit increases were detected in the selected range. Press Sync now to check for updates.</td></tr>';
   }
 
   function query(){
@@ -115,7 +157,7 @@
     if(search) q=q.or(`username.ilike.%${search.replace(/[%_,()]/g,"")}%,phone.ilike.%${search.replace(/[%_,()]/g,"")}%,email.ilike.%${search.replace(/[%_,()]/g,"")}%`);
     if(status) q=q.eq("status",status);
     const today=new Date(); today.setHours(0,0,0,0);
-    if(segment==="new") q=q.gte("registered_at",today.toISOString());
+    if(segment==="new"){const r=range();q=q.gte("registered_at",new Date(r.start+"T00:00:00+05:30").toISOString()).lt("registered_at",new Date(new Date(r.end+"T00:00:00+05:30").getTime()+86400000).toISOString());}
     if(segment==="nonftd") q=q.eq("ftd",false);
     if(segment==="ftd") q=q.eq("ftd",true);
     if(segment==="inactive") q=q.or(`last_deposit_at.is.null,last_deposit_at.lt.${new Date(Date.now()-30*86400000).toISOString()}`);
