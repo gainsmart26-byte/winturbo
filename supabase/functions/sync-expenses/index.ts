@@ -1,0 +1,30 @@
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+const SHEET_ID="1rU1CYXzv72sVrh00tzBvcX-BFU6TU6VDPF84OD2xdEE";
+const CSV_URL=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
+function csv(t:string){const z:string[][]=[];let r:string[]=[],v="",q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'&&t[i+1]=='"'){v+='"';i++}else if(c=='"')q=false;else v+=c}else if(c=='"')q=true;else if(c==','){r.push(v);v=''}else if(c=='\n'){r.push(v.replace(/\r$/,''));z.push(r);r=[];v=''}else v+=c}if(v||r.length){r.push(v.replace(/\r$/,''));z.push(r)}return z}
+Deno.serve(async(req)=>{
+  if(req.method==="OPTIONS")return new Response("ok",{headers:cors});
+  try{
+    const auth=req.headers.get("Authorization")||"",token=auth.replace(/^Bearer\s+/i,"");
+    if(!token) return Response.json({ok:false,error:"Authentication required"},{status:401,headers:cors});
+    const sb=createClient(Deno.env.get("SUPABASE_URL")!,Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const {data:userData,error:userError}=await sb.auth.getUser(token);
+    if(userError||!userData.user)return Response.json({ok:false,error:"Invalid session"},{status:401,headers:cors});
+    const {data:profile}=await sb.from("profiles").select("role,is_active").eq("id",userData.user.id).maybeSingle();
+    if(!profile?.is_active||profile.role!=="admin")return Response.json({ok:false,error:"Admin access required"},{status:403,headers:cors});
+    const res=await fetch(CSV_URL,{headers:{"cache-control":"no-cache"}});
+    if(!res.ok)throw new Error(`Google Sheet HTTP ${res.status}`);
+    const rows=csv(await res.text()),h=(rows.shift()||[]).map(x=>x.trim()),ei=h.indexOf("Expense Type"),ai=h.indexOf("Amount"),pi=h.indexOf("Purpose");
+    if(ei<0||ai<0||pi<0)throw new Error("Required columns not found");
+    const now=new Date().toISOString();
+    const data=rows.map((x,i)=>{const et=(x[ei]||"").trim(),purpose=(x[pi]||"").trim(),amount=Number(String(x[ai]||"0").replace(/[^0-9.-]/g,""))||0;return{source_key:`expense-sheet-row-${i+2}`,expense_type:et,amount,purpose,category:purpose||"Other",source_sheet:"Expense Sheet",source_row:i+2,synced_at:now,updated_at:now}}).filter(x=>x.expense_type||x.amount||x.purpose);
+    if(data.length){const up=await sb.from("expenses").upsert(data,{onConflict:"source_key"});if(up.error)throw up.error}
+    const keys=data.map(x=>x.source_key);
+    let stale=sb.from("expenses").delete().eq("source_sheet","Expense Sheet");
+    if(keys.length)stale=stale.not("source_key","in",`(${keys.map(k=>'"'+k.replaceAll('"','')+'"').join(",")})`);
+    const removed=await stale;if(removed.error)throw removed.error;
+    return Response.json({ok:true,rows:data.length,total:data.reduce((a,x)=>a+x.amount,0),synced_at:now},{headers:{...cors,"cache-control":"no-store"}});
+  }catch(e){return Response.json({ok:false,error:e?.message||String(e)},{status:500,headers:cors})}
+});
