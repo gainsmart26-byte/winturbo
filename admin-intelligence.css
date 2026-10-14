@@ -97,3 +97,25 @@
 .adminRegisteredAt{min-width:150px}
 .adminRegisteredAt b,.adminRegisteredAt small{display:block;white-space:nowrap}
 .adminRegisteredAt small{margin-top:4px;color:#9fb0a4;font-variant-numeric:tabular-nums}
+
+
+/* IST hourly performance analysis */
+.adminTimeAnalysisCard{margin:16px 0}
+.adminTimeInsights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:15px}
+.adminTimeInsights>div{padding:13px 14px;border:1px solid #2b3930;border-radius:12px;background:#0c120e}
+.adminTimeInsights span,.adminTimeInsights small{display:block;color:var(--muted);font-size:10px}.adminTimeInsights b{display:block;margin:5px 0;color:#f0f8f2;font-size:15px}
+.adminTimeInsights .green{border-color:rgba(66,227,108,.45)}.adminTimeInsights .orange{border-color:rgba(255,156,69,.45)}.adminTimeInsights .blue{border-color:rgba(78,167,255,.45)}
+.adminTimeCharts{display:grid;gap:14px}
+.adminHourMetric{padding:12px;border:1px solid #28362d;border-radius:13px;background:#0a0f0c}
+.adminHourMetricHead{display:flex;justify-content:space-between;gap:10px;margin-bottom:9px}.adminHourMetricHead span{color:var(--muted);font-size:10px}
+.adminHourBars{display:flex;gap:3px;height:155px;align-items:stretch}
+.adminHourSlot{display:grid;grid-template-rows:1fr 24px;min-width:0;flex:1}
+.adminHourBarTrack{position:relative;display:flex;align-items:flex-end;height:100%;border-bottom:1px solid #2b3930;background:repeating-linear-gradient(to top,transparent 0,transparent 24%,rgba(255,255,255,.035) 25%)}
+.adminHourBarTrack i{position:relative;display:block;width:100%;height:var(--hour-height);min-height:1px;border-radius:5px 5px 1px 1px;transform-origin:bottom;animation:adminHourRise .65s cubic-bezier(.22,.8,.25,1) var(--hour-delay) both;opacity:.78}
+.adminHourBarTrack i.green{background:linear-gradient(#73f492,#25a94b)}.adminHourBarTrack i.orange{background:linear-gradient(#ffc178,#df6b20)}.adminHourBarTrack i.blue{background:linear-gradient(#82c3ff,#2e7bc9)}
+.adminHourBarTrack i.peak{opacity:1;box-shadow:0 0 16px currentColor;outline:1px solid rgba(255,255,255,.55)}.adminHourBarTrack i.low{opacity:.28}
+.adminHourBarTrack em{position:absolute;left:50%;top:-18px;transform:translateX(-50%);display:none;color:#eaf4ec;font-size:9px;font-style:normal;white-space:nowrap}.adminHourBarTrack i:hover em{display:block}
+.adminHourSlot>span{display:flex;justify-content:center;align-items:end;color:#7f8e84;font-size:8px;white-space:nowrap;transform:rotate(-25deg);transform-origin:center}
+@keyframes adminHourRise{from{transform:scaleY(0);opacity:.1}to{transform:scaleY(1)}}
+@media(max-width:850px){.adminTimeInsights{grid-template-columns:1fr}.adminTimeCharts{overflow-x:auto}.adminHourMetric{min-width:760px}}
+@media(prefers-reduced-motion:reduce){.adminHourBarTrack i{animation:none}}
