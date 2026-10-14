@@ -22,7 +22,7 @@ Deno.serve(async(req)=>{
     const res=await fetch(CSV_URL,{headers:{"cache-control":"no-cache"}});
     if(!res.ok)throw new Error(`Google Sheet HTTP ${res.status}`);
     const rows=csv(await res.text()),h=(rows.shift()||[]).map(x=>x.trim());
-    const ei=headerIndex(h,"expense type","expense","type"),ai=headerIndex(h,"amount","expense amount","cost"),pi=headerIndex(h,"purpose","category","description");
+    const ei=headerIndex(h,"expense type","expense","type"),ai=headerIndex(h,"amount","expense amount","cost"),pi=headerIndex(h,"purpose","category","description"),di=headerIndex(h,"date","expense date","spend date");
     if(ei<0||ai<0||pi<0)throw new Error(`Required columns not found. Received: ${h.filter(Boolean).join(", ")||"empty header row"}`);
     const now=new Date().toISOString();
     const data=rows.map((x,i)=>{const et=(x[ei]||"").trim(),purpose=(x[pi]||"").trim(),amount=Number(String(x[ai]||"0").replace(/[^0-9.-]/g,""))||0;return{source_key:`expense-sheet-row-${i+2}`,expense_type:et,amount,purpose,category:purpose||"Other",source_sheet:"Expense Sheet",source_row:i+2,expense_date:di>=0?sheetDate(x[di]):null,synced_at:now,updated_at:now}}).filter(x=>x.expense_type||x.amount||x.purpose);
