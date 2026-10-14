@@ -5,7 +5,7 @@
   const money = (v) => new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0}).format(Number(v||0));
   const num = (v) => new Intl.NumberFormat("en-IN").format(Number(v||0));
   const when = (v) => v ? new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeStyle:"short",timeZone:"Asia/Kolkata"}).format(new Date(v)) : "—";
-  let page=0, lastRows=[], busy=false, summaryRequest=0;
+  let page=0, lastRows=[], busy=false, summaryRequest=0, accessMode="admin", notePlayer=null;
   const istDate=(value=new Date())=>new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kolkata",year:"numeric",month:"2-digit",day:"2-digit"}).format(value);
   const range=()=>({start:$("adminDateFrom")?.value||istDate(),end:$("adminDateTo")?.value||istDate()});
   const rangeLabel=()=>{const r=range();return r.start===r.end?new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:"Asia/Kolkata"}).format(new Date(r.start+"T12:00:00+05:30")):`${new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:"Asia/Kolkata"}).format(new Date(r.start+"T12:00:00+05:30"))} – ${new Intl.DateTimeFormat("en-IN",{dateStyle:"medium",timeZone:"Asia/Kolkata"}).format(new Date(r.end+"T12:00:00+05:30"))}`;};
@@ -71,13 +71,28 @@
         <div class="sectionHead"><div><h3>Deposits received</h3><div id="adminDepositRangeNote" class="muted small">Positive lifetime-deposit changes for the selected date range. Tracking begins from this feature's activation.</div></div><span class="pill">LIVE LEDGER</span></div>
         <div class="tableWrap"><table class="adminTable"><thead><tr><th>Username</th><th>Deposit received</th><th>Detected at</th><th>Lifetime total</th><th>Phone</th><th>Agent</th></tr></thead><tbody id="adminDailyDepositRows"></tbody></table></div>
       </div>
+      <div class="card adminCommissionCard">
+        <div class="sectionHead"><div><h3>Agent commission authorization</h3><div class="muted small">Authorize up to 50 agents and connect each dashboard user to their WinTurbo agent username.</div></div><span class="pill">50 AGENT SLOTS</span></div>
+        <div class="adminCommissionForm">
+          <label>Agent slot<select id="agentSlot"></select></label>
+          <label>Agent name<input id="agentName" placeholder="Agent name"></label>
+          <label>WinTurbo agent username<input id="agentUsername" placeholder="e.g. winturbo1"></label>
+          <label>Dashboard user<select id="agentProfile"><option value="">No dashboard login</option></select></label>
+          <label>Commission type<select id="agentCommissionType"><option value="percentage">Percentage</option><option value="fixed">Fixed amount</option></select></label>
+          <label>Commission value<input id="agentCommissionValue" type="number" min="0" step="0.01" value="0"></label>
+          <label class="adminAgentCheck"><input id="agentAuthorized" type="checkbox"> Authorized</label>
+          <button id="agentSave" class="primary">Save agent</button>
+        </div>
+        <div id="agentAuthorizationList" class="adminAgentAuthorizationList"></div>
+      </div>
       <div class="card adminPlayersCard">
         <div class="sectionHead adminPlayerHead"><div><h3>Player databank</h3><div id="adminResultCount" class="muted small">Loading…</div></div>
           <div class="adminFilters"><input id="adminSearch" placeholder="Search username, phone or email"><select id="adminStatus"><option value="">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option></select><button id="adminExport" class="ghost">Export CSV</button></div>
         </div>
-        <div class="tableWrap"><table class="adminTable"><thead><tr><th>Player</th><th>Status</th><th>Registered</th><th>FTD</th><th>Last deposit</th><th>Deposits</th><th>GGR</th><th>NGR</th><th>Agent / Upline</th></tr></thead><tbody id="adminPlayerRows"></tbody></table></div>
+        <div class="tableWrap"><table class="adminTable"><thead><tr><th>Player</th><th>Status</th><th>Registered</th><th>FTD</th><th>Last deposit</th><th>Deposits</th><th>GGR</th><th>NGR</th><th>Agent / Upline</th><th>Notes</th></tr></thead><tbody id="adminPlayerRows"></tbody></table></div>
         <div class="adminPager"><button id="adminPrev" class="ghost">Previous</button><span id="adminPage">Page 1</span><button id="adminNext" class="ghost">Next</button></div>
-      </div>`;
+      </div>
+      <div id="playerNotesModal" class="adminNotesModal" hidden><div class="adminNotesPanel"><div class="sectionHead"><div><h3 id="playerNotesTitle">Client notes</h3><div id="playerNotesMeta" class="muted small"></div></div><button id="playerNotesClose" class="ghost">Close</button></div><div id="playerNotesHistory" class="adminNotesHistory"></div><div class="adminNoteComposer"><select id="playerNoteType"><option value="general">General</option><option value="follow_up">Follow-up</option><option value="deposit">Deposit</option><option value="non_ftd">Non FTD</option><option value="payment">Payment</option></select><textarea id="playerNoteText" maxlength="2000" placeholder="Write a note for this client…"></textarea><button id="playerNoteSave" class="primary">Save note</button></div></div></div>`;
     main.appendChild(section);
 
     button.addEventListener("click",()=>open());
@@ -90,6 +105,13 @@
     $("adminPrev").addEventListener("click",()=>{if(page>0){page--;loadPlayers()}});
     $("adminNext").addEventListener("click",()=>{page++;loadPlayers()});
     $("adminExport").addEventListener("click",exportCsv);
+    $("playerNotesClose").addEventListener("click",closeNotes);
+    $("playerNoteSave").addEventListener("click",saveNote);
+    $("agentSave").addEventListener("click",saveAgent);
+    $("agentSlot").innerHTML=Array.from({length:50},(_,i)=>`<option value="${i+1}">Agent ${i+1}</option>`).join("");
+    $("agentSlot").addEventListener("change",fillAgentSlot);
+    document.addEventListener("click",e=>{const b=e.target.closest(".adminNotesButton");if(b)openNotes(b.dataset.username)});
+    if(accessMode==="agent") document.querySelectorAll(".adminHeroActions,.adminDatePanel,.adminMetrics,.adminSegments,.adminGrid,.adminDailyDepositsCard,.adminCommissionCard").forEach(x=>x.hidden=true);
     const today=istDate(); $("adminDateFrom").value=today; $("adminDateTo").value=today;
     $("adminApplyDates").addEventListener("click",applyRange);
     document.querySelectorAll("[data-admin-range]").forEach(b=>b.addEventListener("click",()=>setPreset(b.dataset.adminRange)));
@@ -123,7 +145,8 @@
   }
 
   async function loadAll(){
-    await Promise.all([loadSummary(),loadPlayers(),loadState()]);
+    if(accessMode==="agent") return loadPlayers();
+    await Promise.all([loadSummary(),loadPlayers(),loadState(),loadAgents()]);
   }
 
   async function loadSummary(){
@@ -195,8 +218,10 @@
     let q=sb.from("admin_players").select("*",{count:"exact"}).order("source_updated_at",{ascending:false});
     const search=$("adminSearch").value.trim(), status=$("adminStatus").value, segment=document.querySelector(".adminSegments button.on")?.dataset.segment||"all";
     const r=range(), startISO=new Date(r.start+"T00:00:00+05:30").toISOString(), endISO=new Date(new Date(r.end+"T00:00:00+05:30").getTime()+86400000).toISOString();
-    if(segment==="ftd") q=q.gte("ftd_at",startISO).lt("ftd_at",endISO);
-    else q=q.gte("registered_at",startISO).lt("registered_at",endISO);
+    if(accessMode!=="agent"){
+      if(segment==="ftd") q=q.gte("ftd_at",startISO).lt("ftd_at",endISO);
+      else q=q.gte("registered_at",startISO).lt("registered_at",endISO);
+    }
     if(search) q=q.or(`username.ilike.%${search.replace(/[%_,()]/g,"")}%,phone.ilike.%${search.replace(/[%_,()]/g,"")}%,email.ilike.%${search.replace(/[%_,()]/g,"")}%`);
     if(status) q=q.eq("status",status);
     if(segment==="nonftd") q=q.eq("ftd",false);
@@ -213,7 +238,64 @@
     if(page>0 && !data.length){page--;return loadPlayers()}
     lastRows=data||[]; $("adminResultCount").textContent=`${num(count)} matching players`; $("adminPage").textContent=`Page ${page+1}`;
     $("adminPrev").disabled=page===0; $("adminNext").disabled=(page+1)*size>=(count||0);
-    $("adminPlayerRows").innerHTML=data.length?data.map(p=>`<tr><td><b>${esc(p.username)}</b><small>${esc(p.phone||"No phone")}<br>${esc(p.email||"No email")}</small></td><td><span class="adminStatus ${esc(p.status)}">${esc(p.status)}</span></td><td>${when(p.registered_at)}</td><td>${p.ftd?'<span class="adminYes">Yes</span><small>'+when(p.ftd_at)+'</small>':'No'}</td><td>${when(p.last_deposit_at)}</td><td><b>${money(p.lifetime_deposits)}</b></td><td class="${Number(p.ggr)<0?'adminNegative':''}">${money(p.ggr)}</td><td class="${Number(p.ngr)<0?'adminNegative':''}"><b>${money(p.ngr)}</b></td><td><b>${esc(p.agent?.username||"Unassigned")}</b><small>${esc((p.upline||[]).map(x=>x.username).join(" → ")||"—")}</small></td></tr>`).join(""):'<tr><td colspan="9" class="muted">No matching players.</td></tr>';
+    $("adminPlayerRows").innerHTML=data.length?data.map(p=>`<tr><td><b>${esc(p.username)}</b><small>${esc(p.phone||"No phone")}<br>${esc(p.email||"No email")}</small></td><td><span class="adminStatus ${esc(p.status)}">${esc(p.status)}</span></td><td>${when(p.registered_at)}</td><td>${p.ftd?'<span class="adminYes">Yes</span><small>'+when(p.ftd_at)+'</small>':'No'}</td><td>${when(p.last_deposit_at)}</td><td><b>${money(p.lifetime_deposits)}</b></td><td class="${Number(p.ggr)<0?'adminNegative':''}">${money(p.ggr)}</td><td class="${Number(p.ngr)<0?'adminNegative':''}"><b>${money(p.ngr)}</b></td><td><b>${esc(p.agent?.username||"Unassigned")}</b><small>${esc((p.upline||[]).map(x=>x.username).join(" → ")||"—")}</small></td><td><button class="mini adminNotesButton" data-username="${esc(p.username)}">Notes</button></td></tr>`).join(""):'<tr><td colspan="10" class="muted">No matching players.</td></tr>';
+  }
+
+  let agentRows=[];
+  async function loadAgents(){
+    const [{data:rows,error},{data:profiles}]=await Promise.all([
+      sb.from("admin_agent_commissions").select("*").order("slot_no"),
+      sb.from("profiles").select("id,email,full_name,is_active").eq("is_active",true).order("full_name")
+    ]);
+    if(error)return message(error.message,true);
+    agentRows=rows||[];
+    $("agentProfile").innerHTML='<option value="">No dashboard login</option>'+(profiles||[]).map(p=>`<option value="${p.id}">${esc(p.full_name||p.email||p.id)}</option>`).join("");
+    renderAgentsAuthorization(); fillAgentSlot();
+  }
+  function renderAgentsAuthorization(){
+    $("agentAuthorizationList").innerHTML=agentRows.length?agentRows.map(a=>`<button type="button" class="adminAgentAuthRow ${a.is_authorized?"authorized":""}" data-slot="${a.slot_no}"><b>Agent ${a.slot_no} · ${esc(a.agent_name)}</b><span>@${esc(a.agent_username)} · ${a.commission_type==="percentage"?a.commission_value+"%":money(a.commission_value)}</span><em>${a.is_authorized?"Authorized":"Inactive"}</em></button>`).join(""):'<div class="muted">No agents configured yet. Choose a slot above to authorize the first agent.</div>';
+    document.querySelectorAll(".adminAgentAuthRow").forEach(b=>b.onclick=()=>{$("agentSlot").value=b.dataset.slot;fillAgentSlot()});
+  }
+  function fillAgentSlot(){
+    const slot=Number($("agentSlot").value),a=agentRows.find(x=>Number(x.slot_no)===slot);
+    $("agentName").value=a?.agent_name||`Agent ${slot}`;
+    $("agentUsername").value=a?.agent_username||"";
+    $("agentProfile").value=a?.profile_id||"";
+    $("agentCommissionType").value=a?.commission_type||"percentage";
+    $("agentCommissionValue").value=a?.commission_value||0;
+    $("agentAuthorized").checked=Boolean(a?.is_authorized);
+  }
+  async function saveAgent(){
+    if(accessMode!=="admin")return;
+    const slot=Number($("agentSlot").value),username=$("agentUsername").value.trim(),name=$("agentName").value.trim();
+    if(!name||!username)return message("Enter the agent name and WinTurbo agent username.",true);
+    const {data:{user}}=await sb.auth.getUser(),payload={slot_no:slot,agent_name:name,agent_username:username,profile_id:$("agentProfile").value||null,commission_type:$("agentCommissionType").value,commission_value:Number($("agentCommissionValue").value||0),is_authorized:$("agentAuthorized").checked,authorized_by:user.id,authorized_at:$("agentAuthorized").checked?new Date().toISOString():null,updated_at:new Date().toISOString()};
+    $("agentSave").disabled=true;
+    const {error}=await sb.from("admin_agent_commissions").upsert(payload,{onConflict:"slot_no"});
+    $("agentSave").disabled=false;
+    if(error)return message(error.message,true);
+    message(`Agent ${slot} authorization saved.`);await loadAgents();
+  }
+  async function openNotes(username){
+    notePlayer=lastRows.find(x=>x.username===username)||{username};
+    $("playerNotesTitle").textContent=`Notes · ${username}`;
+    $("playerNotesMeta").textContent=`${notePlayer.ftd?"Deposited / FTD":"Non FTD"} · ${notePlayer.phone||"No phone"} · Agent ${notePlayer.agent?.username||"Unassigned"}`;
+    $("playerNotesModal").hidden=false;$("playerNoteText").value="";
+    await loadNotes();
+  }
+  function closeNotes(){$("playerNotesModal").hidden=true;notePlayer=null}
+  async function loadNotes(){
+    const {data,error}=await sb.from("admin_player_notes").select("id,note_type,note_text,created_by,created_at").eq("username",notePlayer.username).order("created_at",{ascending:false});
+    if(error)return $("playerNotesHistory").innerHTML=`<div class="adminMessage error">${esc(error.message)}</div>`;
+    const ids=[...new Set((data||[]).map(x=>x.created_by))],profiles=ids.length?await sb.from("profiles").select("id,full_name,email").in("id",ids):{data:[]},names=new Map((profiles.data||[]).map(x=>[x.id,x.full_name||x.email]));
+    $("playerNotesHistory").innerHTML=(data||[]).length?(data||[]).map(n=>`<article><div><span class="pill">${esc(n.note_type.replaceAll("_"," "))}</span><time>${when(n.created_at)}</time></div><p>${esc(n.note_text)}</p><small>By ${esc(names.get(n.created_by)||"Authorized agent")}</small></article>`).join(""):'<div class="muted">No notes yet. Add the first follow-up note below.</div>';
+  }
+  async function saveNote(){
+    const text=$("playerNoteText").value.trim();if(!notePlayer||!text)return;
+    const {data:{user}}=await sb.auth.getUser();$("playerNoteSave").disabled=true;
+    const {error}=await sb.from("admin_player_notes").insert({username:notePlayer.username,note_type:$("playerNoteType").value,note_text:text,created_by:user.id});
+    $("playerNoteSave").disabled=false;if(error)return alert(error.message);
+    $("playerNoteText").value="";await loadNotes();
   }
 
   async function loadState(){
@@ -245,7 +327,13 @@
   async function boot(){
     const {data:{user}}=await sb.auth.getUser(); if(!user)return;
     const {data:profile}=await sb.from("profiles").select("role,is_active").eq("id",user.id).maybeSingle();
-    if(profile?.role!=="admin"||!profile?.is_active)return;
+    if(!profile?.is_active)return;
+    if(profile.role==="admin") accessMode="admin";
+    else {
+      const {data:assignment}=await sb.from("admin_agent_commissions").select("id").eq("profile_id",user.id).eq("is_authorized",true).limit(1).maybeSingle();
+      if(!assignment)return;
+      accessMode="agent";
+    }
     mount();
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(boot,700),{once:true});else setTimeout(boot,700);
