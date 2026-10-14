@@ -39,7 +39,7 @@
       if(report?.classList.contains("on"))document.getElementById("reportApply")?.click();
     }catch(e){
       nextSyncAt=Date.now()+INTERVAL_MS;
-      if(el){el.textContent="LIVE SYNC ERROR";el.className="pill red";el.title=e.message||String(e)}
+      if(el){el.textContent="SYNC ERROR · RETRYING";el.className="pill red";el.title=e.message||String(e)}
     }finally{syncing=false}
   }
 
