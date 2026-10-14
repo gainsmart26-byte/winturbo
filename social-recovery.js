@@ -84,3 +84,69 @@
   }).observe(document.documentElement,{childList:true,subtree:true});
   window.WinTurboSocialRecovery={invoke,recover,attach};
 })();
+
+
+/* Stop control for an accidentally started Social Media content plan. */
+(() => {
+  const CREATE_ID = 'smCreate59';
+  const STOP_ID = 'smStopPlanV82';
+
+  function isRunning(button) {
+    return Boolean(button && button.disabled && /loading|generating|creating/i.test(button.textContent || ''));
+  }
+
+  function syncVisibility() {
+    const createButton = document.getElementById(CREATE_ID);
+    const stopButton = document.getElementById(STOP_ID);
+    if (!stopButton) return;
+    const running = isRunning(createButton);
+    stopButton.hidden = !running;
+    stopButton.setAttribute('aria-hidden', String(!running));
+  }
+
+  function stopCreation() {
+    const createButton = document.getElementById(CREATE_ID);
+    if (!isRunning(createButton)) return;
+    if (!window.confirm('Stop creating this content plan? Posts already generated will remain saved. Pending posts will not continue in this browser.')) return;
+
+    const stopButton = document.getElementById(STOP_ID);
+    stopButton.disabled = true;
+    stopButton.textContent = 'Stopping…';
+    createButton.textContent = 'Stopping content plan…';
+
+    // Reloading terminates the active client loop, so late generation results
+    // cannot be written to the calendar by the current page.
+    window.setTimeout(() => window.location.reload(), 50);
+  }
+
+  function install() {
+    const createButton = document.getElementById(CREATE_ID);
+    if (!createButton || document.getElementById(STOP_ID)) return;
+
+    const stopButton = document.createElement('button');
+    stopButton.id = STOP_ID;
+    stopButton.type = 'button';
+    stopButton.className = 'ghost';
+    stopButton.textContent = 'Stop creating';
+    stopButton.hidden = true;
+    stopButton.setAttribute('aria-hidden', 'true');
+    stopButton.style.color = '#ff8a8a';
+    stopButton.style.borderColor = 'rgba(255,91,91,.55)';
+    stopButton.addEventListener('click', stopCreation);
+    createButton.insertAdjacentElement('afterend', stopButton);
+
+    new MutationObserver(syncVisibility).observe(createButton, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+    syncVisibility();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', install, {once:true});
+  } else {
+    install();
+  }
+})();
