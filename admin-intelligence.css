@@ -11,3 +11,19 @@
 @media(max-width:1100px){.adminMetrics{grid-template-columns:repeat(2,1fr)}.adminGrid{grid-template-columns:1fr}}@media(max-width:700px){.adminHero{align-items:flex-start;flex-direction:column}.adminMetrics{grid-template-columns:1fr}.adminPlayerHead{align-items:flex-start;flex-direction:column}.adminFilters,.adminFilters input,.adminFilters select{width:100%}}
 .adminDailyDepositMetric{border-color:rgba(66,227,108,.55)!important;background:linear-gradient(145deg,rgba(66,227,108,.12),rgba(10,18,12,.92))!important}
 .adminDailyDepositsCard{margin-bottom:12px}.adminDepositAmount{color:var(--adm);font-size:15px}.adminDailyDepositsCard .tableWrap{max-height:390px}
+
+
+/* Admin Intelligence date-range controls */
+.adminDatePanel{display:flex;align-items:end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.adminDateFields,.adminDatePresets{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.adminDateFields label{display:grid;gap:5px;min-width:155px;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.adminDateFields input{min-height:39px}
+.adminDatePresets .ghost{padding:9px 12px}
+#adminRangeLabel{width:100%;padding-top:2px;color:#a9b9ae}
+@media(max-width:700px){
+  .adminDatePanel,.adminDateFields{align-items:stretch}
+  .adminDateFields{width:100%}
+  .adminDateFields label{flex:1 1 140px}
+  #adminApplyDates{flex:1 1 100%}
+  .adminDatePresets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+}
