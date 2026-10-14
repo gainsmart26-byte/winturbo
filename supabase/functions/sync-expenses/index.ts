@@ -25,11 +25,8 @@ Deno.serve(async(req)=>{
     if(ei<0||ai<0||pi<0)throw new Error(`Required columns not found. Received: ${h.filter(Boolean).join(", ")||"empty header row"}`);
     const now=new Date().toISOString();
     const data=rows.map((x,i)=>{const et=(x[ei]||"").trim(),purpose=(x[pi]||"").trim(),amount=Number(String(x[ai]||"0").replace(/[^0-9.-]/g,""))||0;return{source_key:`expense-sheet-row-${i+2}`,expense_type:et,amount,purpose,category:purpose||"Other",source_sheet:"Expense Sheet",source_row:i+2,synced_at:now,updated_at:now}}).filter(x=>x.expense_type||x.amount||x.purpose);
-    if(data.length){const up=await sb.from("expenses").upsert(data,{onConflict:"source_key"});if(up.error)throw up.error}
-    const keys=data.map(x=>x.source_key);
-    let stale=sb.from("expenses").delete().eq("source_sheet","Expense Sheet");
-    if(keys.length)stale=stale.not("source_key","in",`(${keys.map(k=>'"'+k.replaceAll('"','')+'"').join(",")})`);
-    const removed=await stale;if(removed.error)throw removed.error;
+    const replaced=await sb.rpc("replace_expense_sheet_rows",{p_rows:data});
+    if(replaced.error)throw new Error(`Database replace failed: ${replaced.error.message}`);
     return Response.json({ok:true,rows:data.length,total:data.reduce((a,x)=>a+x.amount,0),synced_at:now},{headers:{...cors,"cache-control":"no-store"}});
   }catch(e){console.error("sync-expenses failed",e);return Response.json({ok:false,error:e?.message||String(e)},{status:500,headers:cors})}
 });
