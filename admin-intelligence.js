@@ -354,11 +354,83 @@
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`winturbo-players-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(a.href);
   }
 
+  let reportData=null;
+  function mountReport(){
+    if($("adminReportIntelligence"))return;
+    const nav=document.querySelector("#app .nav"),main=document.querySelector("main.main");if(!nav||!main)return;
+    const navButton=document.createElement("button");navButton.dataset.s="adminReportIntelligence";navButton.textContent="▥ Admin Report Intell";nav.appendChild(navButton);
+    const section=document.createElement("section");section.id="adminReportIntelligence";section.className="section";section.innerHTML=`
+      <div class="adminHero"><div><div class="adminEyebrow">PAID MEDIA UNIT ECONOMICS</div><h2>Admin Report Intelligence</h2><p>Facebook Ads and Google Ads spend measured against registrations, sign-ups and FTD performance.</p></div></div>
+      <div class="card reportRange"><label>From<input type="date" id="reportFrom"></label><label>To<input type="date" id="reportTo"></label><button id="reportApply" class="primary">Apply range</button><span id="reportStatus" class="muted small"></span></div>
+      <div class="reportTabs"><button data-report-tab="expenses" class="on">Expense ledger</button><button data-report-tab="performance">Performance analysis</button><button data-report-tab="projection">500 FTD projection</button></div>
+      <div id="reportExpenses" class="reportPane on">
+        <div class="card"><div class="sectionHead"><div><h3>Add advertising expense</h3><div class="muted small">Only Facebook Ads and Google Ads expenses are included in calculations.</div></div></div>
+          <div class="reportExpenseForm"><label>Date<input type="date" id="expenseDate"></label><label>Platform<select id="expensePlatform"><option value="facebook_ads">Facebook Ads</option><option value="google_ads">Google Ads</option></select></label><label>Campaign<input id="expenseCampaign" placeholder="Campaign name"></label><label>Spend (₹)<input id="expenseAmount" type="number" min="0.01" step="0.01"></label><label>Notes<input id="expenseNotes" placeholder="Optional notes"></label><button id="expenseSave" class="primary">Save expense</button></div>
+        </div>
+        <div class="card"><div class="sectionHead"><div><h3>Expense history</h3><div class="muted small">Expenses included in the selected report range.</div></div></div><div class="tableWrap"><table class="adminTable"><thead><tr><th>Date</th><th>Platform</th><th>Campaign</th><th>Spend</th><th>Notes</th><th>Added</th></tr></thead><tbody id="reportExpenseRows"></tbody></table></div></div>
+      </div>
+      <div id="reportPerformance" class="reportPane"><div id="reportMetrics" class="reportMetrics"></div><div class="card"><div class="sectionHead"><div><h3>Daily spend vs acquisition</h3><div class="muted small">Blended Facebook + Google cost efficiency.</div></div></div><div class="tableWrap"><table class="adminTable"><thead><tr><th>Date</th><th>Spend</th><th>Registrations / Sign-ups</th><th>FTD</th><th>Cost / Sign-up</th><th>Cost / FTD</th><th>Conversion</th></tr></thead><tbody id="reportDailyRows"></tbody></table></div></div></div>
+      <div id="reportProjection" class="reportPane">
+        <div class="card"><div class="sectionHead"><div><h3>Budget projection</h3><div class="muted small">Forecast based on actual blended results from the selected date range.</div></div></div><div class="reportProjectionInput"><label>Expected daily budget (₹)<input id="projectionBudget" type="number" min="0" step="1000" value="100000"></label><button id="projectionCalculate" class="primary">Calculate projection</button></div><div id="projectionResults" class="projectionResults"></div><div class="muted small reportCaveat">Projection uses historical cost per registration and cost per FTD. Results are estimates and will change as new spend and conversion data is added.</div></div>
+      </div>`;
+    main.appendChild(section);
+    const today=istDate(),month=today.slice(0,8)+"01";$("reportFrom").value=month;$("reportTo").value=today;$("expenseDate").value=today;
+    navButton.onclick=()=>openReport();
+    document.querySelectorAll("[data-report-tab]").forEach(b=>b.onclick=()=>showReportTab(b.dataset.reportTab));
+    $("reportApply").onclick=loadReport;$("expenseSave").onclick=saveExpense;$("projectionCalculate").onclick=renderProjection;
+  }
+  function openReport(){
+    document.querySelectorAll("main.main > section.section").forEach(s=>{const on=s.id==="adminReportIntelligence";s.classList.toggle("on",on);s.style.setProperty("display",on?"block":"none","important")});
+    document.querySelectorAll("#app .nav button").forEach(b=>b.classList.toggle("on",b.dataset.s==="adminReportIntelligence"));if($("title"))$("title").textContent="Admin Report Intelligence";loadReport();
+  }
+  function showReportTab(name){
+    document.querySelectorAll("[data-report-tab]").forEach(b=>b.classList.toggle("on",b.dataset.reportTab===name));
+    ["expenses","performance","projection"].forEach(x=>$("report"+x[0].toUpperCase()+x.slice(1)).classList.toggle("on",x===name));
+    if(name==="projection")renderProjection();
+  }
+  async function loadReport(){
+    const start=$("reportFrom").value,end=$("reportTo").value;if(!start||!end||end<start)return $("reportStatus").textContent="Select a valid date range.";
+    $("reportApply").disabled=true;$("reportApply").textContent="Loading…";
+    const [{data,error},{data:expenses,error:expenseError}]=await Promise.all([
+      sb.rpc("get_admin_report_intelligence",{p_start_date:start,p_end_date:end}),
+      sb.from("admin_ad_expenses").select("*").gte("expense_date",start).lte("expense_date",end).order("expense_date",{ascending:false}).order("created_at",{ascending:false})
+    ]);
+    $("reportApply").disabled=false;$("reportApply").textContent="Apply range";
+    if(error||expenseError)return $("reportStatus").textContent=error?.message||expenseError.message;
+    reportData=data;$("reportStatus").textContent=`Showing ${start} to ${end} · IST`;renderExpenses(expenses||[]);renderReportPerformance();renderProjection();
+  }
+  async function saveExpense(){
+    const amount=Number($("expenseAmount").value),date=$("expenseDate").value;if(!date||!amount||amount<=0)return alert("Enter a valid date and spend amount.");
+    const {data:{user}}=await sb.auth.getUser();$("expenseSave").disabled=true;
+    const {error}=await sb.from("admin_ad_expenses").insert({expense_date:date,platform:$("expensePlatform").value,campaign_name:$("expenseCampaign").value.trim()||null,amount,notes:$("expenseNotes").value.trim()||null,created_by:user.id});
+    $("expenseSave").disabled=false;if(error)return alert(error.message);$("expenseAmount").value="";$("expenseCampaign").value="";$("expenseNotes").value="";await loadReport();
+  }
+  function renderExpenses(rows){
+    $("reportExpenseRows").innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.expense_date)}</b></td><td><span class="pill ${x.platform==="facebook_ads"?"blue":"orange"}">${x.platform==="facebook_ads"?"Facebook Ads":"Google Ads"}</span></td><td>${esc(x.campaign_name||"—")}</td><td class="adminDepositAmount"><b>${money(x.amount)}</b></td><td>${esc(x.notes||"—")}</td><td>${when(x.created_at)}</td></tr>`).join(""):'<tr><td colspan="6" class="muted">No Facebook or Google Ads expenses entered for this range.</td></tr>';
+  }
+  function renderReportPerformance(){
+    if(!reportData)return;const t=reportData.totals||{};
+    const metrics=[["Total ad spend",money(t.spend),`Facebook ${money(t.facebook_spend)} · Google ${money(t.google_spend)}`],["Registrations / sign-ups",num(t.registrations),`Cost per sign-up ${t.cost_per_registration==null?"—":money(t.cost_per_registration)}`],["FTD",num(t.ftd),`Cost per FTD ${t.cost_per_ftd==null?"—":money(t.cost_per_ftd)}`],["FTD conversion",(t.ftd_conversion||0)+"%",`Average daily spend ${money(t.average_daily_spend)}`]];
+    $("reportMetrics").innerHTML=metrics.map(x=>`<div class="card"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
+    $("reportDailyRows").innerHTML=(reportData.daily||[]).slice().reverse().map(d=>{const cpr=Number(d.registrations)?Number(d.spend)/Number(d.registrations):null,cpf=Number(d.ftd)?Number(d.spend)/Number(d.ftd):null,conv=Number(d.registrations)?100*Number(d.ftd)/Number(d.registrations):0;return`<tr><td><b>${esc(d.date_value)}</b></td><td>${money(d.spend)}</td><td>${num(d.registrations)}</td><td>${num(d.ftd)}</td><td>${cpr==null?"—":money(cpr)}</td><td>${cpf==null?"—":money(cpf)}</td><td>${conv.toFixed(1)}%</td></tr>`}).join("");
+  }
+  function renderProjection(){
+    if(!reportData)return;const t=reportData.totals||{},budget=Number($("projectionBudget").value||0),cpr=Number(t.cost_per_registration||0),cpf=Number(t.cost_per_ftd||0),conversion=Number(t.ftd_conversion||0)/100;
+    if(!cpr||!cpf||!conversion)return $("projectionResults").innerHTML='<div class="adminMessage error">Add spend and ensure the selected range contains registrations and FTDs before creating a projection.</div>';
+    const projectedRegs=budget/cpr,projectedFtd=budget/cpf,targetFtd=500,requiredBudget=targetFtd*cpf,requiredRegs=targetFtd/conversion,gap=Math.max(0,requiredBudget-budget);
+    $("projectionResults").innerHTML=[
+      ["Projected registrations / day",num(Math.floor(projectedRegs)),`At ${money(cpr)} per sign-up`],
+      ["Projected FTD / day",num(Math.floor(projectedFtd)),`At ${money(cpf)} per FTD`],
+      ["Budget needed for 500 FTD/day",money(requiredBudget),`Requires about ${num(Math.ceil(requiredRegs))} registrations/day`],
+      ["Additional daily budget needed",money(gap),gap?"Above entered budget":"Entered budget meets the historical target"]
+    ].map(x=>`<div><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
+  }
+
   async function boot(){
     const {data:{user}}=await sb.auth.getUser(); if(!user)return;
     const {data:profile}=await sb.from("profiles").select("role,is_active").eq("id",user.id).maybeSingle();
     if(!profile?.is_active)return;
-    if(profile.role==="admin") accessMode="admin";
+    if(profile.role==="admin"){accessMode="admin";mountReport();}
     else {
       const {data:assignment}=await sb.from("admin_agent_commissions").select("id").eq("profile_id",user.id).eq("is_authorized",true).limit(1).maybeSingle();
       if(!assignment)return;
