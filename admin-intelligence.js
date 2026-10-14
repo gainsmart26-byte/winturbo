@@ -362,20 +362,33 @@
     const section=document.createElement("section");section.id="adminReportIntelligence";section.className="section";section.innerHTML=`
       <div class="adminHero"><div><div class="adminEyebrow">PAID MEDIA UNIT ECONOMICS</div><h2>Admin Report Intelligence</h2><p>Facebook Ads and Google Ads spend measured against registrations, sign-ups and FTD performance. Defaults to the latest rolling 60 days.</p></div></div>
       <div class="card reportRange"><label>From<input type="date" id="reportFrom"></label><label>To<input type="date" id="reportTo"></label><button id="reportApply" class="primary">Apply range</button><span id="reportStatus" class="muted small"></span></div>
-      <div class="reportTabs"><button data-report-tab="expenses" class="on">Expense ledger</button><button data-report-tab="performance">Performance analysis</button><button data-report-tab="projection">500 FTD projection</button></div>
+      <div class="reportTabs"><button data-report-tab="expenses" class="on">Expense ledger</button><button data-report-tab="performance">Performance analysis</button><button data-report-tab="projection">500 live depositors projection</button></div>
       <div id="reportExpenses" class="reportPane on">
         <div class="card"><div class="sectionHead"><div><h3>Advertising expense source</h3><div class="muted small">Automatically taken from the Expense tab. Only expense types Facebook Ads and Google Ads are included; no separate entry is required here.</div></div><span class="pill">EXPENSE TAB</span></div></div>
         <div class="card"><div class="sectionHead"><div><h3>Included advertising expenses</h3><div class="muted small">Filtered Facebook Ads and Google Ads entries recorded in the Expense tab for the selected range.</div></div></div><div class="tableWrap"><table class="adminTable"><thead><tr><th>Recorded date</th><th>Platform</th><th>Expense / purpose</th><th>Spend</th><th>Source</th><th>Imported</th></tr></thead><tbody id="reportExpenseRows"></tbody></table></div></div>
       </div>
       <div id="reportPerformance" class="reportPane"><div id="reportMetrics" class="reportMetrics"></div><div class="card"><div class="sectionHead"><div><h3>Daily spend vs acquisition</h3><div class="muted small">Existing expenses are cumulative through 14 Oct 2026; dated Sheet entries from 15 Oct onward are shown day by day.</div></div></div><div class="tableWrap"><table class="adminTable"><thead><tr><th>Date</th><th>Spend</th><th>Registrations / Sign-ups</th><th>FTD</th><th>Cost / Sign-up</th><th>Cost / FTD</th><th>Conversion</th></tr></thead><tbody id="reportDailyRows"></tbody></table></div></div></div>
       <div id="reportProjection" class="reportPane">
-        <div class="card"><div class="sectionHead"><div><h3>500 daily live depositor projection</h3><div class="muted small">Combines new FTDs with a retained percentage of daily FTDs who continue depositing every day.</div></div></div><div class="reportProjectionInput"><label>Expected daily budget (₹)<input id="projectionBudget" type="number" min="0" step="1000" value="100000"></label><label>Retain percentage from daily FTD<input id="projectionRetention" type="number" min="0" max="100" step="1" value="25"></label><label>Target period<select id="projectionHorizon"><option value="1">1 day</option><option value="3">3 days</option><option value="5">5 days</option><option value="7">1 week</option><option value="15">15 days</option><option value="90">3 months</option><option value="180">6 months</option><option value="270">9 months</option><option value="365">1 year</option></select></label><button id="projectionCalculate" class="primary">Calculate projection</button></div><div id="projectionResults" class="projectionResults"></div><div class="tableWrap"><table class="adminTable"><thead><tr><th>Milestone</th><th>Required daily budget</th><th>New sign-ups / day</th><th>New FTD / day</th><th>Retained depositors / day</th><th>Total live depositors / day</th></tr></thead><tbody id="projectionMilestones"></tbody></table></div><div class="muted small reportCaveat">Retention is configurable. The model assumes the selected percentage of each day's FTD becomes a retained depositor and continues depositing daily through the selected target period, with no cohort churn. It uses the selected range's blended cost and conversion trend; projections are estimates, not guarantees.</div></div>
+        <div class="card"><div class="sectionHead"><div><h3>500 daily live depositor projection</h3><div class="muted small">Uses the selected Admin Intelligence range's actual ad spend, registrations and FTD conversion to calculate the acquisition budget required.</div></div><span class="pill">TARGET: 500 / DAY</span></div>
+          <div class="projectionBasis" id="projectionBasis"></div>
+          <div class="reportProjectionInput">
+            <label>FTD retention <output id="projectionRetentionValue">25%</output><input id="projectionRetention" type="range" min="1" max="60" step="1" value="25"></label>
+            <label>Days to achieve target <output id="projectionHorizonValue">90 days</output><input id="projectionHorizon" type="range" min="30" max="365" step="1" value="90"></label>
+            <label>Average deposit / depositor <output id="projectionDepositValue">₹1,750</output><input id="projectionAverageDeposit" type="range" min="1500" max="2000" step="50" value="1750"></label>
+            <button id="projectionCalculate" class="primary">Recalculate</button>
+          </div>
+          <div id="projectionResults" class="projectionResults"></div>
+          <div class="projectionBudgetBand" id="projectionBudgetBand"></div>
+          <div class="tableWrap"><table class="adminTable"><thead><tr><th>Milestone</th><th>Daily budget</th><th>Weekly budget</th><th>Monthly budget</th><th>New FTD / day</th><th>Retained depositors / day</th><th>Live depositors / day</th></tr></thead><tbody id="projectionMilestones"></tbody></table></div>
+          <div class="muted small reportCaveat"><b>Model:</b> On the target day, live depositors = that day's new FTDs + retained depositors from the preceding cohorts. Retention is applied once to each prior day's FTD cohort. Budget uses the selected Admin Intelligence period's blended cost per FTD. Average deposit changes projected deposit value, not acquisition cost. This is a planning estimate, not a guarantee.</div>
+        </div>
       </div>`;
     main.appendChild(section);
     const today=istDate(),rollingStartDate=new Date(today+"T12:00:00+05:30");rollingStartDate.setDate(rollingStartDate.getDate()-59);const rollingStart=istDate(rollingStartDate);$("reportFrom").value=rollingStart;$("reportTo").value=today;
     navButton.onclick=()=>openReport();
     document.querySelectorAll("[data-report-tab]").forEach(b=>b.onclick=()=>showReportTab(b.dataset.reportTab));
-    $("reportApply").onclick=loadReport;$("projectionCalculate").onclick=renderProjection;$("projectionRetention").oninput=renderProjection;$("projectionHorizon").onchange=renderProjection;
+    $("reportApply").onclick=loadReport;$("projectionCalculate").onclick=renderProjection;
+    ["projectionRetention","projectionHorizon","projectionAverageDeposit"].forEach(id=>$(id).oninput=renderProjection);
   }
   function openReport(){
     document.querySelectorAll("main.main > section.section").forEach(s=>{const on=s.id==="adminReportIntelligence";s.classList.toggle("on",on);s.style.setProperty("display",on?"block":"none","important")});
@@ -405,31 +418,38 @@
   }
   function renderProjection(){
     if(!reportData)return;
-    const t=reportData.totals||{},budget=Math.max(0,Number($("projectionBudget").value||0)),cpr=Number(t.cost_per_registration||0),cpf=Number(t.cost_per_ftd||0),conversion=Number(t.ftd_conversion||0)/100;
-    const retention=Math.min(1,Math.max(0,Number($("projectionRetention").value||0)/100)),days=Number($("projectionHorizon").value||90),target=500;
+    const t=reportData.totals||{},cpr=Number(t.cost_per_registration||0),cpf=Number(t.cost_per_ftd||0),conversion=Number(t.ftd_conversion||0)/100;
+    const retentionPct=Math.min(60,Math.max(1,Number($("projectionRetention").value||25))),retention=retentionPct/100;
+    const days=Math.min(365,Math.max(30,Number($("projectionHorizon").value||90))),averageDeposit=Math.min(2000,Math.max(1500,Number($("projectionAverageDeposit").value||1750))),target=500;
+    $("projectionRetentionValue").textContent=`${retentionPct}%`;$("projectionHorizonValue").textContent=`${days} days`;$("projectionDepositValue").textContent=money(averageDeposit);
     if(!cpr||!cpf||!conversion){
       $("projectionResults").innerHTML='<div class="adminMessage error">The selected range needs advertising spend, registrations and FTDs before a retained-player projection can be calculated.</div>';
+      $("projectionBasis").innerHTML="";$("projectionBudgetBand").innerHTML="";
       $("projectionMilestones").innerHTML="";
       return;
     }
-    const dailyRegs=budget/cpr,dailyNewFtd=dailyRegs*conversion,dailyRetainedAdds=dailyNewFtd*retention;
-    const projectedRetained=dailyRetainedAdds*days,projectedLive=dailyNewFtd+projectedRetained;
-    const requiredDailyRegs=target/(conversion*(1+retention*days)),requiredBudget=requiredDailyRegs*cpr;
-    const requiredNewFtd=requiredDailyRegs*conversion,requiredRetainedAdds=requiredNewFtd*retention;
-    const gap=Math.max(0,requiredBudget-budget),horizonLabel=days===1?"1 day":days<30?(days===7?"1 week":days+" days"):days===365?"1 year":days/30+" months";
-    const daysToTarget=dailyRetainedAdds>0?Math.max(0,Math.ceil((target-dailyNewFtd)/dailyRetainedAdds)):(dailyNewFtd>=target?0:null);
-    $("projectionResults").innerHTML=[
-      ["Projected live depositors / day",num(Math.floor(projectedLive)),`${horizonLabel} at entered budget`],
-      ["New FTD / day",num(Math.floor(dailyNewFtd)),`Historical conversion ${(conversion*100).toFixed(1)}%`],
-      ["Retained depositors / day",num(Math.floor(projectedRetained)),`${(retention*100).toFixed(1)}% of daily FTD retained`],
-      [`Budget needed for 500 / day`,money(requiredBudget),`Target reached by ${horizonLabel}`],
-      ["Required new sign-ups / day",num(Math.ceil(requiredDailyRegs)),`${num(Math.ceil(requiredNewFtd))} new FTD/day plus retained cohorts`],
-      ["Estimated time at entered budget",daysToTarget==null?"Not reached":daysToTarget+" days",gap?money(gap)+" additional daily budget for selected target":"Entered budget meets selected target"]
+    const cohortFactor=1+retention*(days-1),requiredNewFtd=target/cohortFactor,requiredDailyRegs=requiredNewFtd/conversion;
+    const requiredDailyBudget=requiredNewFtd*cpf,requiredWeeklyBudget=requiredDailyBudget*7,requiredMonthlyBudget=requiredDailyBudget*30,totalRampBudget=requiredDailyBudget*days;
+    const retainedOnTarget=requiredNewFtd*retention*(days-1),dailyDepositValue=target*averageDeposit,monthlyDepositValue=dailyDepositValue*30;
+    const rangeDays=Number(reportData.range?.days||0),rangeStart=reportData.range?.start_date||$("reportFrom").value,rangeEnd=reportData.range?.end_date||$("reportTo").value;
+    $("projectionBasis").innerHTML=[
+      ["Analysis window",`${rangeDays||"—"} days`,`${rangeStart} to ${rangeEnd}`],
+      ["Observed ad spend",money(t.spend),`${money(t.average_daily_spend)}/day average`],
+      ["Observed acquisition",`${num(t.registrations)} registrations · ${num(t.ftd)} FTD`,`${Number(t.ftd_conversion||0).toFixed(2)}% conversion`],
+      ["Blended acquisition cost",money(cpf)+" / FTD",money(cpr)+" / registration"]
     ].map(x=>`<div><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
-    const isShort=days<30,milestoneCount=isShort?days:(days===365?12:Math.round(days/30)),milestones=Array.from({length:milestoneCount},(_,i)=>{
-      const elapsed=i===milestoneCount-1?days:(isShort?i+1:(i+1)*30),retained=requiredRetainedAdds*elapsed,live=requiredNewFtd+retained;
-      const milestone=i===milestoneCount-1?horizonLabel:(isShort?"Day "+(i+1):"Month "+(i+1));
-      return `<tr><td><b>${milestone}</b></td><td>${money(requiredBudget)}</td><td>${num(Math.ceil(requiredDailyRegs))}</td><td>${num(Math.ceil(requiredNewFtd))}</td><td>${num(Math.floor(retained))}</td><td><b>${num(Math.min(target,Math.floor(live)))}</b></td></tr>`;
+    $("projectionResults").innerHTML=[
+      ["Target live depositors / day",num(target),`Achieved on day ${days}`],
+      ["New FTD required / day",num(Math.ceil(requiredNewFtd)),`${num(Math.ceil(requiredDailyRegs))} registrations/day required`],
+      ["Retained on target day",num(Math.floor(retainedOnTarget)),`${retentionPct}% from ${days-1} prior daily FTD cohorts`],
+      ["Required daily ad budget",money(requiredDailyBudget),`Based on ${money(cpf)} blended cost / FTD`],
+      ["Projected deposits / day",money(dailyDepositValue),`${num(target)} × ${money(averageDeposit)}`],
+      ["Projected deposits / month",money(monthlyDepositValue),`30-day gross deposit volume at target`]
+    ].map(x=>`<div><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
+    $("projectionBudgetBand").innerHTML=`<div><span>Daily budget</span><b>${money(requiredDailyBudget)}</b></div><div><span>Weekly budget</span><b>${money(requiredWeeklyBudget)}</b></div><div><span>Monthly budget</span><b>${money(requiredMonthlyBudget)}</b></div><div><span>Total ${days}-day ramp budget</span><b>${money(totalRampBudget)}</b></div>`;
+    const points=[...new Set([30,60,90,120,180,270,365,days].filter(x=>x<=days))].sort((a,b)=>a-b),milestones=points.map(elapsed=>{
+      const retained=requiredNewFtd*retention*Math.max(0,elapsed-1),live=requiredNewFtd+retained;
+      return `<tr><td><b>Day ${elapsed}${elapsed===days?" · target":""}</b></td><td>${money(requiredDailyBudget)}</td><td>${money(requiredWeeklyBudget)}</td><td>${money(requiredMonthlyBudget)}</td><td>${num(Math.ceil(requiredNewFtd))}</td><td>${num(Math.floor(retained))}</td><td><b>${num(Math.min(target,Math.floor(live)))}</b></td></tr>`;
     });
     $("projectionMilestones").innerHTML=milestones.join("");
   }
