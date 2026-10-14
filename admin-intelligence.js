@@ -69,6 +69,11 @@
         </div>
         <div class="card"><div class="sectionHead"><div><h3>Agent performance</h3><div class="muted small">Ranked by net gaming revenue</div></div></div><div id="adminAgents" class="adminAgentList"></div></div>
       </div>
+      <div class="card adminTimeAnalysisCard">
+        <div class="sectionHead"><div><h3>Time-slot performance analysis</h3><div class="muted small">High and low registration, FTD and deposit hours in IST for the selected date range.</div></div><span class="pill">24-HOUR ANALYSIS</span></div>
+        <div id="adminTimeInsights" class="adminTimeInsights"></div>
+        <div id="adminTimeCharts" class="adminTimeCharts"><div class="muted">Loading hourly analysis…</div></div>
+      </div>
       <div class="card adminDailyDepositsCard">
         <div class="sectionHead"><div><h3>Deposits received</h3><div id="adminDepositRangeNote" class="muted small">Positive lifetime-deposit changes for the selected date range. Tracking begins from this feature's activation.</div></div><span class="pill">LIVE LEDGER</span></div>
         <div class="tableWrap"><table class="adminTable"><thead><tr><th>Username</th><th>Deposit received</th><th>Detected at</th><th>Lifetime total</th><th>Phone</th><th>Agent</th></tr></thead><tbody id="adminDailyDepositRows"></tbody></table></div>
@@ -148,7 +153,7 @@
 
   async function loadAll(){
     if(accessMode==="agent") return loadPlayers();
-    await Promise.all([loadSummary(),loadPlayers(),loadState(),loadAgents()]);
+    await Promise.all([loadSummary(),loadPlayers(),loadState(),loadAgents(),loadTimeSlots()]);
   }
 
   async function loadSummary(){
@@ -241,6 +246,29 @@
     lastRows=data||[]; $("adminResultCount").textContent=`${num(count)} matching players`; $("adminPage").textContent=`Page ${page+1}`;
     $("adminPrev").disabled=page===0; $("adminNext").disabled=(page+1)*size>=(count||0);
     $("adminPlayerRows").innerHTML=data.length?data.map(p=>`<tr><td><b>${esc(p.username)}</b><small>${esc(p.phone||"No phone")}<br>${esc(p.email||"No email")}</small></td><td><span class="adminStatus ${esc(p.status)}">${esc(p.status)}</span></td><td class="adminRegisteredAt"><b>${registrationDate(p.registered_at)}</b><small>${registrationTime(p.registered_at)}</small></td><td>${p.ftd?'<span class="adminYes">Yes</span><small>'+when(p.ftd_at)+'</small>':'No'}</td><td>${when(p.last_deposit_at)}</td><td><b>${money(p.lifetime_deposits)}</b></td><td class="${Number(p.ggr)<0?'adminNegative':''}">${money(p.ggr)}</td><td class="${Number(p.ngr)<0?'adminNegative':''}"><b>${money(p.ngr)}</b></td><td><b>${esc(p.agent?.username||"Unassigned")}</b><small>${esc((p.upline||[]).map(x=>x.username).join(" → ")||"—")}</small></td><td><button class="mini adminNotesButton" data-username="${esc(p.username)}">Notes</button></td></tr>`).join(""):'<tr><td colspan="10" class="muted">No matching players.</td></tr>';
+  }
+
+  async function loadTimeSlots(){
+    const r={...range()},{data,error}=await sb.rpc("get_admin_time_slot_analysis",{p_start_date:r.start,p_end_date:r.end});
+    if(error){$("adminTimeCharts").innerHTML=`<div class="adminMessage error">${esc(error.hint||error.message)}</div>`;return}
+    renderTimeSlots(data||[]);
+  }
+  function renderTimeSlots(rows){
+    const metrics=[
+      {key:"registrations",title:"Registrations",color:"green",format:v=>num(v)},
+      {key:"ftd",title:"FTD",color:"orange",format:v=>num(v)},
+      {key:"deposit_amount",title:"Deposits received",color:"blue",format:v=>money(v)}
+    ];
+    const active=rows.filter(r=>metrics.some(m=>Number(r[m.key]||0)>0));
+    const insight=metrics.map(m=>{
+      const peak=rows.reduce((a,b)=>Number(b[m.key]||0)>Number(a[m.key]||0)?b:a,rows[0]||{}),low=rows.reduce((a,b)=>Number(b[m.key]||0)<Number(a[m.key]||0)?b:a,rows[0]||{});
+      return `<div class="${m.color}"><span>${m.title}</span><b>High: ${esc(peak.label||"—")}</b><small>${m.format(peak[m.key])} at peak · Low: ${esc(low.label||"—")} (${m.format(low[m.key])})</small></div>`;
+    });
+    $("adminTimeInsights").innerHTML=active.length?insight.join(""):'<div class="muted">No hourly activity exists for this selected range.</div>';
+    $("adminTimeCharts").innerHTML=metrics.map(m=>{
+      const max=Math.max(1,...rows.map(r=>Number(r[m.key]||0))),min=Math.min(...rows.map(r=>Number(r[m.key]||0))),peak=Math.max(...rows.map(r=>Number(r[m.key]||0)));
+      return `<section class="adminHourMetric"><div class="adminHourMetricHead"><b>${m.title}</b><span>Hourly totals · IST</span></div><div class="adminHourBars">${rows.map((r,i)=>{const value=Number(r[m.key]||0),height=Math.max(value?5:1,value/max*100),state=value===peak&&peak>0?"peak":value===min?"low":"";return`<div class="adminHourSlot" title="${esc(r.label)} · ${m.title}: ${m.format(value)}"><div class="adminHourBarTrack"><i class="${m.color} ${state}" style="--hour-height:${height}%;--hour-delay:${Math.min(i*24,480)}ms"><em>${m.format(value)}</em></i></div><span>${i%3===0?esc(r.label):""}</span></div>`}).join("")}</div></section>`;
+    }).join("");
   }
 
   let agentRows=[];
