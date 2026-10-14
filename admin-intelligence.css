@@ -119,3 +119,16 @@
 @keyframes adminHourRise{from{transform:scaleY(0);opacity:.1}to{transform:scaleY(1)}}
 @media(max-width:850px){.adminTimeInsights{grid-template-columns:1fr}.adminTimeCharts{overflow-x:auto}.adminHourMetric{min-width:760px}}
 @media(prefers-reduced-motion:reduce){.adminHourBarTrack i{animation:none}}
+
+
+/* Admin Report Intelligence */
+.reportRange{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin-bottom:14px}.reportRange label,.reportExpenseForm label,.reportProjectionInput label{display:grid;gap:5px;color:var(--muted);font-size:10px;font-weight:800;text-transform:uppercase}.reportRange input{min-width:160px}
+.reportTabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}.reportTabs button{padding:10px 14px;border:1px solid #2b3930;border-radius:10px;background:#0b110d;color:#aebbb2;cursor:pointer}.reportTabs button.on{border-color:#42e36c;background:rgba(66,227,108,.1);color:#eaffef}
+.reportPane{display:none}.reportPane.on{display:grid;gap:14px}
+.reportExpenseForm{display:grid;grid-template-columns:repeat(5,minmax(130px,1fr)) auto;gap:10px;align-items:end}
+.reportMetrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.reportMetrics .card span,.reportMetrics .card small,.projectionResults span,.projectionResults small{display:block;color:var(--muted);font-size:10px}.reportMetrics .card b,.projectionResults b{display:block;margin:6px 0 4px;font-size:22px;color:#f2fff5}
+.reportProjectionInput{display:flex;align-items:end;gap:10px;flex-wrap:wrap}.reportProjectionInput input{min-width:230px}
+.projectionResults{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:15px}.projectionResults>div{padding:14px;border:1px solid #2c3b31;border-radius:12px;background:linear-gradient(145deg,rgba(66,227,108,.08),#0b110d)}
+.reportCaveat{margin-top:12px;padding-top:12px;border-top:1px solid #29372e}
+@media(max-width:1050px){.reportExpenseForm{grid-template-columns:repeat(2,minmax(0,1fr))}.reportMetrics,.projectionResults{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.reportExpenseForm,.reportMetrics,.projectionResults{grid-template-columns:1fr}.reportRange label,.reportRange input{width:100%}.reportProjectionInput>*{width:100%}}
