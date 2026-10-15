@@ -55,3 +55,13 @@
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&expenseVisible()){nextSyncAt=0;sync()}});
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{badge();setInterval(tick,1000)},{once:true});else{badge();setInterval(tick,1000)}
 })();
+
+/* Load the P&L Analysis module from the existing Expense bundle entrypoint. */
+(() => {
+  if(!document.querySelector('link[href="./pnl-analysis.css"]')){
+    const style=document.createElement("link");style.rel="stylesheet";style.href="./pnl-analysis.css";document.head.appendChild(style);
+  }
+  if(!document.querySelector('script[src="./pnl-analysis.js"]')){
+    const script=document.createElement("script");script.src="./pnl-analysis.js";script.defer=true;document.body.appendChild(script);
+  }
+})();
