@@ -51,6 +51,15 @@
         <div class="card adminDailyDepositMetric"><div id="admDepositPeriodLabel" class="k">DEPOSITS RECEIVED</div><div id="admDailyDeposits" class="v">—</div><div id="admDailyDepositors" class="subv">— depositors</div></div>
         <div class="card"><div id="admRegPeriodLabel" class="k">REGISTERED VS FTD</div><div id="admRegVsFtd" class="v">—</div><div id="admTodayConversion" class="subv">— conversion</div></div>
       </div>
+      <div class="adminV11Metrics">
+        <div class="card adminRepeatCard"><div class="k">REPEAT FTD CUSTOMERS</div><div id="admRepeatFtd" class="v">—</div><div id="admRepeatFtdUsers" class="subv">— users with 2+ deposits</div></div>
+        <div class="card adminWithdrawalCard"><div class="k">TOTAL WITHDRAWAL · SELECTED RANGE</div><div id="admWithdrawals" class="v">—</div><div id="admWithdrawalUsers" class="subv">— users</div></div>
+        <div class="card adminLifetimeWithdrawalCard"><div class="k">LIFETIME WITHDRAWALS</div><div id="admLifetimeWithdrawals" class="v">—</div><div class="subv">Approved or paid across all players</div></div>
+      </div>
+      <div class="card adminLocationCard">
+        <div class="sectionHead"><div><h3>User location analysis</h3><div class="muted small">Signup-IP location for registrations and FTD users in the selected range. Only aggregate counts are shown.</div></div><span class="pill">PRIVACY-SAFE</span></div>
+        <div id="adminLocationAnalysis" class="adminLocationAnalysis"><div class="muted">Loading location analysis…</div></div>
+      </div>
       <div class="adminSegments">
         <button data-segment="all" class="on">All players <b id="segAll">—</b></button>
         <button data-segment="new">Registered in range <b id="segNew">—</b></button>
@@ -176,9 +185,19 @@
     $("admDailyDeposits").textContent=money(t.deposits_today); $("admDailyDepositors").textContent=`${num(t.depositors_today)} depositors · ${num(t.deposit_transactions_today)} detected deposits in range`;
     const todayRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
     $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% same-day ratio`;
+    $("admRepeatFtd").textContent=`${Number(t.repeat_ftd_percentage||0).toFixed(1)}%`; $("admRepeatFtdUsers").textContent=`${num(t.repeat_ftd_users)} repeat FTD users`;
+    $("admWithdrawals").textContent=money(t.withdrawals); $("admWithdrawalUsers").textContent=`${num(t.withdrawal_users)} users · approved / processing / paid`;
+    $("admLifetimeWithdrawals").textContent=money(t.lifetime_withdrawals);
     $("segAll").textContent=num(t.registrations_today); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Math.max(0,Number(t.registrations_today||0)-Number(t.ftd_today||0))); $("segFtd").textContent=num(t.ftd_today);
     $("segInactive").textContent=num(t.inactive_30d); $("segHigh").textContent=num(t.high_value); $("segNegative").textContent=num(t.negative_ggr);
-    renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(data?.today_deposits||[]);
+    renderLocations(data?.locations||[]); renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(data?.today_deposits||[]);
+  }
+
+  function renderLocations(rows){
+    const el=$("adminLocationAnalysis");
+    if(!rows.length){el.innerHTML='<div class="muted">No registration or FTD location data is available for this range yet. Run Sync now to import API v1.1 locations.</div>';return}
+    const max=Math.max(1,...rows.flatMap(r=>[Number(r.registered_users||0),Number(r.ftd_users||0)]));
+    el.innerHTML=rows.map(r=>`<div class="adminLocationRow"><div class="adminLocationName"><b>${esc(r.location)}</b><small>${num(r.registered_users)} registered · ${num(r.ftd_users)} FTD</small></div><div class="adminLocationBars"><i class="registered" style="--w:${100*Number(r.registered_users||0)/max}%"></i><i class="ftd" style="--w:${100*Number(r.ftd_users||0)/max}%"></i></div><div class="adminLocationNos"><b>${num(r.registered_users)}</b><strong>${num(r.ftd_users)}</strong></div></div>`).join("");
   }
 
   function renderTrend(rows){
