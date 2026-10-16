@@ -172,7 +172,7 @@
     if(error){message(error.hint||error.message,true);return}
     const t=data?.totals||{}, label=rangeLabel();
     $("adminRangeLabel").textContent=`Showing ${label} · Times shown in IST`;
-    $("admDepositPeriodLabel").textContent=`DEPOSITS RECEIVED · ${label}`;
+    $("admDepositPeriodLabel").textContent="DEPOSITS RECEIVED";
     $("admRegPeriodLabel").textContent=`REGISTERED VS FTD · ${label}`;
     $("adminDepositRangeNote").textContent=`Credited deposits from admin.winturbo.com for ${label} · transaction times shown in IST.`;
     $("admPlayers").textContent=num(t.registrations_today); $("admActive").textContent=`of ${num(t.players)} total players`;
