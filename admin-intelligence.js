@@ -52,9 +52,9 @@
         <div class="card"><div id="admRegPeriodLabel" class="k">REGISTERED VS FTD</div><div id="admRegVsFtd" class="v">—</div><div id="admTodayConversion" class="subv">— conversion</div></div>
       </div>
       <div class="adminV11Metrics">
-        <div class="card adminAverageFtdCard"><div class="k">AVERAGE FIRST DEPOSIT</div><div id="admAverageFtd" class="v">—</div><div id="admAverageFtdCoverage" class="subv">Recorded first deposits · selected range</div></div>
+        <div class="card adminAverageFtdCard"><div class="k">AVERAGE FTD DEPOSIT · OVERALL</div><div id="admAverageFtd" class="v">—</div><div id="admAverageFtdCoverage" class="subv">All deposits from FTD users ÷ total FTD users</div></div>
         <div class="card adminConversionCard"><div class="k">REGISTRATION → FTD</div><div id="admCohortConversion" class="v">—</div><div id="admCohortCounts" class="subv">Selected registration cohort</div></div>
-        <div class="card adminRepeatCard"><div class="k">REPEAT FTD CUSTOMERS</div><div id="admRepeatFtd" class="v">—</div><div id="admRepeatFtdUsers" class="subv">— users with 2+ deposits</div></div>
+        <div class="card adminRepeatCard"><div class="k">REPEAT FTD CUSTOMERS · OVERALL</div><div id="admRepeatFtd" class="v">—</div><div id="admRepeatFtdUsers" class="subv">— users with 2+ deposits</div></div>
         <div class="card adminWithdrawalCard"><div class="k">TOTAL WITHDRAWAL · SELECTED RANGE</div><div id="admWithdrawals" class="v">—</div><div id="admWithdrawalUsers" class="subv">— users</div></div>
         <div class="card adminLifetimeWithdrawalCard"><div class="k">LIFETIME WITHDRAWALS</div><div id="admLifetimeWithdrawals" class="v">—</div><div class="subv">Approved or paid across all players</div></div>
       </div>
@@ -185,13 +185,13 @@
     $("admDeposits").textContent=money(t.lifetime_deposits); $("admToday").textContent=`${num(t.registrations_today)} registrations · ${num(t.ftd_today)} FTD in range`;
     $("admNgr").textContent=money(t.ngr); $("admGgr").textContent=`GGR ${money(t.ggr)}`;
     $("admDailyDeposits").textContent=money(t.deposits_today); $("admDailyDepositors").textContent=`${num(t.depositors_today)} depositors · ${num(t.deposit_transactions_today)} detected deposits in range`;
-    $("admAverageFtd").textContent=t.average_first_deposit==null?"—":money(t.average_first_deposit);
-    $("admAverageFtdCoverage").textContent=`${num(t.first_deposit_records)} of ${num(t.ftd_today)} FTD users have a matching first-deposit record`;
+    $("admAverageFtd").textContent=t.average_ftd_deposit_overall==null?"—":money(t.average_ftd_deposit_overall);
+    $("admAverageFtdCoverage").textContent=`${money(t.overall_ftd_deposits)} total deposits ÷ ${num(t.overall_ftd_users)} FTD users · lifetime, including repeat deposits`;
     $("admCohortConversion").textContent=Number(t.registrations_today)>0?`${(100*Number(t.registered_cohort_ftd||0)/Number(t.registrations_today)).toFixed(1)}%`:"—";
     $("admCohortCounts").textContent=`${num(t.registered_cohort_ftd)} of ${num(t.registrations_today)} registered users made their first deposit within the selected range`;
     const todayRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
     $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% range activity ratio`;
-    $("admRepeatFtd").textContent=`${Number(t.repeat_ftd_percentage||0).toFixed(1)}%`; $("admRepeatFtdUsers").textContent=`${num(t.repeat_ftd_users)} repeat FTD users`;
+    $("admRepeatFtd").textContent=`${Number(t.repeat_ftd_percentage||0).toFixed(1)}%`; $("admRepeatFtdUsers").textContent=`${num(t.repeat_ftd_users)} of ${num(t.ftd)} FTD users have 2+ lifetime deposits`;
     $("admWithdrawals").textContent=money(t.withdrawals); $("admWithdrawalUsers").textContent=`${num(t.withdrawal_users)} users · approved / processing / paid`;
     $("admLifetimeWithdrawals").textContent=money(t.lifetime_withdrawals);
     $("segAll").textContent=num(t.registrations_today); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Math.max(0,Number(t.registrations_today||0)-Number(t.ftd_today||0))); $("segFtd").textContent=num(t.ftd_today);
