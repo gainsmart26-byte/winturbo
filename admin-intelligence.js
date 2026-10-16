@@ -56,7 +56,6 @@
         <div class="card adminConversionCard"><div class="k">SAME-RANGE SIGNUP COHORT → FTD</div><div id="admCohortConversion" class="v">—</div><div id="admCohortCounts" class="subv">Selected registration cohort</div></div>
         <div class="card adminRepeatCard"><div class="k">REPEAT FTD CUSTOMERS · OVERALL</div><div id="admRepeatFtd" class="v">—</div><div id="admRepeatFtdUsers" class="subv">— users with 2+ deposits</div></div>
         <div class="card adminWithdrawalCard"><div class="k">TOTAL WITHDRAWAL · SELECTED RANGE</div><div id="admWithdrawals" class="v">—</div><div id="admWithdrawalUsers" class="subv">— users</div></div>
-        <div class="card adminLifetimeWithdrawalCard"><div class="k">LIFETIME WITHDRAWALS</div><div id="admLifetimeWithdrawals" class="v">—</div><div class="subv">Approved or paid across all players</div></div>
       </div>
       <div class="adminSegments">
         <button data-segment="all" class="on">All players <b id="segAll">—</b></button>
@@ -189,7 +188,6 @@
     $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% FTDs ÷ sign-ups in range · activity ratio`;
     $("admRepeatFtd").textContent=`${Number(t.repeat_ftd_percentage||0).toFixed(1)}%`; $("admRepeatFtdUsers").textContent=`${num(t.repeat_ftd_users)} of ${num(t.overall_ftd_users)} FTD users made at least one repeat deposit`;
     $("admWithdrawals").textContent=money(t.withdrawals); $("admWithdrawalUsers").textContent=`${num(t.withdrawal_users)} users · approved / paid only`;
-    $("admLifetimeWithdrawals").textContent=money(t.lifetime_withdrawals);
     $("segAll").textContent=num(t.registrations_today); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Math.max(0,Number(t.registrations_today||0)-Number(t.ftd_today||0))); $("segFtd").textContent=num(t.ftd_today);
     $("segInactive").textContent=num(t.inactive_30d); $("segHigh").textContent=num(t.high_value); $("segNegative").textContent=num(t.negative_ggr);
     renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(data?.today_deposits||[]);
