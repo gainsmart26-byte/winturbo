@@ -137,3 +137,9 @@
 .reportCaveat{margin-top:12px;padding-top:12px;border-top:1px solid #29372e}
 @media(max-width:1050px){.reportExpenseForm{grid-template-columns:repeat(2,minmax(0,1fr))}.reportMetrics,.projectionResults,.projectionBasis,.projectionBudgetBand{grid-template-columns:repeat(2,minmax(0,1fr))}.reportProjectionInput{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.reportExpenseForm,.reportMetrics,.projectionResults,.projectionBasis,.projectionBudgetBand,.reportProjectionInput{grid-template-columns:1fr}.reportRange label,.reportRange input{width:100%}.reportProjectionInput>*{width:100%}}
+
+.adminAverageFtdCard{border-top:3px solid #fbbf24!important}.adminConversionCard{border-top:3px solid #a78bfa!important}
+.adminLocationCards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}
+.adminRegistrationLocations{border-top:3px solid #38bdf8!important}.adminFtdLocations{border-top:3px solid #34d399!important}
+.adminLocationCount{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #ffffff15}
+@media(max-width:640px){.adminLocationCards{grid-template-columns:1fr}}
