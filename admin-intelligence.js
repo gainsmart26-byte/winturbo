@@ -58,10 +58,6 @@
         <div class="card adminWithdrawalCard"><div class="k">TOTAL WITHDRAWAL · SELECTED RANGE</div><div id="admWithdrawals" class="v">—</div><div id="admWithdrawalUsers" class="subv">— users</div></div>
         <div class="card adminLifetimeWithdrawalCard"><div class="k">LIFETIME WITHDRAWALS</div><div id="admLifetimeWithdrawals" class="v">—</div><div class="subv">Approved or paid across all players</div></div>
       </div>
-      <div class="card adminLocationCard">
-        <div class="sectionHead"><div><h3>User location analysis</h3><div class="muted small">Signup-IP location for registrations and FTD users in the selected range. Only aggregate counts are shown.</div></div><span class="pill">PRIVACY-SAFE</span></div>
-        <div id="adminLocationCards" class="adminLocationCards"></div><div id="adminLocationAnalysis" class="adminLocationAnalysis"><div class="muted">Loading location analysis…</div></div>
-      </div>
       <div class="adminSegments">
         <button data-segment="all" class="on">All players <b id="segAll">—</b></button>
         <button data-segment="new">Registered in range <b id="segNew">—</b></button>
@@ -196,18 +192,7 @@
     $("admLifetimeWithdrawals").textContent=money(t.lifetime_withdrawals);
     $("segAll").textContent=num(t.registrations_today); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Math.max(0,Number(t.registrations_today||0)-Number(t.ftd_today||0))); $("segFtd").textContent=num(t.ftd_today);
     $("segInactive").textContent=num(t.inactive_30d); $("segHigh").textContent=num(t.high_value); $("segNegative").textContent=num(t.negative_ggr);
-    renderLocations(data?.locations||[]); renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(data?.today_deposits||[]);
-  }
-
-  function renderLocations(rows){
-    const el=$("adminLocationAnalysis");
-    $("adminLocationCards").innerHTML=["registered_users","ftd_users"].map((key,i)=>{
-      const ranked=rows.filter(r=>Number(r[key])>0).sort((a,b)=>Number(b[key])-Number(a[key]));
-      return `<div class="card ${i?"adminFtdLocations":"adminRegistrationLocations"}"><h3>${i?"FTD user locations":"Registration locations"}</h3><div class="muted small">Signup location · selected range</div>${ranked.length?ranked.map(r=>`<div class="adminLocationCount"><span>${esc(r.location)}</span><b>${num(r[key])}</b></div>`).join(""):'<p class="muted">No location records in this range.</p>'}</div>`;
-    }).join("");
-    if(!rows.length){el.innerHTML='<div class="muted">No registration or FTD location data is available for this range yet. Run Sync now to import API v1.1 locations.</div>';return}
-    const max=Math.max(1,...rows.flatMap(r=>[Number(r.registered_users||0),Number(r.ftd_users||0)]));
-    el.innerHTML=rows.map(r=>`<div class="adminLocationRow"><div class="adminLocationName"><b>${esc(r.location)}</b><small>${num(r.registered_users)} registered · ${num(r.ftd_users)} FTD</small></div><div class="adminLocationBars"><i class="registered" style="--w:${100*Number(r.registered_users||0)/max}%"></i><i class="ftd" style="--w:${100*Number(r.ftd_users||0)/max}%"></i></div><div class="adminLocationNos"><b>${num(r.registered_users)}</b><strong>${num(r.ftd_users)}</strong></div></div>`).join("");
+    renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(data?.today_deposits||[]);
   }
 
   function renderTrend(rows){
