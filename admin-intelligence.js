@@ -44,12 +44,11 @@
         <div id="adminRangeLabel" class="muted small">Showing Today · Times shown in IST</div>
       </div>
       <div class="adminMetrics">
-        <div class="card"><div class="k">REGISTERED IN RANGE</div><div id="admPlayers" class="v">—</div><div id="admActive" class="subv">— total players</div></div>
-        <div class="card"><div class="k">FTD IN RANGE</div><div id="admFtd" class="v">—</div><div id="admFtdRate" class="subv">— conversion</div></div>
-        <div class="card"><div class="k">LIFETIME DEPOSITS</div><div id="admDeposits" class="v">—</div><div id="admToday" class="subv">— registrations today</div></div>
-        <div class="card"><div class="k">NET GAMING REVENUE</div><div id="admNgr" class="v">—</div><div id="admGgr" class="subv">GGR —</div></div>
+        <div class="card adminSignupCard"><div class="k">REGISTERED IN RANGE</div><div id="admPlayers" class="v">—</div><div id="admActive" class="subv">— total players</div></div>
+        <div class="card adminFtdCountCard"><div class="k">FTD IN RANGE</div><div id="admFtd" class="v">—</div><div id="admFtdRate" class="subv">— conversion</div></div>
+        <div class="card adminLifetimeDepositCard"><div class="k">LIFETIME DEPOSITS</div><div id="admDeposits" class="v">—</div><div id="admToday" class="subv">— registrations today</div></div>
         <div class="card adminDailyDepositMetric"><div id="admDepositPeriodLabel" class="k">DEPOSITS RECEIVED</div><div id="admDailyDeposits" class="v">—</div><div id="admDailyDepositors" class="subv">— depositors</div></div>
-        <div class="card"><div id="admRegPeriodLabel" class="k">REGISTERED VS FTD</div><div id="admRegVsFtd" class="v">—</div><div id="admTodayConversion" class="subv">— conversion</div></div>
+        <div class="card adminActivityCard"><div id="admRegPeriodLabel" class="k">REGISTERED VS FTD</div><div id="admRegVsFtd" class="v">—</div><div id="admTodayConversion" class="subv">— conversion</div></div>
       </div>
       <div class="adminV11Metrics">
         <div class="card adminAverageFtdCard"><div class="k">AVERAGE DEPOSIT PER FTD · OVERALL</div><div id="admAverageFtd" class="v">—</div><div id="admAverageFtdCoverage" class="subv">Total deposits ÷ total FTD users · includes repeat deposits</div></div>
@@ -178,7 +177,6 @@
     const selectedRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
     $("admFtd").textContent=num(t.ftd_today); $("admFtdRate").textContent=`${selectedRate}% FTDs ÷ sign-ups in range · activity ratio`;
     $("admDeposits").textContent=money(t.lifetime_deposits); $("admToday").textContent=`${num(t.registrations_today)} registrations · ${num(t.ftd_today)} FTD in range`;
-    $("admNgr").textContent=money(t.ngr); $("admGgr").textContent=`GGR ${money(t.ggr)}`;
     $("admDailyDeposits").textContent=money(t.deposits_today); $("admDailyDepositors").textContent=`${num(t.depositors_today)} depositors · ${num(t.deposit_transactions_today)} credited deposits in range`;
     $("admAverageFtd").textContent=t.average_ftd_deposit_overall==null?"—":money(t.average_ftd_deposit_overall);
     $("admAverageFtdCoverage").textContent=`${money(t.overall_ftd_deposits)} ÷ ${num(t.overall_ftd_users)} FTD users · includes repeat deposits`;
