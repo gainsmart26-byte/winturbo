@@ -3,6 +3,14 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,"Content-Type":"application/json"}});
+function errorMessage(error:unknown):string {
+  if(error instanceof Error)return error.message;
+  if(error && typeof error==="object"){
+    const e=error as {message?:unknown;code?:unknown};
+    if(typeof e.message==="string")return (typeof e.code==="string"?e.code+": ":"")+e.message;
+  }
+  return typeof error==="string"?error:"Sync failed; no readable error was returned";
+}
 const sleep=(ms:number)=>new Promise(r=>setTimeout(r,ms));
 
 async function apiFetch(url:URL,apiKey:string){
@@ -58,6 +66,8 @@ Deno.serve(async(req:Request)=>{
       do{
         const url=new URL(`${baseUrl}/${kind}`);url.searchParams.set("from",from.toISOString());url.searchParams.set("to",to.toISOString());url.searchParams.set("limit","1000");if(next)url.searchParams.set("cursor",next);
         const body=await apiFetch(url,apiKey);if(!Array.isArray(body.data))throw new Error(`${kind} API returned an invalid data payload`);
+        const invalid=body.data.filter((x:any)=>typeof x?.username!=="string"||!x.username.trim()).length;
+        if(invalid)throw new Error(`${kind} API returned ${invalid} transaction(s) without a username on page ${pageCount+1}. The API must provide username before these transactions can be imported. Sync is incomplete; no records from this page were saved.`);
         const rows=body.data.map((x:any)=>kind==="deposits"?{id:x.id,username:x.username,amount:Number(x.amount||0),credited_amount:Number(x.creditedAmount||0),status:x.status,source:x.source,requested_at:x.requestedAt,completed_at:x.completedAt??null,synced_at:new Date().toISOString()}:{id:x.id,username:x.username,amount:Number(x.amount||0),status:x.status,source:x.source,requested_at:x.requestedAt,reviewed_at:x.reviewedAt??null,synced_at:new Date().toISOString()});
         if(rows.length){const {error}=await admin.from(kind==="deposits"?"admin_deposit_transactions":"admin_withdrawal_transactions").upsert(rows,{onConflict:"id"});if(error)throw error;}
         count+=rows.length;pageCount++;next=body.hasMore?body.nextCursor:null;if(pageCount>1000)throw new Error(`${kind} pagination safety limit reached`);
@@ -68,7 +78,7 @@ Deno.serve(async(req:Request)=>{
     await admin.from("admin_player_sync_state").update({last_server_time:serverTime||state?.last_server_time||null,last_sync_completed_at:new Date().toISOString(),last_status:"success",last_error:null,players_processed:processed,updated_at:new Date().toISOString()}).eq("id",true);
     return json({ok:true,processed,pages,deposits,withdrawals,serverTime,transactionWindowDays:31});
   }catch(error){
-    const message=error instanceof Error?error.message:String(error);
+    const message=errorMessage(error);
     await admin.from("admin_player_sync_state").update({last_sync_completed_at:new Date().toISOString(),last_status:"error",last_error:message.slice(0,1000),updated_at:new Date().toISOString()}).eq("id",true);
     return json({error:message},502);
   }
