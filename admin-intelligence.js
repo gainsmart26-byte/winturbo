@@ -52,13 +52,15 @@
         <div class="card"><div id="admRegPeriodLabel" class="k">REGISTERED VS FTD</div><div id="admRegVsFtd" class="v">—</div><div id="admTodayConversion" class="subv">— conversion</div></div>
       </div>
       <div class="adminV11Metrics">
+        <div class="card adminAverageFtdCard"><div class="k">AVERAGE FIRST DEPOSIT</div><div id="admAverageFtd" class="v">—</div><div id="admAverageFtdCoverage" class="subv">Recorded first deposits · selected range</div></div>
+        <div class="card adminConversionCard"><div class="k">REGISTRATION → FTD</div><div id="admCohortConversion" class="v">—</div><div id="admCohortCounts" class="subv">Selected registration cohort</div></div>
         <div class="card adminRepeatCard"><div class="k">REPEAT FTD CUSTOMERS</div><div id="admRepeatFtd" class="v">—</div><div id="admRepeatFtdUsers" class="subv">— users with 2+ deposits</div></div>
         <div class="card adminWithdrawalCard"><div class="k">TOTAL WITHDRAWAL · SELECTED RANGE</div><div id="admWithdrawals" class="v">—</div><div id="admWithdrawalUsers" class="subv">— users</div></div>
         <div class="card adminLifetimeWithdrawalCard"><div class="k">LIFETIME WITHDRAWALS</div><div id="admLifetimeWithdrawals" class="v">—</div><div class="subv">Approved or paid across all players</div></div>
       </div>
       <div class="card adminLocationCard">
         <div class="sectionHead"><div><h3>User location analysis</h3><div class="muted small">Signup-IP location for registrations and FTD users in the selected range. Only aggregate counts are shown.</div></div><span class="pill">PRIVACY-SAFE</span></div>
-        <div id="adminLocationAnalysis" class="adminLocationAnalysis"><div class="muted">Loading location analysis…</div></div>
+        <div id="adminLocationCards" class="adminLocationCards"></div><div id="adminLocationAnalysis" class="adminLocationAnalysis"><div class="muted">Loading location analysis…</div></div>
       </div>
       <div class="adminSegments">
         <button data-segment="all" class="on">All players <b id="segAll">—</b></button>
@@ -183,8 +185,12 @@
     $("admDeposits").textContent=money(t.lifetime_deposits); $("admToday").textContent=`${num(t.registrations_today)} registrations · ${num(t.ftd_today)} FTD in range`;
     $("admNgr").textContent=money(t.ngr); $("admGgr").textContent=`GGR ${money(t.ggr)}`;
     $("admDailyDeposits").textContent=money(t.deposits_today); $("admDailyDepositors").textContent=`${num(t.depositors_today)} depositors · ${num(t.deposit_transactions_today)} detected deposits in range`;
+    $("admAverageFtd").textContent=t.average_first_deposit==null?"—":money(t.average_first_deposit);
+    $("admAverageFtdCoverage").textContent=`${num(t.first_deposit_records)} of ${num(t.ftd_today)} FTD users have a matching first-deposit record`;
+    $("admCohortConversion").textContent=Number(t.registrations_today)>0?`${(100*Number(t.registered_cohort_ftd||0)/Number(t.registrations_today)).toFixed(1)}%`:"—";
+    $("admCohortCounts").textContent=`${num(t.registered_cohort_ftd)} of ${num(t.registrations_today)} registered users made their first deposit within the selected range`;
     const todayRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
-    $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% same-day ratio`;
+    $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% range activity ratio`;
     $("admRepeatFtd").textContent=`${Number(t.repeat_ftd_percentage||0).toFixed(1)}%`; $("admRepeatFtdUsers").textContent=`${num(t.repeat_ftd_users)} repeat FTD users`;
     $("admWithdrawals").textContent=money(t.withdrawals); $("admWithdrawalUsers").textContent=`${num(t.withdrawal_users)} users · approved / processing / paid`;
     $("admLifetimeWithdrawals").textContent=money(t.lifetime_withdrawals);
@@ -195,6 +201,10 @@
 
   function renderLocations(rows){
     const el=$("adminLocationAnalysis");
+    $("adminLocationCards").innerHTML=["registered_users","ftd_users"].map((key,i)=>{
+      const ranked=rows.filter(r=>Number(r[key])>0).sort((a,b)=>Number(b[key])-Number(a[key]));
+      return `<div class="card ${i?"adminFtdLocations":"adminRegistrationLocations"}"><h3>${i?"FTD user locations":"Registration locations"}</h3><div class="muted small">Signup location · selected range</div>${ranked.length?ranked.map(r=>`<div class="adminLocationCount"><span>${esc(r.location)}</span><b>${num(r[key])}</b></div>`).join(""):'<p class="muted">No location records in this range.</p>'}</div>`;
+    }).join("");
     if(!rows.length){el.innerHTML='<div class="muted">No registration or FTD location data is available for this range yet. Run Sync now to import API v1.1 locations.</div>';return}
     const max=Math.max(1,...rows.flatMap(r=>[Number(r.registered_users||0),Number(r.ftd_users||0)]));
     el.innerHTML=rows.map(r=>`<div class="adminLocationRow"><div class="adminLocationName"><b>${esc(r.location)}</b><small>${num(r.registered_users)} registered · ${num(r.ftd_users)} FTD</small></div><div class="adminLocationBars"><i class="registered" style="--w:${100*Number(r.registered_users||0)/max}%"></i><i class="ftd" style="--w:${100*Number(r.ftd_users||0)/max}%"></i></div><div class="adminLocationNos"><b>${num(r.registered_users)}</b><strong>${num(r.ftd_users)}</strong></div></div>`).join("");
