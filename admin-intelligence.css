@@ -143,3 +143,34 @@
 .adminRegistrationLocations{border-top:3px solid #38bdf8!important}.adminFtdLocations{border-top:3px solid #34d399!important}
 .adminLocationCount{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #ffffff15}
 @media(max-width:640px){.adminLocationCards{grid-template-columns:1fr}}
+
+/* Refined operations metric cards */
+#adminIntelligence .adminMetrics,#adminIntelligence .adminV11Metrics{grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:16px}
+#adminIntelligence .adminMetrics>.card,#adminIntelligence .adminV11Metrics>.card{
+ --metric-accent:#4ade80;position:relative;isolation:isolate;overflow:hidden;min-width:0;min-height:164px;padding:24px;
+ border:1px solid #ffffff19!important;border-top:3px solid var(--metric-accent)!important;border-radius:20px;
+ background:linear-gradient(135deg,#16221c,#0d1511)!important;box-shadow:0 8px 24px #00000024;
+ transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+#adminIntelligence .adminMetrics>.card::before,#adminIntelligence .adminV11Metrics>.card::before{
+ content:"";position:absolute;z-index:-1;width:150px;height:150px;right:-65px;top:-80px;border-radius:50%;
+ background:var(--metric-accent);opacity:.12;filter:blur(20px);pointer-events:none;
+}
+#adminIntelligence .adminMetrics>.card::after,#adminIntelligence .adminV11Metrics>.card::after{
+ content:"";position:absolute;right:18px;top:20px;width:7px;height:7px;border-radius:50%;background:var(--metric-accent);box-shadow:0 0 12px var(--metric-accent);
+}
+#adminIntelligence .adminMetrics .k,#adminIntelligence .adminV11Metrics .k{font-size:11px;line-height:1.5;letter-spacing:.09em;font-weight:800;color:#c2d0c8;padding-right:15px}
+#adminIntelligence .adminMetrics .v,#adminIntelligence .adminV11Metrics .v{font-size:clamp(28px,2.5vw,40px);line-height:1.2;letter-spacing:-.035em;font-weight:900;font-variant-numeric:tabular-nums;color:var(--metric-accent);margin:14px 0 10px;overflow-wrap:anywhere}
+#adminIntelligence .adminMetrics .subv,#adminIntelligence .adminV11Metrics .subv{font-size:12px;line-height:1.6;color:#a7bbb0}
+#adminIntelligence .adminSignupCard{--metric-accent:#7dd3fc}
+#adminIntelligence .adminFtdCountCard{--metric-accent:#6ee7b7}
+#adminIntelligence .adminLifetimeDepositCard{--metric-accent:#c4b5fd}
+#adminIntelligence .adminDailyDepositMetric{--metric-accent:#4ade80}
+#adminIntelligence .adminActivityCard{--metric-accent:#67e8f9}
+#adminIntelligence .adminAverageFtdCard{--metric-accent:#fde047}
+#adminIntelligence .adminConversionCard{--metric-accent:#c4b5fd}
+#adminIntelligence .adminRepeatCard{--metric-accent:#fdba74}
+#adminIntelligence .adminWithdrawalCard{--metric-accent:#fda4af}
+@media(hover:hover){#adminIntelligence .adminMetrics>.card:hover,#adminIntelligence .adminV11Metrics>.card:hover{transform:translateY(-3px);border-color:var(--metric-accent)!important;box-shadow:0 14px 30px #00000040}}
+@media(max-width:600px){#adminIntelligence .adminMetrics,#adminIntelligence .adminV11Metrics{grid-template-columns:1fr;gap:12px}#adminIntelligence .adminMetrics>.card,#adminIntelligence .adminV11Metrics>.card{min-height:145px;padding:20px}}
+@media(prefers-reduced-motion:reduce){#adminIntelligence .adminMetrics>.card,#adminIntelligence .adminV11Metrics>.card{transition:none;transform:none!important}}
