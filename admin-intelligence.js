@@ -386,7 +386,7 @@
         <div class="card"><div class="sectionHead"><div><h3>500 daily live depositor projection</h3><div class="muted small">Uses the selected Admin Intelligence range's actual ad spend, registrations and FTD conversion to calculate the acquisition budget required.</div></div><span class="pill">TARGET: 500 / DAY</span></div>
           <div class="projectionBasis" id="projectionBasis"></div>
           <div class="reportProjectionInput">
-            <label>FTD retention <output id="projectionRetentionValue">25%</output><input id="projectionRetention" type="range" min="1" max="60" step="1" value="25"></label>
+            <label>FTD retention (% of FTD users) <output id="projectionRetentionValue">—</output><input id="projectionRetention" type="range" min="0" max="100" step="0.01" value="0"><small id="projectionRetentionBasis">Repeat FTD users ÷ total FTD users × 100</small></label>
             <label>Days to achieve target <output id="projectionHorizonValue">90 days</output><input id="projectionHorizon" type="range" min="30" max="365" step="1" value="90"></label>
             <label>Average deposit / depositor <output id="projectionDepositValue">₹1,750</output><input id="projectionAverageDeposit" type="range" min="1500" max="2000" step="50" value="1750"></label>
             <button id="projectionCalculate" class="primary">Recalculate</button>
@@ -419,6 +419,13 @@
     const {data,error}=await sb.rpc("get_admin_report_intelligence",{p_start_date:start,p_end_date:end});
     $("reportApply").disabled=false;$("reportApply").textContent="Apply range";
     if(error)return $("reportStatus").textContent=error.message;
+    const retentionSummary=await sb.rpc("get_admin_intelligence_summary_range",{p_start_date:start,p_end_date:end});
+    if(retentionSummary.error){$("reportStatus").textContent=retentionSummary.error.message;return;}
+    const retentionTotals=retentionSummary.data?.totals||{};
+    const totalFtd=Number(retentionTotals.overall_ftd_users||0),repeatFtd=Number(retentionTotals.repeat_ftd_users||0);
+    const observedRetention=totalFtd?100*repeatFtd/totalFtd:null;
+    $("projectionRetention").value=observedRetention==null?0:observedRetention.toFixed(2);
+    $("projectionRetentionBasis").textContent=observedRetention==null?"No FTD users available to calculate retention.":`Actual overall retention: ${repeatFtd} repeat FTD users ÷ ${totalFtd} total FTD users = ${observedRetention.toFixed(2)}%. One repeat deposit qualifies. Adjust the slider to model a different percentage.`;
     reportData=data;$("reportStatus").textContent=`Showing ${start} to ${end} · Expense tab source · IST`;renderExpenses(data?.expenses||[]);renderReportPerformance();renderProjection();
   }
   function renderExpenses(rows){
@@ -433,7 +440,7 @@
   function renderProjection(){
     if(!reportData)return;
     const t=reportData.totals||{},cpr=Number(t.cost_per_registration||0),cpf=Number(t.cost_per_ftd||0),conversion=Number(t.ftd_conversion||0)/100;
-    const retentionPct=Math.min(60,Math.max(1,Number($("projectionRetention").value||25))),retention=retentionPct/100;
+    const retentionPct=Math.min(100,Math.max(0,Number($("projectionRetention").value))),retention=retentionPct/100;
     const days=Math.min(365,Math.max(30,Number($("projectionHorizon").value||90))),averageDeposit=Math.min(2000,Math.max(1500,Number($("projectionAverageDeposit").value||1750))),target=500;
     $("projectionRetentionValue").textContent=`${retentionPct}%`;$("projectionHorizonValue").textContent=`${days} days`;$("projectionDepositValue").textContent=money(averageDeposit);
     if(!cpr||!cpf||!conversion){
