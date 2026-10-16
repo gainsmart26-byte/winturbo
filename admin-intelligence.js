@@ -53,7 +53,7 @@
       </div>
       <div class="adminV11Metrics">
         <div class="card adminAverageFtdCard"><div class="k">AVERAGE DEPOSIT PER FTD · OVERALL</div><div id="admAverageFtd" class="v">—</div><div id="admAverageFtdCoverage" class="subv">Total deposits ÷ total FTD users · includes repeat deposits</div></div>
-        <div class="card adminConversionCard"><div class="k">REGISTRATION → FTD</div><div id="admCohortConversion" class="v">—</div><div id="admCohortCounts" class="subv">Selected registration cohort</div></div>
+        <div class="card adminConversionCard"><div class="k">SAME-RANGE SIGNUP COHORT → FTD</div><div id="admCohortConversion" class="v">—</div><div id="admCohortCounts" class="subv">Selected registration cohort</div></div>
         <div class="card adminRepeatCard"><div class="k">REPEAT FTD CUSTOMERS · OVERALL</div><div id="admRepeatFtd" class="v">—</div><div id="admRepeatFtdUsers" class="subv">— users with 2+ deposits</div></div>
         <div class="card adminWithdrawalCard"><div class="k">TOTAL WITHDRAWAL · SELECTED RANGE</div><div id="admWithdrawals" class="v">—</div><div id="admWithdrawalUsers" class="subv">— users</div></div>
         <div class="card adminLifetimeWithdrawalCard"><div class="k">LIFETIME WITHDRAWALS</div><div id="admLifetimeWithdrawals" class="v">—</div><div class="subv">Approved or paid across all players</div></div>
@@ -177,7 +177,7 @@
     $("adminDepositRangeNote").textContent=`Credited deposits from admin.winturbo.com for ${label} · transaction times shown in IST.`;
     $("admPlayers").textContent=num(t.registrations_today); $("admActive").textContent=`of ${num(t.players)} total players`;
     const selectedRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
-    $("admFtd").textContent=num(t.ftd_today); $("admFtdRate").textContent=`${selectedRate}% selected-range ratio`;
+    $("admFtd").textContent=num(t.ftd_today); $("admFtdRate").textContent=`${selectedRate}% FTDs ÷ sign-ups in range · activity ratio`;
     $("admDeposits").textContent=money(t.lifetime_deposits); $("admToday").textContent=`${num(t.registrations_today)} registrations · ${num(t.ftd_today)} FTD in range`;
     $("admNgr").textContent=money(t.ngr); $("admGgr").textContent=`GGR ${money(t.ggr)}`;
     $("admDailyDeposits").textContent=money(t.deposits_today); $("admDailyDepositors").textContent=`${num(t.depositors_today)} depositors · ${num(t.deposit_transactions_today)} credited deposits in range`;
@@ -186,7 +186,7 @@
     $("admCohortConversion").textContent=Number(t.registrations_today)>0?`${(100*Number(t.registered_cohort_ftd||0)/Number(t.registrations_today)).toFixed(1)}%`:"—";
     $("admCohortCounts").textContent=`${num(t.registered_cohort_ftd)} of ${num(t.registrations_today)} registered users made their first deposit within the selected range`;
     const todayRate=Number(t.registrations_today)>0?(100*Number(t.ftd_today||0)/Number(t.registrations_today)).toFixed(1):"0.0";
-    $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% range activity ratio`;
+    $("admRegVsFtd").textContent=`${num(t.registrations_today)} / ${num(t.ftd_today)}`; $("admTodayConversion").textContent=`${todayRate}% FTDs ÷ sign-ups in range · activity ratio`;
     $("admRepeatFtd").textContent=`${Number(t.repeat_ftd_percentage||0).toFixed(1)}%`; $("admRepeatFtdUsers").textContent=`${num(t.repeat_ftd_users)} of ${num(t.overall_ftd_users)} FTD users made at least one repeat deposit`;
     $("admWithdrawals").textContent=money(t.withdrawals); $("admWithdrawalUsers").textContent=`${num(t.withdrawal_users)} users · approved / paid only`;
     $("admLifetimeWithdrawals").textContent=money(t.lifetime_withdrawals);
@@ -433,7 +433,7 @@
   }
   function renderReportPerformance(){
     if(!reportData)return;const t=reportData.totals||{};
-    const metrics=[["Total ad spend",money(t.spend),`Facebook ${money(t.facebook_spend)} · Google ${money(t.google_spend)}`],["Registrations / sign-ups",num(t.registrations),`Cost per sign-up ${t.cost_per_registration==null?"—":money(t.cost_per_registration)}`],["FTD",num(t.ftd),`Cost per FTD ${t.cost_per_ftd==null?"—":money(t.cost_per_ftd)}`],["FTD conversion",(t.ftd_conversion||0)+"%",`${num(t.ftd)} FTD ÷ ${num(t.registrations)} registrations · Avg spend ${money(t.average_daily_spend)}/day`]];
+    const metrics=[["Total ad spend",money(t.spend),`Facebook ${money(t.facebook_spend)} · Google ${money(t.google_spend)}`],["Registrations / sign-ups",num(t.registrations),`Cost per sign-up ${t.cost_per_registration==null?"—":money(t.cost_per_registration)}`],["FTD",num(t.ftd),`Cost per FTD ${t.cost_per_ftd==null?"—":money(t.cost_per_ftd)}`],["FTD / sign-up activity ratio",(t.ftd_conversion||0)+"%",`${num(t.ftd)} FTD ÷ ${num(t.registrations)} registrations · Avg spend ${money(t.average_daily_spend)}/day`]];
     $("reportMetrics").innerHTML=metrics.map(x=>`<div class="card"><span>${x[0]}</span><b>${x[1]}</b><small>${x[2]}</small></div>`).join("");
     $("reportDailyRows").innerHTML=(reportData.daily||[]).slice().reverse().map(d=>{const cpr=Number(d.registrations)?Number(d.spend)/Number(d.registrations):null,cpf=Number(d.ftd)?Number(d.spend)/Number(d.ftd):null,conv=Number(d.registrations)?100*Number(d.ftd)/Number(d.registrations):0;return`<tr><td><b>${esc(d.date_value)}</b></td><td>${money(d.spend)}</td><td>${num(d.registrations)}</td><td>${num(d.ftd)}</td><td>${cpr==null?"—":money(cpr)}</td><td>${cpf==null?"—":money(cpf)}</td><td>${conv.toFixed(1)}%</td></tr>`}).join("");
   }
