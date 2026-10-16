@@ -47,7 +47,7 @@
         <div class="card adminSignupCard"><div class="k">REGISTERED IN RANGE</div><div id="admPlayers" class="v">—</div><div id="admActive" class="subv">— total players</div></div>
         <div class="card adminFtdCountCard"><div class="k">FTD IN RANGE</div><div id="admFtd" class="v">—</div><div id="admFtdRate" class="subv">— conversion</div></div>
         <div class="card adminLifetimeDepositCard"><div class="k">LIFETIME DEPOSITS</div><div id="admDeposits" class="v">—</div><div id="admToday" class="subv">— registrations today</div></div>
-        <div class="card adminDailyDepositMetric"><div id="admDepositPeriodLabel" class="k">DEPOSITS RECEIVED</div><div id="admDailyDeposits" class="v">—</div><div id="admDailyDepositors" class="subv">— depositors</div></div>
+        <div class="card adminDailyDepositMetric"><div id="admDepositPeriodLabel" class="k">DEPOSITS RECEIVED As Selected Date</div><div id="admDailyDeposits" class="v">—</div><div id="admDailyDepositors" class="subv">— depositors</div></div>
         <div class="card adminActivityCard"><div id="admRegPeriodLabel" class="k">REGISTERED VS FTD</div><div id="admRegVsFtd" class="v">—</div><div id="admTodayConversion" class="subv">— conversion</div></div>
       </div>
       <div class="adminV11Metrics">
@@ -170,7 +170,7 @@
     if(error){message(error.hint||error.message,true);return}
     const t=data?.totals||{}, label=rangeLabel();
     $("adminRangeLabel").textContent=`Showing ${label} · Times shown in IST`;
-    $("admDepositPeriodLabel").textContent="DEPOSITS RECEIVED";
+    $("admDepositPeriodLabel").textContent="DEPOSITS RECEIVED As Selected Date";
     $("admRegPeriodLabel").textContent=`REGISTERED VS FTD · ${label}`;
     $("adminDepositRangeNote").textContent=`Credited deposits from admin.winturbo.com for ${label} · transaction times shown in IST.`;
     $("admPlayers").textContent=num(t.registrations_today); $("admActive").textContent=`of ${num(t.players)} total players`;
