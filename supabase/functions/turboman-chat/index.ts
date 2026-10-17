@@ -10,7 +10,7 @@ const hash = async (v: string) => Array.from(new Uint8Array(await crypto.subtle.
 const clientIp = (r: Request) => (r.headers.get("cf-connecting-ip") || r.headers.get("x-forwarded-for")?.split(",")[0] || "").trim();
 const money = (v: unknown) => `₹${Number(v || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 const when = (v: unknown) => v ? new Date(String(v)).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) : "Not available";
-const accountIntent = (m: string) => /\b(my|mera|meri|mere|mine|account|balance|deposit|withdrawal|withdraw|cashout|wallet|transaction)\b/i.test(m);
+const accountIntent = (m: string) => /(?:\b(my|mera|meri|mere|mine)\b.{0,80}\b(account|balance|deposit|withdrawal|withdraw|cashout|wallet|transaction)\b)|(?:\b(account|balance|deposit|withdrawal|withdraw|cashout|wallet|transaction)\b.{0,80}\b(my|mera|meri|mere|mine)\b)|\b(balance left|wallet balance|withdrawal status|withdrawal amount available)\b/i.test(m);
 const normalizePhone = (v: string) => v.replace(/\D/g, "").slice(-10);
 
 async function verifiedPhone(req: Request) {
