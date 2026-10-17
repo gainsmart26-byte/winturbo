@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/turboman.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "winturbo.live"
+        }
+      ]
+    }
+  ]
+}
