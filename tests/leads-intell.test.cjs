@@ -1,6 +1,10 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const C=require('../leads-intell-core.js');
+test('imports date and source and rejects invalid calendar dates',()=>{
+ const r=C.parseRows([['Phone No','Date','Source'],['9876543210','19/10/2026','Facebook'],['8888888888','2026-02-30','Google']]);
+ assert.equal(r.items.length,1);assert.equal(r.invalid,1);assert.equal(r.items[0].lead_date,'2026-10-19');assert.equal(r.items[0].lead_source,'Facebook');
+});
 test('normalizes Indian phones without guessing invalid or scientific values',()=>{
   assert.equal(C.phone('+91 98765 43210'),'9876543210');
   assert.equal(C.phone('00919876543210'),'9876543210');

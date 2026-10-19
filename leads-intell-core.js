@@ -4,6 +4,7 @@
   const phone=v=>{let s=String(v??'').trim().replace(/^'/,'').replace(/[\s()+.-]/g,'');if(s.startsWith('0091')&&s.length===14)s=s.slice(2);if(s.length===12&&s.startsWith('91'))s=s.slice(2);return /^\d{7,15}$/.test(s)?s:''};
   const username=v=>{const s=String(v??'').trim();return /^[A-Za-z0-9_.@-]{1,100}$/.test(s)?s:''};
   const day=(v=new Date())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(v));
+  function leadDate(value){const s=String(value??'').trim();let m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m){const d=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);if(d)m=[s,d[3],d[2].padStart(2,'0'),d[1].padStart(2,'0')]}if(!m)return '';const iso=m[1]+'-'+m[2]+'-'+m[3],date=new Date(iso+'T00:00:00Z');return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===iso?iso:'';}
   function merge(players,records){
     const rows=players.map(p=>({...p,key:'user:'+p.username.toLowerCase(),source:'Registered',record:null}));
     const users=new Map(rows.map(r=>[r.username.toLowerCase(),r])),phones=new Map();
@@ -19,6 +20,7 @@
     if(!rows.length)return {items:[],invalid:0,duplicates:0};
     const header=v=>String(v??'').toLowerCase().replace(/[^a-z0-9]/g,'');
     const headers=rows[0].map(header),pi=headers.findIndex(x=>['phone','phoneno','phonenumber','mobile','mobileno','mobilenumber'].includes(x)),ui=headers.findIndex(x=>['username','user','userid'].includes(x));
+    const di=headers.findIndex(x=>['date','leaddate'].includes(x)),si=headers.findIndex(x=>['source','leadsource'].includes(x));
     const hasHeader=pi>=0||ui>=0,items=[],seen=new Set();let invalid=0,duplicates=0;
     for(const row of rows.slice(hasHeader?1:0)){
       if(row.every(v=>!String(v??'').trim()))continue;
@@ -26,10 +28,12 @@
       if(hasHeader){p=pi>=0?phone(row[pi]):'';u=ui>=0?username(row[ui]):'';if((pi>=0&&String(row[pi]??'').trim()&&!p)||(ui>=0&&String(row[ui]??'').trim()&&!u)){invalid++;continue}}
       else {const value=row[0];p=phone(value);if(!p)u=username(value)}
       if(!p&&!u){invalid++;continue}
+      const date=di>=0?leadDate(row[di]):'',source=si>=0?String(row[si]??'').trim():'';
+      if((di>=0&&!date)||(si>=0&&(!source||source.length>100))){invalid++;continue}
       const key=u?'user:'+u.toLowerCase():'phone:'+p;
-      if(seen.has(key)){duplicates++;continue}seen.add(key);items.push({lead_key:key,username:u||null,phone:p||null});
+      if(seen.has(key)){duplicates++;continue}seen.add(key);const item={lead_key:key,username:u||null,phone:p||null};if(date)item.lead_date=date;if(source)item.lead_source=source;items.push(item);
     }
     return {items,invalid,duplicates};
   }
-  const api={responses,phone,username,day,merge,parseRows};root.LeadsIntellCore=api;if(typeof module!=='undefined')module.exports=api;
+  const api={responses,phone,username,day,leadDate,merge,parseRows};root.LeadsIntellCore=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
