@@ -1,8 +1,8 @@
-Leads Intell is available to active dashboard administrators. It reads every page of the existing Admin Intelligence player cache and combines it with manual lead records. Registered users include FTDs, depositors and nondepositors; deposit freshness follows the existing Admin API sync.
+Leads Intell is available to active dashboard administrators. It reads every page of the existing Admin Intelligence player cache and combines it with manual lead records. FTD means a registered user with lifetime deposits greater than zero; deposit freshness follows the existing Admin API sync.
 
 Upload `.xlsx`, `.xls` or `.csv` files using Phone / Username headers, or use one phone or username per row without a header. Only the first worksheet is imported. Preview reports invalid and duplicate rows; confirmation imports valid leads without changing existing responses. The manual form accepts either identifier. Phone-only leads match registered users only when the normalized phone is unique; usernames match case-insensitively. Indian +91/0091 phone prefixes are normalized for matching.
 
-Opening a lead allows the five requested responses and optional notes. Call Back requires a future date/time in IST; changing the response clears the scheduled callback. The dashboard banner shows today's callbacks and older pending callbacks. Reminders refresh every minute while the dashboard is visible. They are in-app reminders, not background push notifications.
+Opening a lead allows the five requested responses and optional notes. Call Back offers 30-minute time-slot choices and requires a future date/time in IST; changing the response clears the scheduled callback. The dashboard banner shows today's callbacks and older pending callbacks. Reminders refresh every minute while the dashboard is visible. They are in-app reminders, not background push notifications.
 
 The `lead_intell_records` table has active-admin RLS for reads, inserts and updates. Uploaded data is rendered as text. Spreadsheet parsing uses the locally hosted SheetJS CE 0.20.3 bundle; its Apache 2.0 license is in `vendor/SHEETJS-LICENSE`.
 
