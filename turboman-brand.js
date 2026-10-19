@@ -23,4 +23,10 @@
   const observer=new MutationObserver(()=>requestAnimationFrame(brand));
   observer.observe(document.documentElement,{childList:true,subtree:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',brand,{once:true});else brand();
+  if(!document.querySelector('link[data-telegram-intell]')){
+    const style=document.createElement('link');style.rel='stylesheet';style.href='./telegram-intell.css';style.dataset.telegramIntell='true';document.head.appendChild(style);
+  }
+  if(!document.querySelector('script[data-telegram-intell]')){
+    const script=document.createElement('script');script.src='./telegram-intell.js';script.defer=true;script.dataset.telegramIntell='true';document.head.appendChild(script);
+  }
 })();
