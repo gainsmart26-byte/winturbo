@@ -3,6 +3,11 @@
   "rewrites": [
     {
       "source": "/",
+      "destination": "/dashboard.html",
+      "has": [{ "type": "host", "value": "winturbo.io" }]
+    },
+    {
+      "source": "/",
       "destination": "/turboman.html",
       "has": [
         {
