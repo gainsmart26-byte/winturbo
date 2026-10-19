@@ -3,7 +3,7 @@
   const C=window.LeadsIntellCore,$=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const money=v=>'₹'+Number(v||0).toLocaleString('en-IN');
-  const when=v=>v?new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'medium',timeStyle:'short'}).format(new Date(v))+' IST':'—';
+  const when=v=>v?new Intl.DateTimeFormat('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'medium',timeStyle:'medium'}).format(new Date(v))+' IST':'—';
   const isFtd=lead=>lead.source==='Registered'&&Number(lead.lifetime_deposits)>0;
   const slotLabel=value=>{const [h,m]=value.split(':').map(Number);return `${h%12||12}:${String(m).padStart(2,'0')} ${h<12?'AM':'PM'}`};
   const slots=Array.from({length:96},(_,i)=>{const value=String(Math.floor(i/4)).padStart(2,'0')+':'+String((i%4)*15).padStart(2,'0'),end=String(Math.floor(((i+1)%96)/4)).padStart(2,'0')+':'+String(((i+1)%4)*15).padStart(2,'0');return `<option value="${value}">${slotLabel(value)} – ${slotLabel(end)}${i===95?' (next day)':''}</option>`}).join('');
@@ -57,8 +57,16 @@
     for(let i=0;i<fresh.length;i+=100){const {data,error}=await sb.from('lead_intell_records').upsert(fresh.slice(i,i+100),{onConflict:'lead_key',ignoreDuplicates:true}).select('lead_key');if(error)throw Error(`${added} leads imported before the error. Refresh and retry safely. ${error.message}`);added+=data.length}return {added,skipped};}
   async function importLeads(){const b=$('leadImport');b.disabled=true;try{const result=await importItems(pending);pending=[];b.hidden=true;$('leadFile').value='';$('leadImportPreview').textContent=`${result.added} leads imported; ${result.skipped} existing leads skipped.`;await load()}catch(e){message(e.message,true)}finally{b.disabled=false}}
   async function add(){const p=$('leadPhone').value.trim(),u=$('leadUsername').value.trim();if((p&&!C.phone(p))||(u&&!C.username(u))||(!p&&!u))return message('Enter a valid phone number or username.',true);$('leadAdd').disabled=true;try{const result=await importItems([{lead_key:u?'user:'+u.toLowerCase():'phone:'+C.phone(p),username:u||null,phone:p?C.phone(p):null}]);$('leadPhone').value='';$('leadUsername').value='';await load();message(result.added?'Manual lead added.':'This lead already exists. Search to open it.')}catch(e){message(e.message,true)}finally{$('leadAdd').disabled=false}}
-  async function boot(){if(typeof sb==='undefined')return;const {data:{user}}=await sb.auth.getUser();if(!user)return;const {data}=await sb.from('profiles').select('role,is_active').eq('id',user.id).maybeSingle();if(!data?.is_active)return;if(data.role!=='admin'){const {data:agent}=await sb.from('leads_agents').select('is_active,name').eq('user_id',user.id).maybeSingle();if(!agent?.is_active)return;agentMode=true;if($('loggedInEmailV48'))$('loggedInEmailV48').textContent=agent.name||'Agent';}mount();await load();if(agentMode)$('accessReadOnlyNote')?.remove();if(agentMode)document.querySelector('[data-s="leadsIntell"]')?.click()}
-  window.WinTurboLeadsBoot=boot;
+  function restrictAgentPanel(){
+    document.body.dataset.leadsAgent='true';
+    if(!$('agentOnlyStyle')){const style=document.createElement('style');style.id='agentOnlyStyle';style.textContent='body[data-leads-agent] #app .nav button:not([data-s="leadsIntell"]),body[data-leads-agent] main.main > section:not(#leadsIntell),body[data-leads-agent] .topbar .toolbar,body[data-leads-agent] #leadUploadPanel,body[data-leads-agent] #accessReadOnlyNote{display:none!important} body[data-leads-agent] #leadsIntell{display:block!important}';document.head.append(style)}
+    const subtitle=document.querySelector('.topbar > div:first-child > .muted');if(subtitle&&subtitle.textContent!=='Agent workspace · Leads Intell only')subtitle.textContent='Agent workspace · Leads Intell only';
+    document.querySelectorAll('#app .nav button:not([data-s="leadsIntell"])').forEach(b=>{if(!b.hidden)b.hidden=true});
+    if($('title')&&$('title').textContent!=='🎯 Leads Intell')$('title').textContent='🎯 Leads Intell';
+  }
+  let agentObserver;
+  async function boot(){if(typeof sb==='undefined')return;const {data:{user}}=await sb.auth.getUser();if(!user)return;const {data}=await sb.from('profiles').select('role,is_active').eq('id',user.id).maybeSingle();if(!data?.is_active)return;if(data.role!=='admin'){const {data:agent}=await sb.from('leads_agents').select('is_active,name').eq('user_id',user.id).maybeSingle();if(!agent?.is_active)return;agentMode=true;restrictAgentPanel();if(!agentObserver){agentObserver=new MutationObserver(restrictAgentPanel);agentObserver.observe(document.querySelector('#app'),{childList:true,subtree:true});}await gateway({action:'login'});if($('loggedInEmailV48'))$('loggedInEmailV48').textContent=agent.name||'Agent';}mount();await load();if(agentMode)$('accessReadOnlyNote')?.remove();if(agentMode)document.querySelector('[data-s="leadsIntell"]')?.click()}
+  window.WinTurboLeadsBoot=boot;if(sb.auth.onAuthStateChange)sb.auth.onAuthStateChange((event)=>{if(event==='SIGNED_IN')setTimeout(boot,0);if(event==='SIGNED_OUT'){agentObserver?.disconnect();agentObserver=null;delete document.body.dataset.leadsAgent;location.reload();}});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,900),{once:true});else setTimeout(boot,900);
   document.addEventListener('click',e=>{if(e.target.closest('#loginBtn'))setTimeout(boot,1500)});
   setInterval(()=>{if(ready&&document.visibilityState==='visible')load()},60000);
