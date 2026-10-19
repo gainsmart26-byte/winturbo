@@ -53,7 +53,7 @@ Deno.serve(async(req:Request)=>{
   const mapped=await Promise.all(leads.map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
   if(action==='list'){
    const page=Math.max(0,Math.floor(Number(body.page)||0)),selected=mapped.slice(page*50,page*50+50);
-   return json({total:leads.length,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at,record:l.record?{response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
+   return json({total:leads.length,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
   }
   const found=mapped.find((x:any)=>x.id===body.key);if(!found)return json({error:'Lead not found'},404);const l=found.lead;
   if(action==='open'){
