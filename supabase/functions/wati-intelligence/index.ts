@@ -12,6 +12,20 @@ Deno.serve(async req=>{
  const {data:{user},error}=await db.auth.getUser(token);if(error||!user)return json({error:'Sign in required'},401);
  const p=check(await db.from('profiles').select('role,is_active').eq('id',user.id).single());if(p?.role!=='admin'||!p.is_active)return json({error:'Admin access required'},403);
  const b=await req.json();
+ if(b.action==='performance_financials'){
+ // Financial ledgers stay server-only. Return aggregates after the active-admin check above.
+ const grouped:Record<string,number>={};let deposits=0;
+ for(const table of ['admin_withdrawal_transactions','admin_deposit_transactions']){
+ for(let offset=0;;offset+=500){
+ const cols=table==='admin_deposit_transactions'?'id,status,credited_amount,source':'id,status,amount';
+ const rows=check(await db.from(table).select(cols).order('id').range(offset,offset+499));if(!Array.isArray(rows))throw Error('Financial data unavailable.');
+ for(const row of rows){if(table==='admin_deposit_transactions'){if(row.status==='CREDITED'&&row.source!=='agent_credit')deposits+=Number(row.credited_amount)||0;}else if(['APPROVED','PROCESSING','PAID','COMPLETED','SUCCESS'].includes(row.status)){grouped[row.status]=(grouped[row.status]||0)+(Number(row.amount)||0)}}
+ if(rows.length<500)break;
+ }
+ }
+ return json({deposits,withdrawals:Object.entries(grouped).map(([status,amount])=>({status,amount})),generated_at:new Date().toISOString()});
+ }
+
  // Only this gateway reads encrypted credentials; RLS grants no client access to that table.
  const key=await crypto.subtle.importKey('raw',await crypto.subtle.digest('SHA-256',new TextEncoder().encode(secret+':wati-v1')),'AES-GCM',false,['encrypt','decrypt']);
  const encrypt=async(value:string)=>{const iv=crypto.getRandomValues(new Uint8Array(12)),data=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(value)));return btoa(String.fromCharCode(...iv,...data))};
