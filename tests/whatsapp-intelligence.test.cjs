@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),C=require('../whatsapp-intelligence-core.js');
+for(const value of ['+91 98765 43210','00919876543210','919876543210','9876543210'])assert.equal(C.phone(value),'9876543210');
+assert.equal(C.phone('abc9876543210'),'');assert.equal(C.phone(null),'');assert.equal(C.phone('+30 6939444016'),'306939444016');
+assert.equal(C.endpoint('https://live-mt-server.wati.io/1234/'),'https://live-mt-server.wati.io/1234');
+for(const endpoint of ['http://live-mt-server.wati.io','https://wati.io.evil.test','https://127.0.0.1','https://x@wati.io','https://wati.io:444','https://wati.io/?a=1'])assert.throws(()=>C.endpoint(endpoint));
+assert.throws(()=>C.contactPage({result:false,contact_list:[]}));assert.throws(()=>C.contactPage({result:true}));
+const parsed=C.contactRows([{wAid:'919876543210',fullName:'One'},{phone:'9876543210',name:'Updated'},{phone:null,bsuid:'opaque-id'},{phone:'invalid'}]);assert.equal(parsed.rows.length,1);assert.equal(parsed.invalid,2);assert.equal(parsed.rows[0].name,'Updated');
+const contacts=[{phone:'9876543210',connection_id:'a'},{phone:'919876543210',connection_id:'b'},{phone:'8765432109',connection_id:'a'},{phone:'7654321098',connection_id:'a'},{phone:'6543210987',connection_id:'a'}];
+const players=[{phone:'+919876543210',username:'ftd',lifetime_deposits:500},{phone:'8765432109',username:'no_deposit',lifetime_deposits:0},{phone:'6543210987',username:'shared1',lifetime_deposits:99},{phone:'+916543210987',username:'shared2',lifetime_deposits:0}];
+const rows=C.match(contacts,players,[{id:'a',label:'One'},{id:'b',label:'Two'}]);assert.equal(rows.length,4);assert.equal(rows[0].deposit,'FTD');assert.equal(rows[0].deposits,500);assert.equal(rows[0].accounts.length,2);assert.equal(rows[1].deposit,'No deposit');assert.equal(rows[2].registration,'Not registered');assert.equal(rows[3].registration,'Ambiguous');assert.equal(rows[3].deposits,0);
+console.log('PASS phone formats, endpoint allowlist, response validation, deduplication, FTD/no deposit, multiple sources and ambiguous identity');
