@@ -25,3 +25,6 @@
  }
  if(sb.auth.onAuthStateChange)sb.auth.onAuthStateChange(e=>{if(e==='SIGNED_IN')setTimeout(boot,300)});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,1200),{once:true});else setTimeout(boot,1200);document.addEventListener('click',e=>{if(e.target.closest('#loginBtn'))setTimeout(boot,1700)});
 })();
+
+// Response analytics mount after the existing admin module, with ordered dependencies.
+(()=>{const core=document.createElement('script');core.src='./wati-response-core.js?v=20261020';core.onload=()=>{const panel=document.createElement('script');panel.src='./wati-response-times.js?v=20261020';document.head.append(panel)};document.head.append(core)})();

@@ -23,9 +23,24 @@ Deno.serve(async req=>{
  check(await db.from('wati_credentials').upsert({connection_id:connection.id,ciphertext:await encrypt(apiToken)}));return json({ok:true,id:connection.id});
  }
  if(b.action==='list')return json({connections:check(await db.from('wati_connections').select('id,label,business_number,endpoint,last_synced_at,next_page,last_error,created_at').order('created_at'))});
- if(b.action!=='sync')throw Error('Unknown action');
+ if(!['sync','messages'].includes(b.action))throw Error('Unknown action');
  const connection=check(await db.from('wati_connections').select('*').eq('id',b.connection_id).single()),credential=check(await db.from('wati_credentials').select('ciphertext').eq('connection_id',connection.id).single());
  let apiToken;try{apiToken=await decrypt(credential.ciphertext)}catch{throw Error('Please reconnect this WATI account to renew its saved token.')}
+ if(b.action==='messages'){
+ const normalized=C.phone(b.phone),page=Number(b.page||1);if(!normalized||!Number.isInteger(page)||page<1||page>100)throw Error('Invalid contact or message page.');
+ const contact=check(await db.from('wati_contacts').select('contact_id,phone').eq('connection_id',connection.id).eq('phone',normalized).maybeSingle());if(!contact)return json({error:'Contact is not part of this WATI account.'},404);
+ // Contact IDs preserve international identity; never infer an unverified country prefix.
+ const target=contact.contact_id;if(!target)throw Error('Contact identity is missing. Sync contacts again.');
+ const url=new URL(C.endpoint(connection.endpoint)+'/api/v1/getMessages/'+encodeURIComponent(target));url.searchParams.set('pageSize','100');url.searchParams.set('pageNumber',String(page));
+ const response=await fetch(url,{headers:{Authorization:'Bearer '+apiToken,accept:'application/json'},redirect:'error',signal:AbortSignal.timeout(20000)});
+ if(!response.ok)throw Error(response.status===429?'WATI rate limit reached. Try again later.':response.status===403?'WATI denied conversation access. Check conversations:read permission, workspace role and plan.':`WATI messages returned HTTP ${response.status}.`);
+ const data=await response.json();if(data.result===false)throw Error('WATI rejected the message-history request.');
+ const raw=Array.isArray(data.messages)?data.messages:data.messages?.items;if(!Array.isArray(raw)||raw.length>100)throw Error('Unrecognized WATI message history. No response-time values calculated.');
+ const messages=raw.map((m:any)=>({id:String(m.id||m.whatsappMessageId||''),created:m.created,timestamp:m.timestamp,owner:m.owner,type:m.type,statusString:m.statusString,eventType:m.eventType,isAutomated:m.isAutomated,isFromBot:m.isFromBot,operatorName:typeof m.operatorName==='string'?m.operatorName.slice(0,100):null}));
+ // Never follow API-returned URLs, and never return message text to this analytics screen.
+ const link=data.link??data.messages?.link;const more=link&&Object.prototype.hasOwnProperty.call(link,'nextPage')?!!link.nextPage:raw.length===100;
+ return json({ok:true,page,more,messages,checked_at:new Date().toISOString()});
+ }
  const page=connection.next_page||1,base=C.endpoint(connection.endpoint),url=new URL(base+'/api/v1/getContacts');url.searchParams.set('pageNumber',String(page));url.searchParams.set('pageSize','100');
  try{
  const response=await fetch(url,{headers:{Authorization:'Bearer '+apiToken,accept:'application/json'},redirect:'error',signal:AbortSignal.timeout(20000)});
