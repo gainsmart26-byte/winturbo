@@ -28,3 +28,6 @@
 
 // Response analytics mount after the existing admin module, with ordered dependencies.
 (()=>{const core=document.createElement('script');core.src='./wati-response-core.js?v=20261020b';core.onload=()=>{const panel=document.createElement('script');panel.src='./wati-response-times.js?v=20261020b';document.head.append(panel)};document.head.append(core)})();
+
+// Business performance is a separate Overview view; ordered dependency loading.
+(()=>{const style=document.createElement('link');style.rel='stylesheet';style.href='./performance-overview.css?v=20261020';document.head.append(style);const core=document.createElement('script');core.src='./performance-overview-core.js?v=20261020';core.onload=()=>{const script=document.createElement('script');script.src='./performance-overview.js?v=20261020';document.head.append(script)};document.head.append(core)})();
