@@ -36,7 +36,7 @@ Deno.serve(async req=>{
  if(!response.ok)throw Error(response.status===429?'WATI rate limit reached. Try again later.':response.status===403?'WATI denied conversation access. Check conversations:read permission, workspace role and plan.':`WATI messages returned HTTP ${response.status}.`);
  const data=await response.json();if(data.result===false)throw Error('WATI rejected the message-history request.');
  const raw=Array.isArray(data.messages)?data.messages:data.messages?.items;if(!Array.isArray(raw)||raw.length>100)throw Error('Unrecognized WATI message history. No response-time values calculated.');
- const messages=raw.map((m:any)=>({id:String(m.id||m.whatsappMessageId||''),created:m.created,timestamp:m.timestamp,owner:m.owner,type:m.type,statusString:m.statusString,eventType:m.eventType,isAutomated:m.isAutomated,isFromBot:m.isFromBot,operatorName:typeof m.operatorName==='string'?m.operatorName.slice(0,100):null}));
+ const messages=raw.map((m:any)=>({id:String(m.id||m.whatsappMessageId||''),created:m.created,timestamp:m.timestamp,owner:m.owner,type:m.type,statusString:m.statusString,eventType:m.eventType??m.event_type,isAutomated:m.isAutomated,isFromBot:m.isFromBot,operatorName:typeof m.operatorName==='string'?m.operatorName.slice(0,100):null}));
  // Never follow API-returned URLs, and never return message text to this analytics screen.
  const link=data.link??data.messages?.link;const more=link&&Object.prototype.hasOwnProperty.call(link,'nextPage')?!!link.nextPage:raw.length===100;
  return json({ok:true,page,more,messages,checked_at:new Date().toISOString()});
