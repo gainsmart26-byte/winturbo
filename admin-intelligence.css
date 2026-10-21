@@ -174,3 +174,36 @@
 @media(hover:hover){#adminIntelligence .adminMetrics>.card:hover,#adminIntelligence .adminV11Metrics>.card:hover{transform:translateY(-3px);border-color:var(--metric-accent)!important;box-shadow:0 14px 30px #00000040}}
 @media(max-width:600px){#adminIntelligence .adminMetrics,#adminIntelligence .adminV11Metrics{grid-template-columns:1fr;gap:12px}#adminIntelligence .adminMetrics>.card,#adminIntelligence .adminV11Metrics>.card{min-height:145px;padding:20px}}
 @media(prefers-reduced-motion:reduce){#adminIntelligence .adminMetrics>.card,#adminIntelligence .adminV11Metrics>.card{transition:none;transform:none!important}}
+
+/* Vivid, readable analytics cards */
+#adminIntelligence .adminSignupCard{--card-rgb:56,189,248}
+#adminIntelligence .adminFtdCountCard{--card-rgb:52,211,153}
+#adminIntelligence .adminLifetimeDepositCard{--card-rgb:167,139,250}
+#adminIntelligence .adminDailyDepositMetric{--card-rgb:74,222,128}
+#adminIntelligence .adminActivityCard{--card-rgb:34,211,238}
+#adminIntelligence .adminAverageFtdCard{--card-rgb:250,204,21}
+#adminIntelligence .adminConversionCard{--card-rgb:192,132,252}
+#adminIntelligence .adminRepeatCard{--card-rgb:251,146,60}
+#adminIntelligence .adminWithdrawalCard{--card-rgb:251,113,133}
+#adminIntelligence .adminMetrics>.card,#adminIntelligence .adminV11Metrics>.card{
+ background:radial-gradient(ellipse at 100% 0,rgba(var(--card-rgb),.28),transparent 65%),linear-gradient(135deg,rgba(var(--card-rgb),.16),#0d151c 95%)!important;
+ border:1px solid rgba(var(--card-rgb),.55)!important;border-top:4px solid var(--metric-accent)!important;
+ box-shadow:0 8px 26px #0004,inset 0 1px 0 #ffffff12;
+}
+#adminIntelligence .adminMetrics .k,#adminIntelligence .adminV11Metrics .k{color:#e4edf5}
+#adminIntelligence .adminMetrics .subv,#adminIntelligence .adminV11Metrics .subv{color:#c3d0dc}
+#adminFtdWithdrawalAnalysis>div>.card,#poFtdWithdrawalAnalysis>div>.card{
+ --analysis-rgb:251,113,133;min-width:0;border-radius:18px;padding:22px;
+ background:radial-gradient(ellipse at top right,rgba(var(--analysis-rgb),.25),transparent 75%),#101921;
+ border:1px solid rgba(var(--analysis-rgb),.5);box-shadow:0 8px 24px #0003;
+}
+#adminFtdWithdrawalAnalysis>div>.card:nth-child(2),#poFtdWithdrawalAnalysis>div>.card:nth-child(2){--analysis-rgb:56,189,248}
+#adminFtdWithdrawalAnalysis>div>.card:nth-child(3),#poFtdWithdrawalAnalysis>div>.card:nth-child(3){--analysis-rgb:52,211,153}
+#adminFtdWithdrawalAnalysis .k,#poFtdWithdrawalAnalysis .k{color:#e4edf5;line-height:1.5}
+#adminFtdWithdrawalAnalysis .v,#poFtdWithdrawalAnalysis .v{font-size:38px;font-weight:900;margin:12px 0;font-variant-numeric:tabular-nums}
+#adminFtdWithdrawalAnalysis .subv,#poFtdWithdrawalAnalysis .subv{color:#c3d0dc}
+#adminFtdWithdrawalAnalysis .card p,#poFtdWithdrawalAnalysis .card p{line-height:1.8;color:#e1eaf2}
+#adminIntelligence .adminTrendSummary>div:nth-child(1){background:linear-gradient(135deg,#123e4f,#101c29);border-color:#38bdf870}
+#adminIntelligence .adminTrendSummary>div:nth-child(2){background:linear-gradient(135deg,#164331,#101f24);border-color:#34d39970}
+#adminIntelligence .adminTrendSummary>div:nth-child(3){background:linear-gradient(135deg,#3b2859,#171c2c);border-color:#a78bfa70}
+#adminIntelligence .adminTrendSummary>div:nth-child(4){background:linear-gradient(135deg,#4a301b,#201c22);border-color:#fb923c70}
