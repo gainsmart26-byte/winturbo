@@ -10,7 +10,7 @@
     for(const r of rows){const p=phone(r.phone);if(p)phones.set(p,phones.has(p)?null:r)}
     // A saved registered identity takes priority; phone-only uploads link only to a unique match.
     for(const record of records){let r=record.username?users.get(record.username.toLowerCase()):phones.get(phone(record.phone));
-      if(!r){r={key:record.lead_key,username:record.username,phone:record.phone,source:'Manual',record:null};rows.push(r)}
+      if(!r){r={key:record.lead_key,username:record.username,phone:record.phone,source:'Manual',match_ambiguous:!record.username&&phones.has(phone(record.phone))&&phones.get(phone(record.phone))===null,record:null};rows.push(r)}
       if(!r.record||new Date(record.updated_at)>new Date(r.record.updated_at))r.record=record;
     }
     return rows;
@@ -31,5 +31,13 @@
     }
     return {items,invalid,duplicates};
   }
-  const api={responses,phone,username,day,merge,parseRows};root.LeadsIntellCore=api;if(typeof module!=='undefined')module.exports=api;
+  function matchesSource(lead,source){
+    const wati=Boolean(lead.wati||lead.record?.lead_source==='WATI');
+    if(!source)return true;
+    if(source==='WATI')return wati;
+    if(source==='Manual')return !wati&&(lead.record?.lead_source==='Manual'||lead.source==='Manual');
+    return lead.source===source;
+  }
+  const countNumbers=rows=>new Set(rows.map(x=>phone(x.phone)).filter(Boolean)).size;
+  const api={responses,phone,username,day,merge,parseRows,matchesSource,countNumbers};root.LeadsIntellCore=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
