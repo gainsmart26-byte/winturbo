@@ -22,3 +22,11 @@ test('includes nondepositors and merges phone leads without dropping saved respo
 test('callback day uses IST across the UTC midnight boundary',()=>{
   assert.equal(C.day('2026-10-19T20:00:00Z'),'2026-10-20');
 });
+test('source counts deduplicate country-code variants and preserve WATI attribution',()=>{
+  const rows=[{source:'Registered',phone:'+919876543210',wati:true,record:{lead_source:'Manual'}},{source:'Manual',phone:'9876543210',record:{lead_source:'WATI'}},{source:'Registered',phone:'918888888888',record:{lead_source:'Manual'}},{source:'Manual',phone:'7777777777'},{source:'Manual',phone:null}];
+  assert.equal(C.countNumbers(rows),3);
+  assert.equal(C.countNumbers(rows.filter(x=>C.matchesSource(x,'WATI'))),1);
+  assert.equal(C.countNumbers(rows.filter(x=>C.matchesSource(x,'Manual'))),2);
+  assert.equal(C.countNumbers(rows.filter(x=>C.matchesSource(x,'Registered'))),2);
+  assert.equal(C.countNumbers([]),0);
+});
