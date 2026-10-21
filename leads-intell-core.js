@@ -31,5 +31,13 @@
     }
     return {items,invalid,duplicates};
   }
-  const api={responses,phone,username,day,merge,parseRows};root.LeadsIntellCore=api;if(typeof module!=='undefined')module.exports=api;
+  function matchesSource(lead,source){
+    const wati=Boolean(lead.wati||lead.record?.lead_source==='WATI');
+    if(!source)return true;
+    if(source==='WATI')return wati;
+    if(source==='Manual')return !wati&&(lead.record?.lead_source==='Manual'||lead.source==='Manual');
+    return lead.source===source;
+  }
+  const countNumbers=rows=>new Set(rows.map(x=>phone(x.phone)).filter(Boolean)).size;
+  const api={responses,phone,username,day,merge,parseRows,matchesSource,countNumbers};root.LeadsIntellCore=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
