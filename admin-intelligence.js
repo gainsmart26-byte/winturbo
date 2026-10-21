@@ -43,7 +43,7 @@
         </div>
         <div id="adminRangeLabel" class="muted small">Showing Today · Times shown in IST</div>
       </div>
-      <div class="card" id="adminFtdWithdrawalAnalysis" style="margin-bottom:18px"></div>
+      <div class="card" style="margin-bottom:18px"><label>FTD withdrawal analysis period <select id="adminFtdAnalysisPeriod"><option value="all">All time</option><option value="range">Selected date range</option></select></label><div id="adminFtdWithdrawalAnalysis"></div></div>
       <div class="adminMetrics">
         <div class="card adminSignupCard"><div class="k">REGISTERED IN RANGE</div><div id="admPlayers" class="v">—</div><div id="admActive" class="subv">— total players</div></div>
         <div class="card adminFtdCountCard"><div class="k">FTD IN RANGE</div><div id="admFtd" class="v">—</div><div id="admFtdRate" class="subv">— conversion</div></div>
@@ -110,6 +110,7 @@
 
     button.addEventListener("click",()=>open());
     $("adminSync").addEventListener("click",sync);
+    $("adminFtdAnalysisPeriod").addEventListener("change",()=>loadFtdWithdrawalAnalysis());
     $("adminStatus").addEventListener("change",()=>{page=0;loadPlayers()});
     let timer; $("adminSearch").addEventListener("input",()=>{clearTimeout(timer);timer=setTimeout(()=>{page=0;loadPlayers()},300)});
     document.querySelectorAll(".adminSegments button").forEach(b=>b.addEventListener("click",()=>{
@@ -157,8 +158,9 @@
     loadAll();
   }
 
-  async function loadFtdWithdrawalAnalysis(){
-    const host=$("adminFtdWithdrawalAnalysis"); if(!host||accessMode==="agent")return;
+  async function loadFtdWithdrawalAnalysis(hostId="adminFtdWithdrawalAnalysis",allTime=null){
+    if(allTime===null)allTime=$("adminFtdAnalysisPeriod")?.value!=="range";
+    const host=$(hostId); if(!host||accessMode==="agent")return;
     const token=String(Date.now())+Math.random(); host.dataset.request=token;
     host.innerHTML='<h3>FTD withdrawal analysis</h3><p class="muted">Loading…</p>';
     try{
@@ -180,19 +182,21 @@
       }
       for(const w of withdrawals){const p=players.get(w.username);if(p)p.withdrawals+=Number(w.amount)||0;}
       const r=range(),start=new Date(r.start+"T00:00:00+05:30").getTime(),end=new Date(r.end+"T00:00:00+05:30").getTime()+86400000;
-      const rows=[...players.values()].filter(p=>p.first&&new Date(p.first).getTime()>=start&&new Date(p.first).getTime()<end);
+      const rows=[...players.values()].filter(p=>allTime||(p.first&&new Date(p.first).getTime()>=start&&new Date(p.first).getTime()<end));
       const groups=[
         {title:"Withdrawn more than deposited",color:"#ff6666",rows:rows.filter(p=>p.withdrawals>p.deposits)},
         {title:"No withdrawals",color:"#67b7ff",rows:rows.filter(p=>p.withdrawals===0)},
         {title:"Withdrawn up to deposits",color:"#42e36c",rows:rows.filter(p=>p.withdrawals>0&&p.withdrawals<=p.deposits)}
       ];
-      host.innerHTML='<h3>FTD withdrawal analysis</h3><p class="muted small">First cash deposit in '+esc(rangeLabel())+' · Lifetime cash deposits including repeats versus approved/paid withdrawals · Agent credits excluded · Synced records only</p>'+
+      host.innerHTML='<h3>FTD withdrawal analysis</h3><p class="muted small">First cash deposit in '+esc(allTime?"All time":rangeLabel())+' · Lifetime cash deposits including repeats versus approved/paid withdrawals · Agent credits excluded · Synced records only</p>'+
         '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:16px 0">'+groups.map(g=>{
           const dep=g.rows.reduce((s,p)=>s+p.deposits,0),wd=g.rows.reduce((s,p)=>s+p.withdrawals,0);
           return '<div class="card" style="border-top:3px solid '+g.color+'"><div class="k">'+g.title+'</div><div class="v" style="color:'+g.color+'">'+num(g.rows.length)+'</div><div class="subv">'+(rows.length?(100*g.rows.length/rows.length).toFixed(1):"0.0")+'% of '+num(rows.length)+' FTD users</div><p>Deposits: '+money(dep)+'<br>Withdrawals: '+money(wd)+'<br>Deposits − withdrawals: '+money(dep-wd)+'</p></div>';
         }).join("")+'</div>'+groups.map(g=>'<details style="margin:12px 0"><summary>'+g.title+' · '+num(g.rows.length)+' customers</summary><div class="tableWrap"><table class="adminTable"><thead><tr><th>Username</th><th>First deposit date (IST)</th><th>Total cash deposits</th><th>Withdrawals</th><th>Deposits − withdrawals</th></tr></thead><tbody>'+g.rows.sort((a,b)=>(b.withdrawals-b.deposits)-(a.withdrawals-a.deposits)).map(p=>'<tr><td>'+esc(p.username)+'</td><td>'+when(p.first)+'</td><td>'+money(p.deposits)+'</td><td>'+money(p.withdrawals)+'</td><td>'+money(p.deposits-p.withdrawals)+'</td></tr>').join("")+'</tbody></table></div></details>').join("");
     }catch(error){if(host.dataset.request===token)host.innerHTML='<h3>FTD withdrawal analysis</h3><p class="adminMessage error">'+esc(error.message||"Unable to load analysis")+'</p>';}
   }
+
+  window.WinTurboFtdWithdrawalAnalysis=(hostId)=>loadFtdWithdrawalAnalysis(hostId,true);
 
   async function loadAll(){
     if(accessMode==="agent") return loadPlayers();
