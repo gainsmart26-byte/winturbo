@@ -6146,8 +6146,8 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
 <script>/* WINTURBO_SOCIAL_NAV_V60 */(function(){function ensure(){const nav=document.querySelector('#app .nav');if(!nav)return;let b=nav.querySelector('[data-s="socialManagement"]');if(!b){b=document.createElement('button');b.dataset.s='socialManagement';b.textContent='Social Media Management';const ua=nav.querySelector('[data-s="userAccess"]');ua?nav.insertBefore(b,ua):nav.appendChild(b)}b.style.display='';b.onclick=function(){document.querySelectorAll('#app section.section').forEach(x=>{x.classList.remove('on');x.style.display='none'});const sec=document.getElementById('socialManagement');if(sec){sec.classList.add('on');sec.style.setProperty('display','block','important')}nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));const t=document.getElementById('title');if(t)t.textContent='Social Media Management';if(window.WinTurboSocialManager)window.WinTurboSocialManager()}}window.addEventListener('load',()=>setTimeout(ensure,700));document.addEventListener('click',e=>{if(e.target.closest('#loginBtn'))setTimeout(ensure,1000)});window.WinTurboEnsureSocialNav=ensure})();</script>
 <script>/* WINTURBO_ACCESS_REQUESTS_V64 */(function(){function refresh(){window.WinTurboLoadSignupRequestsV39?.()}document.addEventListener('click',e=>{if(e.target.closest('button[data-s="userAccess"]'))setTimeout(refresh,250)});window.addEventListener('load',()=>setTimeout(refresh,1200))})();</script>
 <link rel="stylesheet" href="./performance-overview.css?v=20261021">
-<script src="./performance-overview-core.js?v=20261021"></script>
-<script src="./performance-overview.js?v=ftd-analysis-20261021"></script>
+<script src="./performance-overview-core.js?v=lead-count-20261021"></script>
+<script src="./performance-overview.js?v=lead-count-20261021"></script>
 </body>
 <script>/* WINTURBO_PASSWORD_RECOVERY_V65 */
 (function(){
