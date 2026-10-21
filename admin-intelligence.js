@@ -164,23 +164,12 @@
     const token=String(Date.now())+Math.random(); host.dataset.request=token;
     host.innerHTML='<h3>FTD withdrawal analysis</h3><p class="muted">Loading…</p>';
     try{
-      const read=async(table,columns,filter)=>{
-        let rows=[],offset=0;
-        for(;;){let q=sb.from(table).select(columns).order("id").range(offset,offset+999);q=filter(q);
-          const {data,error}=await q;if(error)throw error;
-          rows.push(...data);if(data.length<1000)return rows;offset+=1000;}
-      };
-      const [deposits,withdrawals]=await Promise.all([
-        read("admin_deposit_transactions","id,username,amount,requested_at,completed_at",q=>q.eq("status","CREDITED").in("source",["manual","gateway"])),
-        read("admin_withdrawal_transactions","id,username,amount",q=>q.in("status",["APPROVED","PAID"]))
-      ]);
+      const result=await sb.functions.invoke("ftd-withdrawal-analysis",{body:{}});
+      if(result.error){let detail;try{detail=await result.error.context?.json()}catch{}throw Error(detail?.error||result.error.message)}
+      if(result.data?.error)throw Error(result.data.error);
+      if(!Array.isArray(result.data?.players))throw Error("Financial analysis unavailable");
       if(host.dataset.request!==token)return;
-      const players=new Map();
-      for(const d of deposits){const date=d.completed_at||d.requested_at;if(!d.username)continue;
-        let p=players.get(d.username);if(!p){p={username:d.username,deposits:0,withdrawals:0,first:date};players.set(d.username,p);}
-        p.deposits+=Number(d.amount)||0;if(date&&(!p.first||date<p.first))p.first=date;
-      }
-      for(const w of withdrawals){const p=players.get(w.username);if(p)p.withdrawals+=Number(w.amount)||0;}
+      const players=new Map(result.data.players.map(p=>[p.username,p]));
       const r=range(),start=new Date(r.start+"T00:00:00+05:30").getTime(),end=new Date(r.end+"T00:00:00+05:30").getTime()+86400000;
       const rows=[...players.values()].filter(p=>allTime||(p.first&&new Date(p.first).getTime()>=start&&new Date(p.first).getTime()<end));
       const groups=[
