@@ -10,7 +10,7 @@
     for(const r of rows){const p=phone(r.phone);if(p)phones.set(p,phones.has(p)?null:r)}
     // A saved registered identity takes priority; phone-only uploads link only to a unique match.
     for(const record of records){let r=record.username?users.get(record.username.toLowerCase()):phones.get(phone(record.phone));
-      if(!r){r={key:record.lead_key,username:record.username,phone:record.phone,source:'Manual',record:null};rows.push(r)}
+      if(!r){r={key:record.lead_key,username:record.username,phone:record.phone,source:'Manual',match_ambiguous:!record.username&&phones.has(phone(record.phone))&&phones.get(phone(record.phone))===null,record:null};rows.push(r)}
       if(!r.record||new Date(record.updated_at)>new Date(r.record.updated_at))r.record=record;
     }
     return rows;
