@@ -4,9 +4,17 @@ const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'au
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
 const check=(r:any)=>{if(r.error)throw Error(r.error.message);return r.data};
 async function api(path:string,token:string,options:any={}){
+ const operation=path==='account'?'login':'call history';
  const r=await fetch('https://api.stringeex.com/v1/'+path,{...options,headers:{'Content-Type':'application/json',...(token?{'X-STRINGEE-AUTH':token}:{}),...options.headers},signal:AbortSignal.timeout(20000)});
- let data;try{data=await r.json()}catch{throw Error('StringeeX returned an unreadable response. Check API access for your account.')}
- if(!r.ok||Number(data.r)!==0)throw Error('StringeeX request rejected ('+r.status+'). Check the account login, API permissions or expired connection.');
+ const rejected=(data:any)=>{
+  const providerCode=typeof data?.r==='number'||/^-?\d+$/.test(String(data?.r))?String(data.r):'unavailable';
+  const message=String(data?.msg||data?.message||'');
+  const reason=/captcha/i.test(message)?'StringeeX requires CAPTCHA verification.':/two.factor|2fa|otp|verification code/i.test(message)?'StringeeX requires additional login verification.':/password|credential|email/i.test(message)?'StringeeX reports a login-credential problem.':/permission|privilege|not allowed|forbidden/i.test(message)?'StringeeX reports an access-permission restriction.':/token|expired/i.test(message)?'StringeeX reports an invalid or expired access token.':/ip address|allowlist|whitelist/i.test(message)?'StringeeX reports an IP access restriction.':r.status===403?'The provider refused access; the response does not establish whether this is account permission or server access filtering.':'The provider rejected this request.';
+  console.error(JSON.stringify({event:'stringeex_provider_rejection',operation,http_status:r.status,provider_code:providerCode,content_type:r.headers.get('content-type')?.split(';')[0],reason}));
+  return Error(`StringeeX ${operation} rejected (HTTP ${r.status}; provider code ${providerCode}). ${reason}`);
+ };
+ let data;try{data=await r.json()}catch{throw rejected(null)}
+ if(!r.ok||Number(data.r)!==0)throw rejected(data);
  return data;
 }
 Deno.serve(async(req:Request)=>{
@@ -71,8 +79,8 @@ Deno.serve(async(req:Request)=>{
    if(!token){
     if(!body.email||!body.password)throw Error('Enter your StringeeX email and password in this secure form.');
     const login=await api('account','',{method:'POST',body:JSON.stringify({email:String(body.email),password:String(body.password)})});
-    if(login.portals?.length!==1)throw Error('This login has multiple portals. Use the auth token for gainsmart.stringeex.com instead.');
-    token=login.portals[0]?.auth_token||login.auth_token;
+    if(Array.isArray(login.portals)&&login.portals.length>1)throw Error('This login has multiple portals. Use the auth token for gainsmart.stringeex.com instead.');
+    token=login.portals?.[0]?.auth_token||login.auth_token;
    }
    if(!token||token.length>20000)throw Error('StringeeX did not provide a usable auth token.');
    await api('call/history?version=2&direction=0&time='+(Date.now()-86400000)+'-'+Date.now(),token);
