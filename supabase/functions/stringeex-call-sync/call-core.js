@@ -27,8 +27,8 @@ export function analytics(players,records,contacts,calls,links=[],agents=[],filt
  const groups=new Map(),users=new Map(),missing=new Set();
  const validTime=v=>v&&Number.isFinite(Date.parse(v))?Date.parse(v):null;
  const day=v=>new Date(v).toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
- const group=p=>{p=phone(p);if(!p)return null;if(!groups.has(p))groups.set(p,{phone:p,usernames:[],sources:new Set(),arrivals:[],registrations:[],calls:[],notes:[]});return groups.get(p)};
- for(const p of players){users.set(String(p.username||'').toLowerCase(),p);const g=group(p.phone);if(!g){missing.add('user:'+p.username);continue}g.usernames.push(p.username);const t=validTime(p.registered_at);if(t!==null)g.registrations.push({at:new Date(t).toISOString(),date:day(t),precision:'exact',basis:'Registration time'})}
+ const group=p=>{p=phone(p);if(!p)return null;if(!groups.has(p))groups.set(p,{phone:p,usernames:[],sources:new Set(),arrivals:[],registrations:[],calls:[],notes:[],deposited:false});return groups.get(p)};
+ for(const p of players){users.set(String(p.username||'').toLowerCase(),p);const g=group(p.phone);if(!g){missing.add('user:'+p.username);continue}g.usernames.push(p.username);g.deposited=g.deposited||Number(p.lifetime_deposits)>0||Number(p.deposit_count)>0||p.ftd===true||Number(p.ftd)>0||/^(yes|true)$/i.test(String(p.ftd));const t=validTime(p.registered_at);if(t!==null)g.registrations.push({at:new Date(t).toISOString(),date:day(t),precision:'exact',basis:'Registration time'})}
  for(const r of records){const player=users.get(String(r.username||'').toLowerCase()),g=group(player?.phone||r.phone);if(!g){missing.add(r.lead_key);continue}if(r.notes&&!g.notes.includes(String(r.notes)))g.notes.push(String(r.notes));if(!r.lead_date&&!r.lead_source&&player)continue;g.sources.add(r.lead_source||'Manual');
   if(String(r.lead_source||'').trim().toLowerCase()==='manual'){
    const uploaded=validTime(r.created_at),legacy=uploaded!==null&&uploaded<Date.parse('2026-10-24T00:00:00+05:30');
@@ -54,8 +54,8 @@ export function analytics(players,records,contacts,calls,links=[],agents=[],filt
   const after=boundary===null?selected:selected.filter(c=>Date.parse(c.started_at)>=boundary),first=after[0]||null;
   const measurable=arrival?.precision==='exact'&&!arrival.basis.includes('arrival unavailable');
   const delay=first&&measurable?Math.floor((Date.parse(first.started_at)-boundary)/1000):null;
-  const row={phone:g.phone,usernames:g.usernames,notes:g.notes,sources:[...g.sources],arrival,first_call:first,last_call:selected.at(-1)||null,calls:selected,attempts:selected.length,attempts_after_arrival:after.length,calls_before_arrival:selected.length-after.length,delay_seconds:delay,state:first?'Called':selected.length?'Only calls before arrival':'No synced calls'};
-  if(filters.state==='called'&&!selected.length||filters.state==='pending'&&first)continue;
+  const row={phone:g.phone,usernames:g.usernames,notes:g.notes,has_deposit:g.deposited,sources:[...g.sources],arrival,first_call:first,last_call:selected.at(-1)||null,calls:selected,attempts:selected.length,attempts_after_arrival:after.length,calls_before_arrival:selected.length-after.length,delay_seconds:delay,state:g.deposited&&!selected.length?'Deposit done · no activation call needed':first?'Called':selected.length?'Only calls before arrival':'No synced calls'};
+  if(filters.state==='called'&&!selected.length||filters.state==='pending'&&(first||g.deposited))continue;
   rows.push(row);
  }
  rows.sort((a,b)=>(b.arrival?.date||'').localeCompare(a.arrival?.date||'')||a.phone.localeCompare(b.phone));

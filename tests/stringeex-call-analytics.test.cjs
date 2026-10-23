@@ -20,3 +20,5 @@ assert.equal(manual('2026-10-23T18:29:59Z').delay_seconds,300);
 assert.equal(manual('2026-10-23T18:30:00Z').arrival.at,'2026-10-23T18:30:00.000Z');
 assert.equal(manual('2026-10-23T18:30:00Z').first_call,null);
 console.log('PASS: manual baseline, IST midnight cutoff and future upload-time precedence');
+
+const deposited=context.analytics([{username:'paid',phone:'9876543210',lifetime_deposits:500}],[],[],[],[],[]);assert.equal(deposited.rows[0].has_deposit,true);assert.equal(context.analytics([{username:'paid',phone:'9876543210',deposit_count:1}],[],[],[],[],[],{state:'pending'}).rows.length,0);assert.equal(context.analytics([{username:'free',phone:'9876543210',lifetime_deposits:0}],[],[],[],[],[]).rows[0].has_deposit,false);console.log('PASS: deposit customers excluded from pending activation calls');
