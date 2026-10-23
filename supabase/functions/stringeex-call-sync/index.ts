@@ -3,6 +3,8 @@ import {phone,normalize,analytics} from './call-core.js';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store'}});
 const check=(r:any)=>{if(r.error)throw Error(r.error.message);return r.data};
+function serverToken(){return String(Deno.env.get('STRINGEE_API_KEY_SECRET')||'').trim()}
+function accessToken(connection:any){return serverToken()||connection?.auth_token||''}
 async function api(path:string,token:string,options:any={}){
  const operation=path==='account'?'login':'call history';
  const base=path.startsWith('call/history?')?'https://asia-2.api.stringeex.com/v1/':'https://api.stringeex.com/v1/';
@@ -49,9 +51,9 @@ Deno.serve(async(req:Request)=>{
    if(!p)return json({calls:[],message:'No valid phone number for this lead.'});
    const connection=check(await db.from('stringeex_connection').select('last_synced_at,auth_token').eq('id',1).maybeSingle());
    let refreshed_at=null,sync_error=null;
-   if(connection?.auth_token){try{
+   if(accessToken(connection)){try{
     const now=Date.now(),q=new URLSearchParams({version:'2',direction:'0',customer_number:p.length===10?'91'+p:p,time:(now-30*86400000)+'-'+now,sort_order:'desc',sort_by:'start_time'});
-    const recent=await api('call/history?'+q,connection.auth_token);
+    const recent=await api('call/history?'+q,accessToken(connection));
     if(!Array.isArray(recent.data?.rows))throw Error('Unexpected call-history format.');
     const incoming=recent.data.rows.map(normalize).filter((c:any)=>c&&c.phone===p);
     if(incoming.length)check(await db.from('stringeex_calls').upsert(incoming,{onConflict:'call_id'}));
@@ -61,7 +63,7 @@ Deno.serve(async(req:Request)=>{
    const links=check(await db.from('stringeex_agent_links').select('stringeex_id,user_id'));
    const agents=check(await db.from('leads_agents').select('user_id,name'));
    const names=new Map(agents.map((a:any)=>[a.user_id,a.name]));const mapped=new Map(links.map((l:any)=>[l.stringeex_id,names.get(l.user_id)]));
-   return json({connected:!!connection,last_synced_at:connection?.last_synced_at,refreshed_at,sync_error,calls:calls.map((c:any)=>({...c,agent_name:mapped.get(c.stringeex_agent_id)||c.agent_name,mapped:!!mapped.get(c.stringeex_agent_id)}))});
+   return json({connected:!!(serverToken()||connection),last_synced_at:connection?.last_synced_at,refreshed_at,sync_error,calls:calls.map((c:any)=>({...c,agent_name:mapped.get(c.stringeex_agent_id)||c.agent_name,mapped:!!mapped.get(c.stringeex_agent_id)}))});
   }
   if(!admin)return json({error:'Admin access required'},403);
   if(body.action==='analytics'){
@@ -72,17 +74,17 @@ Deno.serve(async(req:Request)=>{
     all('admin_players','username,phone,registered_at','username'),all('lead_intell_records','lead_key,username,phone,lead_date,created_at,lead_source','lead_key'),
     all('wati_contacts','phone,contact_created_at,first_seen_at','phone'),all('stringeex_calls','call_id,phone,stringeex_agent_id,agent_name,started_at,status,duration_seconds,talk_seconds','call_id'),
     all('stringeex_agent_links','stringeex_id,user_id','stringeex_id'),all('leads_agents','user_id,name','user_id'),db.from('stringeex_connection').select('last_synced_at,sync_cursor').eq('id',1).maybeSingle().then(check)]);
-   return json({...analytics(players,records,contacts,calls,links,agents,filters),connected:!!connection,last_synced_at:connection?.last_synced_at,pending:!!connection?.sync_cursor});
+   return json({...analytics(players,records,contacts,calls,links,agents,filters),connected:!!(serverToken()||connection),last_synced_at:connection?.last_synced_at,pending:!!connection?.sync_cursor});
   }
   if(body.action==='settings'){
    const connection=check(await db.from('stringeex_connection').select('updated_at,last_synced_at,sync_cursor').eq('id',1).maybeSingle());
    const agents=check(await db.from('leads_agents').select('user_id,name,is_active').order('name'));
    const links=check(await db.from('stringeex_agent_links').select('stringeex_id,user_id'));
    const observed=check(await db.from('stringeex_calls').select('stringeex_agent_id,agent_name').order('started_at',{ascending:false}).limit(1000));
-   return json({connected:!!connection,last_synced_at:connection?.last_synced_at,pending:!!connection?.sync_cursor,agents,links,observed:[...new Map(observed.filter((c:any)=>c.stringeex_agent_id).map((c:any)=>[c.stringeex_agent_id,c])).values()]});
+   return json({connected:!!(serverToken()||connection),last_synced_at:connection?.last_synced_at,pending:!!connection?.sync_cursor,agents,links,observed:[...new Map(observed.filter((c:any)=>c.stringeex_agent_id).map((c:any)=>[c.stringeex_agent_id,c])).values()]});
   }
   if(body.action==='connect'){
-   let token=String(body.auth_token||'').trim();
+   let token=String(body.auth_token||serverToken()).trim();
    if(!token){
     if(!body.email||!body.password)throw Error('Enter your StringeeX email and password in this secure form.');
     const login=await api('account','',{method:'POST',body:JSON.stringify({email:String(body.email),password:String(body.password)})});
@@ -101,7 +103,9 @@ Deno.serve(async(req:Request)=>{
    check(await db.from('stringeex_agent_links').upsert({stringeex_id:id,user_id:agent.user_id,updated_at:new Date().toISOString()}));return json({ok:true});
   }
   if(body.action==='sync'){
-   const connection=check(await db.from('stringeex_connection').select('*').eq('id',1).maybeSingle());if(!connection)return json({error:'Connect StringeeX first.'},409);
+   let connection=check(await db.from('stringeex_connection').select('*').eq('id',1).maybeSingle());
+   if(!connection&&serverToken()){check(await db.from('stringeex_connection').upsert({id:1,auth_token:'',updated_by:user.id},{onConflict:'id',ignoreDuplicates:true}));connection=check(await db.from('stringeex_connection').select('*').eq('id',1).maybeSingle())}
+   if(!accessToken(connection))return json({error:'Connect StringeeX first.'},409);
    const now=Date.now(),lease=new Date(now+90000).toISOString();
    const locked=check(await db.from('stringeex_connection').update({sync_locked_until:lease}).eq('id',1).or('sync_locked_until.is.null,sync_locked_until.lt.'+new Date(now).toISOString()).select('id'));
    if(!locked.length)return json({busy:true});
@@ -110,7 +114,7 @@ Deno.serve(async(req:Request)=>{
     const to=connection.sync_cursor?connection.sync_to:now;
     const q=new URLSearchParams({version:'2',direction:'0',time:from+'-'+to,sort_order:'asc',sort_by:'start_time'});
     for(const v of connection.sync_cursor||[])q.append('search_after[]',String(v));
-    const result=await api('call/history?'+q,connection.auth_token);const source=result.data?.rows;if(!Array.isArray(source))throw Error('Unexpected StringeeX call-history format.');
+    const result=await api('call/history?'+q,accessToken(connection));const source=result.data?.rows;if(!Array.isArray(source))throw Error('Unexpected StringeeX call-history format.');
     const rows=source.map(normalize).filter(Boolean);if(rows.length)check(await db.from('stringeex_calls').upsert(rows,{onConflict:'call_id'}));
     const cursor=result.data?.search_after;const pending=source.length>0&&Array.isArray(cursor)&&cursor.length>0&&JSON.stringify(cursor)!==JSON.stringify(connection.sync_cursor);
     check(await db.from('stringeex_connection').update({sync_cursor:pending?cursor:null,sync_from:pending?from:null,sync_to:pending?to:null,...(!pending?{last_synced_at:new Date(to).toISOString()}:{}),sync_locked_until:null}).eq('id',1).eq('sync_locked_until',lease));
