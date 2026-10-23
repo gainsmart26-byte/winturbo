@@ -7,7 +7,7 @@ function serverToken(){return String(Deno.env.get('STRINGEE_API_KEY_SECRET')||''
 function accessToken(connection:any){return serverToken()||connection?.auth_token||''}
 async function api(path:string,token:string,options:any={}){
  const operation=path==='account'?'login':'call history';
- const base=path.startsWith('call/log?')?'https://asia-2.api.stringeex.com/v1/':'https://api.stringeex.com/v1/';
+ const base=path.startsWith('call/log?')?'https://asia-2.api.stringee.com/v1/':'https://api.stringeex.com/v1/';
  let r;try{r=await fetch(base+path,{...options,headers:{'Content-Type':'application/json',...(token?{'X-STRINGEE-AUTH':token}:{}),...options.headers},redirect:'error',signal:AbortSignal.timeout(20000)});}catch(error){
   const detail=String((error as any)?.message||'');
   const kind=/dns|lookup|ENOTFOUND|EAI_AGAIN|Name or service not known/i.test(detail)?'dns':/timeout|abort/i.test(String((error as any)?.name)+' '+detail)?'timeout':'connection';
