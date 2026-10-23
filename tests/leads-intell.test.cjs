@@ -22,3 +22,5 @@ test('includes nondepositors and merges phone leads without dropping saved respo
 test('callback day uses IST across the UTC midnight boundary',()=>{
   assert.equal(C.day('2026-10-19T20:00:00Z'),'2026-10-20');
 });
+
+test('registration matching distinguishes unregistered and ambiguous phone leads',()=>{const rows=C.merge([{username:'a',phone:'9876543210'},{username:'b',phone:'9876543210'}],[{lead_key:'phone:9876543210',phone:'+919876543210'},{lead_key:'phone:9999900001',phone:'9999900001'}]);assert.equal(rows.find(x=>x.key==='phone:9876543210').registration,'Review needed');assert.equal(rows.find(x=>x.key==='phone:9999900001').registration,'Unregistered');assert.equal(rows[0].registration,'Registered')});

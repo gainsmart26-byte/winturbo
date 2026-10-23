@@ -5,12 +5,12 @@
   const username=v=>{const s=String(v??'').trim();return /^[A-Za-z0-9_.@-]{1,100}$/.test(s)?s:''};
   const day=(v=new Date())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(v));
   function merge(players,records){
-    const rows=players.map(p=>({...p,key:'user:'+p.username.toLowerCase(),source:'Registered',record:null}));
+    const rows=players.map(p=>({...p,key:'user:'+p.username.toLowerCase(),source:'Registered',registration:'Registered',record:null}));
     const users=new Map(rows.map(r=>[r.username.toLowerCase(),r])),phones=new Map();
     for(const r of rows){const p=phone(r.phone);if(p)phones.set(p,phones.has(p)?null:r)}
     // A saved registered identity takes priority; phone-only uploads link only to a unique match.
-    for(const record of records){let r=record.username?users.get(record.username.toLowerCase()):phones.get(phone(record.phone));
-      if(!r){r={key:record.lead_key,username:record.username,phone:record.phone,source:'Manual',record:null};rows.push(r)}
+    for(const record of records){const number=phone(record.phone);let r=(record.username?users.get(record.username.toLowerCase()):null)||phones.get(number);
+      if(!r){r={key:record.lead_key,username:record.username,phone:record.phone,source:'Manual',registration:number&&phones.has(number)&&phones.get(number)===null?'Review needed':'Unregistered',record:null};rows.push(r)}
       if(!r.record||new Date(record.updated_at)>new Date(r.record.updated_at))r.record=record;
     }
     return rows;

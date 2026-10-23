@@ -15,7 +15,7 @@ Deno.serve(async(req:Request)=>{
   const token=req.headers.get('Authorization')?.replace(/^Bearer\s+/i,'');if(!token)return json({error:'Sign in required'},401);
   const {data:{user},error:authError}=await db.auth.getUser(token);if(authError||!user)return json({error:'Sign in required'},401);
   const {data:profile,error:profileError}=await db.from('profiles').select('role,is_active').eq('id',user.id).single();if(profileError||!profile?.is_active)return json({error:'Access denied'},403);
-  const admin=profile.role==='admin',body=await req.json(),action=body.action;actionLabel=['agents','create_agent','update_agent','history','list','open','close','save','login'].includes(action)?action:'unknown';stage='validate_request';
+  const admin=profile.role==='admin',body=await req.json(),action=body.action;actionLabel=['agents','create_agent','update_agent','history','list','open','close','save','login','import'].includes(action)?action:'unknown';stage='validate_request';
   const check=(r:any)=>{if(r.error)throw Error(r.error.message);return r.data};
   if(['agents','create_agent','update_agent','history'].includes(action)){
    if(!admin)return json({error:'Admin access required'},403);
@@ -54,17 +54,36 @@ Deno.serve(async(req:Request)=>{
   }
   async function all(table:string,columns:string,order:string){let rows:any[]=[],start=0;for(;;){const batch=check(await db.from(table).select(columns).order(order).range(start,start+499));rows.push(...batch);if(batch.length<500)return rows;start+=batch.length}}
   const [players,records]=await Promise.all([all('admin_players','username,phone,ftd,lifetime_deposits,deposit_count,registered_at','username'),all('lead_intell_records','*','lead_key')]);
+  if(action==='import'){
+   stage='validate_lead_import';
+   if(!Array.isArray(body.items)||body.items.length<1||body.items.length>100)return json({error:'Import between 1 and 100 leads per request.'},400);
+   const keys=new Set(records.map((r:any)=>r.lead_key)),users=new Set([...players,...records].map((r:any)=>String(r.username||'').trim().toLowerCase()).filter(Boolean)),numbers=new Set([...players,...records].map((r:any)=>core.phone(r.phone)).filter(Boolean));
+   let skipped=0,invalid=0;const fresh:any[]=[];
+   for(const item of body.items){
+    if(!item||typeof item!=='object'||(item.phone!=null&&typeof item.phone!=='string')||(item.username!=null&&typeof item.username!=='string')){invalid++;continue}
+    const rawPhone=String(item.phone||'').trim(),rawUser=String(item.username||'').trim();
+    const number=core.phone(rawPhone),username=core.username(rawUser);
+    if((rawPhone&&!number)||(rawUser&&!username)||(!number&&!username)){invalid++;continue}
+    const lead_key=username?'user:'+username.toLowerCase():'phone:'+number;
+    if(keys.has(lead_key)||(username&&users.has(username.toLowerCase()))||(number&&numbers.has(number))){skipped++;continue}
+    keys.add(lead_key);if(username)users.add(username.toLowerCase());if(number)numbers.add(number);
+    // Only new identities can be inserted. Ignore client keys, ownership, response and status fields.
+    fresh.push({lead_key,username:username||null,phone:number||null,lead_source:'Manual',lead_date:core.day(),tags:['Agent Upload'],updated_by:user.id});
+   }
+   stage='insert_agent_leads';let added=0;if(fresh.length){const saved=check(await db.from('lead_intell_records').upsert(fresh,{onConflict:'lead_key',ignoreDuplicates:true}).select('lead_key'));added=saved.length;skipped+=fresh.length-added}
+   return json({ok:true,added,skipped,invalid});
+  }
   const names=new Map((await all('leads_agents','user_id,name','user_id')).map((x:any)=>[x.user_id,x.name]));const leads=core.merge(players,records),key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const opaque=async(value:string)=>Array.from(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))).map(v=>v.toString(16).padStart(2,'0')).join('');
   const mapped=await Promise.all(leads.map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
   if(action==='list'){
    const page=Math.max(0,Math.floor(Number(body.page)||0)),selected=mapped.slice(page*50,page*50+50);
-   return json({total:leads.length,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
+   return json({total:leads.length,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
   }
   const found=mapped.find((x:any)=>x.id===body.key);if(!found)return json({error:'Lead not found'},404);const l=found.lead;
   if(action==='open'){
    const session=check(await db.from('leads_agent_sessions').upsert({user_id:user.id,lead_key:l.record?.lead_key||l.key,edit_token:crypto.randomUUID(),expires_at:new Date(Date.now()+15*60000).toISOString()}).select('edit_token').single());
-   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,lifetime_deposits:l.lifetime_deposits,record:l.record?{response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
+   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,record:l.record?{response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
   }
   if(action==='close'){check(await db.from('leads_agent_sessions').delete().eq('user_id',user.id).eq('edit_token',body.edit_token));return json({ok:true})}
   if(action==='save'){
