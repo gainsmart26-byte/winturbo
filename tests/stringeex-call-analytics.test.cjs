@@ -2,7 +2,7 @@ const fs=require('fs'),vm=require('vm'),assert=require('assert/strict');
 const context={};vm.createContext(context);vm.runInContext(fs.readFileSync(__dirname+'/../supabase/functions/stringeex-call-sync/call-core.js','utf8').replace(/export /g,'')+';this.analytics=analytics;',context);
 const t='2026-10-22T10:00:00Z';
 const players=[{username:'a',phone:'919876543210',registered_at:'2026-10-20T10:00:00Z'},{username:'b',phone:'9876543211',registered_at:t},{username:'c',phone:'9876543212',registered_at:t},{username:'d',phone:null,registered_at:t},{username:'e',phone:'9876543213',registered_at:t}];
-const records=[{lead_key:'user:b',username:'b',phone:'9876543211',created_at:t,lead_date:'2026-10-22',lead_source:'Manual'},{lead_key:'user:e',username:'e',phone:'9876543213',created_at:'2026-10-23T10:00:00Z'}];
+const records=[{lead_key:'user:b',username:'b',phone:'9876543211',created_at:t,lead_date:'2026-10-22',lead_source:'Imported partner'},{lead_key:'user:e',username:'e',phone:'9876543213',created_at:'2026-10-23T10:00:00Z'}];
 const contacts=[{phone:'+919876543210',contact_created_at:t},{phone:'9876543210',contact_created_at:'2026-10-22T11:00:00Z'}];
 const calls=[{call_id:'old',phone:'9876543210',started_at:'2026-10-22T09:59:00Z',stringeex_agent_id:'ac1',agent_name:'Stringee caller',status:'Answered'},{call_id:'first',phone:'919876543210',started_at:'2026-10-22T10:05:00Z',stringeex_agent_id:'ac1',agent_name:'Stringee caller',status:'Unanswered'},{call_id:'repeat',phone:'9876543210',started_at:'2026-10-22T10:20:00Z',stringeex_agent_id:'ac2',agent_name:'Caller 2',status:'Answered'},{call_id:'date-only',phone:'9876543211',started_at:'2026-10-22T10:10:00Z',status:'Answered'}];
 const calc=filters=>context.analytics(players,records,contacts,calls,[{stringeex_id:'ac1',user_id:'id1'}],[{user_id:'id1',name:'Mapped agent'}],filters||{});
@@ -13,3 +13,10 @@ assert.equal(calc({agent:'ac2'}).stats.average_seconds,1200);assert.equal(calc({
 const empty=context.analytics(players,records,contacts,[],[],[]);assert.equal(empty.stats.average_seconds,null);assert.equal(empty.stats.called,0);
 const before=context.analytics(players,records,contacts,[calls[0]],[],[]);assert.equal(before.rows.find(r=>r.phone==='9876543210').state,'Only calls before arrival');assert.equal(before.stats.average_seconds,null);
 console.log('PASS: phone deduplication, source arrival precedence, excluded pre-arrival calls, first unanswered attempt, repeat calls, date-only exclusion, missing phone, agent mapping, filters, empty call coverage');
+
+const manual=(created_at)=>context.analytics([],[{lead_key:'phone:9876543210',phone:'9876543210',created_at,lead_date:'2026-10-01',lead_source:'Manual'}],[],[{call_id:'m',phone:'9876543210',started_at:'2026-10-19T08:35:00Z'}],[],[]).rows[0];
+assert.equal(manual('2026-10-23T18:29:59Z').arrival.at,'2026-10-19T08:30:00.000Z');
+assert.equal(manual('2026-10-23T18:29:59Z').delay_seconds,300);
+assert.equal(manual('2026-10-23T18:30:00Z').arrival.at,'2026-10-23T18:30:00.000Z');
+assert.equal(manual('2026-10-23T18:30:00Z').first_call,null);
+console.log('PASS: manual baseline, IST midnight cutoff and future upload-time precedence');

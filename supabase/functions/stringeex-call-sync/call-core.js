@@ -30,7 +30,12 @@ export function analytics(players,records,contacts,calls,links=[],agents=[],filt
  const group=p=>{p=phone(p);if(!p)return null;if(!groups.has(p))groups.set(p,{phone:p,usernames:[],sources:new Set(),arrivals:[],registrations:[],calls:[],notes:[]});return groups.get(p)};
  for(const p of players){users.set(String(p.username||'').toLowerCase(),p);const g=group(p.phone);if(!g){missing.add('user:'+p.username);continue}g.usernames.push(p.username);const t=validTime(p.registered_at);if(t!==null)g.registrations.push({at:new Date(t).toISOString(),date:day(t),precision:'exact',basis:'Registration time'})}
  for(const r of records){const player=users.get(String(r.username||'').toLowerCase()),g=group(player?.phone||r.phone);if(!g){missing.add(r.lead_key);continue}if(r.notes&&!g.notes.includes(String(r.notes)))g.notes.push(String(r.notes));if(!r.lead_date&&!r.lead_source&&player)continue;g.sources.add(r.lead_source||'Manual');
-  if(r.lead_date&&/^\d{4}-\d{2}-\d{2}$/.test(r.lead_date))g.arrivals.push({at:null,date:r.lead_date,precision:'date',basis:'Imported lead date (time unavailable)'});
+  if(String(r.lead_source||'').trim().toLowerCase()==='manual'){
+   const uploaded=validTime(r.created_at),legacy=uploaded!==null&&uploaded<Date.parse('2026-10-24T00:00:00+05:30');
+   const t=legacy?(validTime(r.arrival_override_at)??Date.parse('2026-10-19T14:00:00+05:30')):uploaded;
+   if(t!==null)g.arrivals.push({at:new Date(t).toISOString(),date:day(t),precision:'exact',basis:legacy?'Manual lead arrival (configured baseline)':'Manual lead upload time'});
+  }
+  else if(r.lead_date&&/^\d{4}-\d{2}-\d{2}$/.test(r.lead_date))g.arrivals.push({at:null,date:r.lead_date,precision:'date',basis:'Imported lead date (time unavailable)'});
   else{const t=validTime(r.created_at);if(t!==null)g.arrivals.push({at:new Date(t).toISOString(),date:day(t),precision:'exact',basis:'Added to WinTurbo (upload time)'})}
  }
  for(const w of contacts){const g=group(w.phone);if(!g)continue;g.sources.add('WATI');const t=validTime(w.contact_created_at);if(t!==null)g.arrivals.push({at:new Date(t).toISOString(),date:day(t),precision:'exact',basis:'WATI contact created'});else{const seen=validTime(w.first_seen_at);if(seen!==null)g.arrivals.push({at:new Date(seen).toISOString(),date:day(seen),precision:'exact',basis:'First WATI sync (arrival unavailable)'})}}

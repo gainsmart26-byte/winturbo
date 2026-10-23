@@ -71,7 +71,7 @@ Deno.serve(async(req:Request)=>{
    if(filters.from&&filters.to&&filters.from>filters.to)throw Error('From date must be on or before To date.');
    async function all(table:string,columns:string,order:string){let rows:any[]=[];for(let offset=0;;offset+=500){const batch=check(await db.from(table).select(columns).order(order).range(offset,offset+499));rows.push(...batch);if(batch.length<500)return rows}}
    const [players,records,contacts,calls,links,agents,connection]=await Promise.all([
-    all('admin_players','username,phone,registered_at','username'),all('lead_intell_records','lead_key,username,phone,lead_date,created_at,lead_source,notes','lead_key'),
+    all('admin_players','username,phone,registered_at','username'),all('lead_intell_records','lead_key,username,phone,lead_date,created_at,lead_source,notes,arrival_override_at','lead_key'),
     all('wati_contacts','phone,contact_created_at,first_seen_at','phone'),all('stringeex_calls','call_id,phone,stringeex_agent_id,agent_name,started_at,status,duration_seconds,talk_seconds','call_id'),
     all('stringeex_agent_links','stringeex_id,user_id','stringeex_id'),all('leads_agents','user_id,name','user_id'),db.from('stringeex_connection').select('last_synced_at,sync_cursor').eq('id',1).maybeSingle().then(check)]);
    return json({...analytics(players,records,contacts,calls,links,agents,filters),connected:!!(serverToken()||connection),last_synced_at:connection?.last_synced_at,pending:!!connection?.sync_cursor});
