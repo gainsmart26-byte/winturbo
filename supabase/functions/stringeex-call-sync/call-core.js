@@ -5,6 +5,13 @@ export function phone(value){
  return /^\d{7,15}$/.test(s)?s:'';
 }
 export function normalize(row){
+ // Call API logs use internal/external legs, unlike StringeeX history direction.
+ if('to_number' in row){
+  if(Number(row.to_internal)!==0||!(Number(row.from_internal)===1||row.from_user_id))return null;
+  let number=String(row.to_number||'');try{number=decodeURIComponent(number)}catch{}
+  row={...row,direction:0,customer_number:number,account:row.from_user_id||null,account_name:row.from_alias||'Unmapped StringeeX agent',end_time:row.stop_time,status:Number(row.answer_time)>0||Number(row.answer_duration)>0?1:2,talk_duration:row.answer_duration};
+ }
+
  if(Number(row.direction)!==0)return null;
  const p=phone(row.customer_number),start=Number(row.start_time);
  if(!p||!row.id||!Number.isFinite(start)||start<=0)return null;
