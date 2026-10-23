@@ -7,7 +7,7 @@ function serverToken(){return String(Deno.env.get('STRINGEE_API_KEY_SECRET')||''
 function accessToken(connection:any){return serverToken()||connection?.auth_token||''}
 async function api(path:string,token:string,options:any={}){
  const operation=path==='account'?'login':'call history';
- const base=path.startsWith('call/history?')?'https://asia-2.api.stringeex.com/v1/':'https://api.stringeex.com/v1/';
+ const base=path.startsWith('call/log?')?'https://asia-2.api.stringeex.com/v1/':'https://api.stringeex.com/v1/';
  let r;try{r=await fetch(base+path,{...options,headers:{'Content-Type':'application/json',...(token?{'X-STRINGEE-AUTH':token}:{}),...options.headers},redirect:'error',signal:AbortSignal.timeout(20000)});}catch(error){
   const detail=String((error as any)?.message||'');
   const kind=/dns|lookup|ENOTFOUND|EAI_AGAIN|Name or service not known/i.test(detail)?'dns':/timeout|abort/i.test(String((error as any)?.name)+' '+detail)?'timeout':'connection';
@@ -53,7 +53,7 @@ Deno.serve(async(req:Request)=>{
    let refreshed_at=null,sync_error=null;
    if(accessToken(connection)){try{
     const now=Date.now(),q=new URLSearchParams({version:'2',direction:'0',customer_number:p.length===10?'91'+p:p,time:(now-30*86400000)+'-'+now,sort_order:'desc',sort_by:'start_time'});
-    const recent=await api('call/history?'+q,accessToken(connection));
+    const recent=await api('call/log?'+q,accessToken(connection));
     if(!Array.isArray(recent.data?.rows))throw Error('Unexpected call-history format.');
     const incoming=recent.data.rows.map(normalize).filter((c:any)=>c&&c.phone===p);
     if(incoming.length)check(await db.from('stringeex_calls').upsert(incoming,{onConflict:'call_id'}));
@@ -92,7 +92,7 @@ Deno.serve(async(req:Request)=>{
     token=login.portals?.[0]?.auth_token||login.auth_token;
    }
    if(!token||token.length>20000)throw Error('StringeeX did not provide a usable auth token.');
-   await api('call/history?version=2&direction=0&time='+(Date.now()-86400000)+'-'+Date.now(),token);
+   await api('call/log?version=2&direction=0&time='+(Date.now()-86400000)+'-'+Date.now(),token);
    check(await db.from('stringeex_connection').upsert({id:1,auth_token:token,updated_by:user.id,updated_at:new Date().toISOString(),sync_cursor:null,sync_from:null,sync_to:null,sync_locked_until:null}));
    return json({ok:true});
   }
@@ -114,7 +114,7 @@ Deno.serve(async(req:Request)=>{
     const to=connection.sync_cursor?connection.sync_to:now;
     const q=new URLSearchParams({version:'2',direction:'0',time:from+'-'+to,sort_order:'asc',sort_by:'start_time'});
     for(const v of connection.sync_cursor||[])q.append('search_after[]',String(v));
-    const result=await api('call/history?'+q,accessToken(connection));const source=result.data?.rows;if(!Array.isArray(source))throw Error('Unexpected StringeeX call-history format.');
+    const result=await api('call/log?'+q,accessToken(connection));const source=result.data?.rows;if(!Array.isArray(source))throw Error('Unexpected StringeeX call-history format.');
     const rows=source.map(normalize).filter(Boolean);if(rows.length)check(await db.from('stringeex_calls').upsert(rows,{onConflict:'call_id'}));
     const cursor=result.data?.search_after;const pending=source.length>0&&Array.isArray(cursor)&&cursor.length>0&&JSON.stringify(cursor)!==JSON.stringify(connection.sync_cursor);
     check(await db.from('stringeex_connection').update({sync_cursor:pending?cursor:null,sync_from:pending?from:null,sync_to:pending?to:null,...(!pending?{last_synced_at:new Date(to).toISOString()}:{}),sync_locked_until:null}).eq('id',1).eq('sync_locked_until',lease));
