@@ -6,7 +6,13 @@ const check=(r:any)=>{if(r.error)throw Error(r.error.message);return r.data};
 async function api(path:string,token:string,options:any={}){
  const operation=path==='account'?'login':'call history';
  const base=path.startsWith('call/history?')?'https://asia-2.api.stringeex.com/v1/':'https://api.stringeex.com/v1/';
- const r=await fetch(base+path,{...options,headers:{'Content-Type':'application/json',...(token?{'X-STRINGEE-AUTH':token}:{}),...options.headers},redirect:'error',signal:AbortSignal.timeout(20000)});
+ let r;try{r=await fetch(base+path,{...options,headers:{'Content-Type':'application/json',...(token?{'X-STRINGEE-AUTH':token}:{}),...options.headers},redirect:'error',signal:AbortSignal.timeout(20000)});}catch(error){
+  const detail=String((error as any)?.message||'');
+  const kind=/dns|lookup|ENOTFOUND|EAI_AGAIN|Name or service not known/i.test(detail)?'dns':/timeout|abort/i.test(String((error as any)?.name)+' '+detail)?'timeout':'connection';
+  const host=base.split('/')[2];
+  console.error(JSON.stringify({event:'stringeex_transport_failure',operation,host,kind}));
+  throw Error(kind==='dns'?`StringeeX ${operation} could not resolve ${host}. Confirm the API hostname with StringeeX support; authorization has not been checked.`:kind==='timeout'?`StringeeX ${operation} timed out connecting to ${host}. Retry later.`:`StringeeX ${operation} could not connect to ${host}. Check provider availability and retry.`);
+ }
  const rejected=(data:any)=>{
   const providerCode=typeof data?.r==='number'||/^-?\d+$/.test(String(data?.r))?String(data.r):'unavailable';
   const message=String(data?.msg||data?.message||'');
