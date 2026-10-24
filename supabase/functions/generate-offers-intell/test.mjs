@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
-import {validateRequest,finalize} from './generator-core.mjs';
+import {validateRequest,finalize,offerSchema} from './generator-core.mjs';
 const body={brief:'First-deposit offer for new adult sports customers',type:'First Deposit Bonus',vertical:'Sports',audience:'New adult customers',start:'2026-10-24',end:'2099-10-31',assumptions:{deposit:500,cap:750,hold:2.5,completion:50,redemption:100,fees:2,other:25,customers:100,budget:75000}};
 const input=validateRequest(body),offer={title:'New customer offer',type:'First Deposit Bonus',percent:150,cap:750,amount:0,multiplier:60,basis:'deposit',days:7,rationale:'A capped first-deposit proposal.'};
 const raw={offers:[offer,offer,offer]},[a]=finalize(raw,input);
@@ -23,4 +23,17 @@ assert.equal((await handle(request(body),env,clientFactory(false),provider)).sta
 assert.equal((await handle(request({...body,brief:'short'}),env,clientFactory(true),provider)).status,400);assert.equal(calls,0);
 const response=await handle(request(body),env,clientFactory(true),provider);assert.equal(response.status,200);const result=await response.json();assert.equal(result.offers.length,3);assert.equal(calls,1);
 assert.equal((await handle(request(body),env,clientFactory(true),async()=>Response.json({}, {status:429}))).status,502);
+// Internal warnings must not be mistaken for customer promises.
+const warning={...offer,rationale:'There is no guaranteed profit. Customers should not try to recover their losses.'};
+assert.equal(finalize({offers:[warning,warning,warning]},input).length,3);
+assert.throws(()=>finalize({offers:[{...offer,title:'Guaranteed winnings'},offer,offer]},input));
+const flatSchema=offerSchema('No Deposit Bonus').properties.offers.items.anyOf[0].properties;
+assert.deepEqual(flatSchema.percent.enum,[0]);assert.deepEqual(flatSchema.cap.enum,[0]);assert.deepEqual(flatSchema.basis.enum,['bonus']);
+assert.deepEqual(offerSchema('First Deposit Bonus').properties.offers.items.anyOf[0].properties.amount.enum,[0]);
+let attempts=0;
+const retryProvider=async(_url,options)=>{attempts++;const payload=JSON.parse(options.body);if(attempts===2)assert.match(JSON.parse(payload.input).repair.validation_error,/bonus cap/);return Response.json({status:'completed',output_text:JSON.stringify(attempts===1?{offers:[{...offer,cap:751},offer,offer]}:raw)});};
+const repaired=await handle(request(body),env,clientFactory(true),retryProvider);assert.equal(repaired.status,200);assert.equal(attempts,2);
+attempts=0;
+const failed=await handle(request(body),env,clientFactory(true),async()=>{attempts++;return Response.json({status:'completed',output_text:JSON.stringify({offers:[{...offer,cap:751},offer,offer]})});});
+assert.equal(failed.status,502);assert.equal(attempts,2);const issue=await failed.json();assert.equal(issue.code,'OFFER_VALIDATION_FAILED');assert.match(issue.error,/bonus cap/);assert.match(issue.error,/750/);
 console.log('PASS: math, draft T&C, caps, dates, type limits, no-deposit basis, input validation, unauthorized/non-admin rejection, authenticated generation and provider error handling');
