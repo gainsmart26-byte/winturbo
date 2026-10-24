@@ -15,13 +15,21 @@ export function validateRequest(b){
  const today=new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});if(end<today)throw Error('Offer end date is in the past.');
  return{brief,assumptions:p,type,vertical:b.vertical,audience:text(b.audience,'audience',160),start,end};
 }
-export const schema={type:'object',additionalProperties:false,properties:{offers:{type:'array',items:{type:'object',additionalProperties:false,properties:{title:{type:'string'},type:{type:'string',enum:TYPES},percent:{type:'number'},cap:{type:'number'},amount:{type:'number'},multiplier:{type:'number'},basis:{type:'string',enum:['deposit','bonus']},days:{type:'integer'},rationale:{type:'string'}},required:['title','type','percent','cap','amount','multiplier','basis','days','rationale']}}},required:['offers']};
+export function offerSchema(type='Auto'){
+ const kinds=type==='Auto'?TYPES:[type];
+ const variants=kinds.map(kind=>{const flat=kind==='No Deposit Bonus';return{type:'object',additionalProperties:false,properties:{title:{type:'string'},type:{type:'string',enum:[kind]},percent:flat?{type:'number',enum:[0]}:{type:'number'},cap:flat?{type:'number',enum:[0]}:{type:'number'},amount:flat?{type:'number'}:{type:'number',enum:[0]},multiplier:{type:'number'},basis:{type:'string',enum:flat?['bonus']:['deposit','bonus']},days:{type:'integer'},rationale:{type:'string'}},required:['title','type','percent','cap','amount','multiplier','basis','days','rationale']};});
+ return{type:'object',additionalProperties:false,properties:{offers:{type:'array',items:{anyOf:variants}}},required:['offers']};
+}
+export const schema=offerSchema();
 export function finalize(raw,input){
  if(!Array.isArray(raw?.offers)||raw.offers.length!==3)throw Error('Generator must return three offer drafts. Try again.');
  return raw.offers.map(o=>{
   if(!TYPES.includes(o.type)||(input.type!=='Auto'&&o.type!==input.type))throw Error('Generated offer used an unsupported type. Try again.');
   const title=text(o.title,'offer title',160),rationale=text(o.rationale,'rationale',1200);
-  if(/guaranteed (profit|win|return)|risk.free|always win|recover.*loss/i.test(title+' '+rationale))throw Error('Generator returned an unsupported promise. Rephrase the explanation.');
+  // Rationale is internal analysis; warnings such as "no guaranteed profit" are valid.
+  // Player-facing terms and economics are generated deterministically below.
+  const titleClaims=title.replace(/\b(?:no|not|without)\s+(?:any\s+)?guaranteed\s+(?:profits?|wins?|winnings|returns?)\b/gi,'');
+  if(/guaranteed (profit|win|return)|risk.free|always win|recover.*loss/i.test(titleClaims))throw Error('Generated title contains an unsupported winnings promise.');
   const flat=o.type==='No Deposit Bonus';const percent=number(o.percent,'match percentage',0,1000),cap=number(o.cap,'bonus cap',0,input.assumptions.cap),amount=number(o.amount,'bonus amount',0,input.assumptions.cap);
   const multiplier=number(o.multiplier,'wagering multiplier',1,200),days=number(o.days,'wagering days',1,365);if(!Number.isInteger(days))throw Error('Invalid wagering days.');
   if(!['deposit','bonus'].includes(o.basis)||flat&&o.basis!=='bonus')throw Error('Invalid wagering basis.');
