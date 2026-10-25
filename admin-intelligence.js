@@ -102,7 +102,7 @@
         <div class="sectionHead adminPlayerHead"><div><h3>Player databank</h3><div id="adminResultCount" class="muted small">Loading…</div></div>
           <div class="adminFilters"><input id="adminSearch" placeholder="Search username, phone or email"><select id="adminStatus"><option value="">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option></select><button id="adminExport" class="ghost">Export CSV</button></div>
         </div>
-        <div class="tableWrap"><table class="adminTable"><thead><tr><th>Player</th><th>Status</th><th>Registered at (IST)</th><th>FTD</th><th>Last deposit</th><th>Deposits</th><th>GGR</th><th>NGR</th><th>Agent / Upline</th><th>Notes</th></tr></thead><tbody id="adminPlayerRows"></tbody></table></div>
+        <div class="tableWrap"><table class="adminTable"><thead><tr><th>Player</th><th>Status</th><th>Registered at (IST)</th><th>FTD</th><th>Last deposit</th><th>Deposits</th><th>Lifetime withdrawals</th><th>GGR</th><th>NGR</th><th>Agent / Upline</th><th>Notes</th></tr></thead><tbody id="adminPlayerRows"></tbody></table></div>
         <div class="adminPager"><button id="adminPrev" class="ghost">Previous</button><span id="adminPage">Page 1</span><button id="adminNext" class="ghost">Next</button></div>
       </div>
       <div id="playerNotesModal" class="adminNotesModal" hidden><div class="adminNotesPanel"><div class="sectionHead"><div><h3 id="playerNotesTitle">Client notes</h3><div id="playerNotesMeta" class="muted small"></div></div><button id="playerNotesClose" class="ghost">Close</button></div><div id="playerNotesHistory" class="adminNotesHistory"></div><div class="adminNoteComposer"><select id="playerNoteType"><option value="general">General</option><option value="follow_up">Follow-up</option><option value="deposit">Deposit</option><option value="non_ftd">Non FTD</option><option value="payment">Payment</option></select><textarea id="playerNoteText" maxlength="2000" placeholder="Write a note for this client…"></textarea><button id="playerNoteSave" class="primary">Save note</button></div></div></div>`;
@@ -286,7 +286,7 @@
     if(page>0 && !data.length){page--;return loadPlayers()}
     lastRows=data||[]; $("adminResultCount").textContent=`${num(count)} matching players`; $("adminPage").textContent=`Page ${page+1}`;
     $("adminPrev").disabled=page===0; $("adminNext").disabled=(page+1)*size>=(count||0);
-    $("adminPlayerRows").innerHTML=data.length?data.map(p=>`<tr><td><b>${esc(p.username)}</b><small>${esc(p.phone||"No phone")}<br>${esc(p.email||"No email")}</small></td><td><span class="adminStatus ${esc(p.status)}">${esc(p.status)}</span></td><td class="adminRegisteredAt"><b>${registrationDate(p.registered_at)}</b><small>${registrationTime(p.registered_at)}</small></td><td>${p.ftd?'<span class="adminYes">Yes</span><small>'+when(p.ftd_at)+'</small>':'No'}</td><td>${when(p.last_deposit_at)}</td><td><b>${money(p.lifetime_deposits)}</b></td><td class="${Number(p.ggr)<0?'adminNegative':''}">${money(p.ggr)}</td><td class="${Number(p.ngr)<0?'adminNegative':''}"><b>${money(p.ngr)}</b></td><td><b>${esc(p.agent?.username||"Unassigned")}</b><small>${esc((p.upline||[]).map(x=>x.username).join(" → ")||"—")}</small></td><td><button class="mini adminNotesButton" data-username="${esc(p.username)}">Notes</button></td></tr>`).join(""):'<tr><td colspan="10" class="muted">No matching players.</td></tr>';
+    $("adminPlayerRows").innerHTML=data.length?data.map(p=>`<tr><td><b>${esc(p.username)}</b><small>${esc(p.phone||"No phone")}<br>${esc(p.email||"No email")}</small></td><td><span class="adminStatus ${esc(p.status)}">${esc(p.status)}</span></td><td class="adminRegisteredAt"><b>${registrationDate(p.registered_at)}</b><small>${registrationTime(p.registered_at)}</small></td><td>${p.ftd?'<span class="adminYes">Yes</span><small>'+when(p.ftd_at)+'</small>':'No'}</td><td>${when(p.last_deposit_at)}</td><td><b>${money(p.lifetime_deposits)}</b></td><td class="adminLifetimeWithdrawal"><b>${p.lifetime_withdrawals==null?"—":money(p.lifetime_withdrawals)}</b><small>All time · synced admin total</small></td><td class="${Number(p.ggr)<0?'adminNegative':''}">${money(p.ggr)}</td><td class="${Number(p.ngr)<0?'adminNegative':''}"><b>${money(p.ngr)}</b></td><td><b>${esc(p.agent?.username||"Unassigned")}</b><small>${esc((p.upline||[]).map(x=>x.username).join(" → ")||"—")}</small></td><td><button class="mini adminNotesButton" data-username="${esc(p.username)}">Notes</button></td></tr>`).join(""):'<tr><td colspan="11" class="muted">No matching players.</td></tr>';
   }
 
   async function loadTimeSlots(){
@@ -388,9 +388,9 @@
 
   function exportCsv(){
     if(!lastRows.length)return message("There are no visible rows to export.",true);
-    const head=["Username","Phone","Email","Status","Registered At","FTD","FTD At","Last Deposit At","Lifetime Deposits","GGR","NGR","Agent","Upline"];
+    const head=["Username","Phone","Email","Status","Registered At","FTD","FTD At","Last Deposit At","Lifetime Deposits","Lifetime Withdrawals","GGR","NGR","Agent","Upline"];
     const quote=v=>`"${String(v??"").replaceAll('"','""')}"`;
-    const rows=lastRows.map(p=>[p.username,p.phone,p.email,p.status,p.registered_at,p.ftd,p.ftd_at,p.last_deposit_at,p.lifetime_deposits,p.ggr,p.ngr,p.agent?.username,(p.upline||[]).map(x=>x.username).join(" > ")]);
+    const rows=lastRows.map(p=>[p.username,p.phone,p.email,p.status,p.registered_at,p.ftd,p.ftd_at,p.last_deposit_at,p.lifetime_deposits,p.lifetime_withdrawals,p.ggr,p.ngr,p.agent?.username,(p.upline||[]).map(x=>x.username).join(" > ")]);
     const blob=new Blob([[head,...rows].map(r=>r.map(quote).join(",")).join("\n")],{type:"text/csv;charset=utf-8"});
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`winturbo-players-${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(a.href);
   }
