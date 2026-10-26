@@ -84,20 +84,6 @@
         <div class="sectionHead"><div><h3>Deposits received</h3><div id="adminDepositRangeNote" class="muted small">Credited API deposit transactions for the selected date range.</div></div><span class="pill">LIVE LEDGER</span></div>
         <div class="tableWrap"><table class="adminTable"><thead><tr><th>Username</th><th>Deposit received</th><th>Detected at</th><th>Lifetime total</th><th>Phone</th><th>Agent</th></tr></thead><tbody id="adminDailyDepositRows"></tbody></table></div>
       </div>
-      <div class="card adminCommissionCard">
-        <div class="sectionHead"><div><h3>Agent commission authorization</h3><div class="muted small">Authorize up to 50 agents and connect each dashboard user to their WinTurbo agent username.</div></div><span class="pill">50 AGENT SLOTS</span></div>
-        <div class="adminCommissionForm">
-          <label>Agent slot<select id="agentSlot"></select></label>
-          <label>Agent name<input id="agentName" placeholder="Agent name"></label>
-          <label>WinTurbo agent username<input id="agentUsername" placeholder="e.g. winturbo1"></label>
-          <label>Dashboard user<select id="agentProfile"><option value="">No dashboard login</option></select></label>
-          <label>Commission type<select id="agentCommissionType"><option value="percentage">Percentage</option><option value="fixed">Fixed amount</option></select></label>
-          <label>Commission value<input id="agentCommissionValue" type="number" min="0" step="0.01" value="0"></label>
-          <label class="adminAgentCheck"><input id="agentAuthorized" type="checkbox"> Authorized</label>
-          <button id="agentSave" class="primary">Save agent</button>
-        </div>
-        <div id="agentAuthorizationList" class="adminAgentAuthorizationList"></div>
-      </div>
       <div class="card adminPlayersCard">
         <div class="sectionHead adminPlayerHead"><div><h3>Player databank</h3><div id="adminResultCount" class="muted small">Loading…</div></div>
           <div class="adminFilters"><input id="adminSearch" placeholder="Search username, phone or email"><select id="adminStatus"><option value="">All statuses</option><option value="active">Active</option><option value="blocked">Blocked</option></select><button id="adminExport" class="ghost">Export CSV</button></div>
@@ -121,11 +107,8 @@
     $("adminExport").addEventListener("click",exportCsv);
     $("playerNotesClose").addEventListener("click",closeNotes);
     $("playerNoteSave").addEventListener("click",saveNote);
-    $("agentSave").addEventListener("click",saveAgent);
-    $("agentSlot").innerHTML=Array.from({length:50},(_,i)=>`<option value="${i+1}">Agent ${i+1}</option>`).join("");
-    $("agentSlot").addEventListener("change",fillAgentSlot);
     document.addEventListener("click",e=>{const b=e.target.closest(".adminNotesButton");if(b)openNotes(b.dataset.username)});
-    if(accessMode==="agent") document.querySelectorAll(".adminHeroActions,.adminDatePanel,.adminMetrics,.adminSegments,.adminGrid,.adminDailyDepositsCard,.adminCommissionCard").forEach(x=>x.hidden=true);
+    if(accessMode==="agent") document.querySelectorAll(".adminHeroActions,.adminDatePanel,.adminMetrics,.adminSegments,.adminGrid,.adminDailyDepositsCard").forEach(x=>x.hidden=true);
     const today=istDate(); $("adminDateFrom").value=today; $("adminDateTo").value=today;
     $("adminApplyDates").addEventListener("click",applyRange);
     document.querySelectorAll("[data-admin-range]").forEach(b=>b.addEventListener("click",()=>setPreset(b.dataset.adminRange)));
@@ -189,7 +172,7 @@
 
   async function loadAll(){
     if(accessMode==="agent") return loadPlayers();
-    await Promise.all([loadSummary(),loadPlayers(),loadState(),loadAgents(),loadTimeSlots(),loadFtdWithdrawalAnalysis()]);
+    await Promise.all([loadSummary(),loadPlayers(),loadState(),loadTimeSlots(),loadFtdWithdrawalAnalysis()]);
   }
 
   async function loadSummary(){
@@ -312,41 +295,6 @@
     }).join("");
   }
 
-  let agentRows=[];
-  async function loadAgents(){
-    const [{data:rows,error},{data:profiles}]=await Promise.all([
-      sb.from("admin_agent_commissions").select("*").order("slot_no"),
-      sb.from("profiles").select("id,email,full_name,is_active").eq("is_active",true).order("full_name")
-    ]);
-    if(error)return message(error.message,true);
-    agentRows=rows||[];
-    $("agentProfile").innerHTML='<option value="">No dashboard login</option>'+(profiles||[]).map(p=>`<option value="${p.id}">${esc(p.full_name||p.email||p.id)}</option>`).join("");
-    renderAgentsAuthorization(); fillAgentSlot();
-  }
-  function renderAgentsAuthorization(){
-    $("agentAuthorizationList").innerHTML=agentRows.length?agentRows.map(a=>`<button type="button" class="adminAgentAuthRow ${a.is_authorized?"authorized":""}" data-slot="${a.slot_no}"><b>Agent ${a.slot_no} · ${esc(a.agent_name)}</b><span>@${esc(a.agent_username)} · ${a.commission_type==="percentage"?a.commission_value+"%":money(a.commission_value)}</span><em>${a.is_authorized?"Authorized":"Inactive"}</em></button>`).join(""):'<div class="muted">No agents configured yet. Choose a slot above to authorize the first agent.</div>';
-    document.querySelectorAll(".adminAgentAuthRow").forEach(b=>b.onclick=()=>{$("agentSlot").value=b.dataset.slot;fillAgentSlot()});
-  }
-  function fillAgentSlot(){
-    const slot=Number($("agentSlot").value),a=agentRows.find(x=>Number(x.slot_no)===slot);
-    $("agentName").value=a?.agent_name||`Agent ${slot}`;
-    $("agentUsername").value=a?.agent_username||"";
-    $("agentProfile").value=a?.profile_id||"";
-    $("agentCommissionType").value=a?.commission_type||"percentage";
-    $("agentCommissionValue").value=a?.commission_value||0;
-    $("agentAuthorized").checked=Boolean(a?.is_authorized);
-  }
-  async function saveAgent(){
-    if(accessMode!=="admin")return;
-    const slot=Number($("agentSlot").value),username=$("agentUsername").value.trim(),name=$("agentName").value.trim();
-    if(!name||!username)return message("Enter the agent name and WinTurbo agent username.",true);
-    const {data:{user}}=await sb.auth.getUser(),payload={slot_no:slot,agent_name:name,agent_username:username,profile_id:$("agentProfile").value||null,commission_type:$("agentCommissionType").value,commission_value:Number($("agentCommissionValue").value||0),is_authorized:$("agentAuthorized").checked,authorized_by:user.id,authorized_at:$("agentAuthorized").checked?new Date().toISOString():null,updated_at:new Date().toISOString()};
-    $("agentSave").disabled=true;
-    const {error}=await sb.from("admin_agent_commissions").upsert(payload,{onConflict:"slot_no"});
-    $("agentSave").disabled=false;
-    if(error)return message(error.message,true);
-    message(`Agent ${slot} authorization saved.`);await loadAgents();
-  }
   async function openNotes(username){
     notePlayer=lastRows.find(x=>x.username===username)||{username};
     $("playerNotesTitle").textContent=`Notes · ${username}`;
