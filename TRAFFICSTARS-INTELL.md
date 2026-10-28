@@ -2,6 +2,12 @@
 
 Active dashboard administrators can connect a TrafficStars API key and fetch performance reports from the sidebar's TrafficStars Intell section. This integration reads campaign data; it does not change bids, budgets, campaign states, or creatives.
 
+## Connect through Supabase (no dashboard key entry)
+
+In WINTURBO2 → Edge Functions → Secrets add `TRAFFICSTARS_API_KEY` using the API key from your TrafficStars profile. Optional `TRAFFICSTARS_CURRENCY` defaults to USD and `TRAFFICSTARS_ACCOUNT_LABEL` defaults to WinTurbo. Confirm the reporting currency before analysing amounts.
+
+The server automatically creates or rotates its encrypted connection from this secret on the next request or scheduled refresh. It takes precedence over dashboard credentials. No secret value is returned to the browser. The key form is hidden for a server-managed connection. Scheduled refreshes with no key safely skip the TrafficStars API call.
+
 ## Connect
 
 1. Sign in as an active dashboard admin.
@@ -16,7 +22,7 @@ API keys are validated against TrafficStars, encrypted with AES-GCM server-side,
 - Apply `supabase/trafficstars-intelligence.sql` to create backend-only storage with RLS and no anon/authenticated table grants.
 - Deploy `supabase/functions/trafficstars-intelligence/index.ts` and its `core.js` dependency with JWT verification enabled. No additional provider secrets are required; the connection form supplies the key.
 - Publish `dashboard.html`, `trafficstars-core.js`, `trafficstars-intell.js`, and `trafficstars-intell.css` together.
-- Background campaign reports for the last seven days (through today in IST) refresh every 15 minutes using pg_cron and pg_net. The scheduler credential is generated inside Supabase Vault and its hash is stored in a backend-only table. Jobs make no external request until a TrafficStars connection exists. Apply `supabase/trafficstars-scheduler.sql` to install the schedule. Fetch latest makes a live request; Load saved report returns the exact selection's last saved report (or fetches when none exists). The fetched timestamp is shown in IST.
+- Background campaign reports for the last seven days (through today in IST) refresh every 15 minutes using pg_cron and pg_net. The scheduler credential is generated inside Supabase Vault and its hash is stored in a backend-only table. The scheduler invokes the authenticated gateway every 15 minutes; the gateway only contacts TrafficStars when a key is configured. Apply `supabase/trafficstars-scheduler.sql` to install the schedule. Fetch latest makes a live request; Load saved report returns the exact selection's last saved report (or fetches when none exists). The fetched timestamp is shown in IST.
 
 ## API contracts
 
