@@ -15,6 +15,12 @@
     }
     return rows;
   }
+  function attachWati(leads,contacts){
+    const byPhone=new Map();
+    for(const lead of leads){lead.wati_connection_ids=[...new Set((lead.record?.tags||[]).filter(t=>t.startsWith('WATI:')).map(t=>t.slice(5)))];const p=phone(lead.phone);if(p){if(!byPhone.has(p))byPhone.set(p,[]);byPhone.get(p).push(lead)}}
+    for(const contact of contacts){const p=phone(contact.phone);if(!p)continue;let matches=byPhone.get(p);if(!matches){const lead={key:'phone:'+p,username:null,phone:p,source:'WATI',registration:'Unregistered',record:null,created_at:contact.contact_created_at||contact.first_seen_at,wati_connection_ids:[]};leads.push(lead);matches=[lead];byPhone.set(p,matches)}for(const lead of matches){if(!lead.wati_connection_ids.includes(contact.connection_id))lead.wati_connection_ids.push(contact.connection_id)}}
+    return leads;
+  }
   function parseRows(rows){
     if(!rows.length)return {items:[],invalid:0,duplicates:0};
     const header=v=>String(v??'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -31,5 +37,6 @@
     }
     return {items,invalid,duplicates};
   }
-  const api={responses,phone,username,day,merge,parseRows};root.LeadsIntellCore=api;if(typeof module!=='undefined')module.exports=api;
+  const api={responses,phone,username,day,merge,attachWati,parseRows};root.LeadsIntellCore=api;if(typeof module!=='undefined')module.exports=api;
 })(typeof window!=='undefined'?window:globalThis);
+

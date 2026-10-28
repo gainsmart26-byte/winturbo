@@ -60,10 +60,6 @@ Deno.serve(async(req:Request)=>{
    const source=body.source===undefined?'Manual':typeof body.source==='string'?body.source.trim():'';
    if(!source||source.length>100||/[\x00-\x1f\x7f]/.test(source))return json({error:'Enter a lead source (1–100 characters).'},400);
    if(!Array.isArray(body.items)||body.items.length<1||body.items.length>100)return json({error:'Import between 1 and 100 leads per request.'},400);
-   let watiId:string|null=null;if(source.toLowerCase()==='wati'){
-    if(typeof body.wati_connection_id!=='string'||!/^[-a-f0-9]{36}$/i.test(body.wati_connection_id))return json({error:'Select a connected WATI account.'},400);
-    const connection=check(await db.from('wati_connections').select('id').eq('id',body.wati_connection_id).maybeSingle());if(!connection)return json({error:'Selected WATI account no longer exists. Refresh and choose another.'},400);watiId=connection.id;
-   }
    const keys=new Set(records.map((r:any)=>r.lead_key)),users=new Set([...players,...records].map((r:any)=>String(r.username||'').trim().toLowerCase()).filter(Boolean)),numbers=new Set([...players,...records].map((r:any)=>core.phone(r.phone)).filter(Boolean));
    let skipped=0,invalid=0;const fresh:any[]=[];
    for(const item of body.items){
@@ -75,22 +71,22 @@ Deno.serve(async(req:Request)=>{
     if(keys.has(lead_key)||(username&&users.has(username.toLowerCase()))||(number&&numbers.has(number))){skipped++;continue}
     keys.add(lead_key);if(username)users.add(username.toLowerCase());if(number)numbers.add(number);
     // Only new identities can be inserted. Ignore client keys, ownership, response and status fields.
-    fresh.push({lead_key,username:username||null,phone:number||null,lead_source:source,lead_date:core.day(),tags:['Agent Upload',...(watiId?['WATI:'+watiId]:[])],updated_by:user.id});
+    fresh.push({lead_key,username:username||null,phone:number||null,lead_source:source,lead_date:core.day(),tags:['Agent Upload'],updated_by:user.id});
    }
    stage='insert_agent_leads';let added=0;if(fresh.length){const saved=check(await db.from('lead_intell_records').upsert(fresh,{onConflict:'lead_key',ignoreDuplicates:true}).select('lead_key'));added=saved.length;skipped+=fresh.length-added}
    return json({ok:true,added,skipped,invalid});
   }
-  const names=new Map((await all('leads_agents','user_id,name','user_id')).map((x:any)=>[x.user_id,x.name]));const leads=core.merge(players,records),key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+  const names=new Map((await all('leads_agents','user_id,name','user_id')).map((x:any)=>[x.user_id,x.name]));const leads=core.attachWati(core.merge(players,records),await all('wati_contacts','phone,connection_id,first_seen_at,contact_created_at','phone')),key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const opaque=async(value:string)=>Array.from(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))).map(v=>v.toString(16).padStart(2,'0')).join('');
   const mapped=await Promise.all(leads.map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
   if(action==='list'){
    const page=Math.max(0,Math.floor(Number(body.page)||0)),selected=mapped.slice(page*50,page*50+50);
-   return json({total:leads.length,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
+   return json({total:leads.length,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at||l.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
   }
   const found=mapped.find((x:any)=>x.id===body.key);if(!found)return json({error:'Lead not found'},404);const l=found.lead;
   if(action==='open'){
    const session=check(await db.from('leads_agent_sessions').upsert({user_id:user.id,lead_key:l.record?.lead_key||l.key,edit_token:crypto.randomUUID(),expires_at:new Date(Date.now()+15*60000).toISOString()}).select('edit_token').single());
-   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,record:l.record?{lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
+   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,record:l.record?{lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
   }
   if(action==='close'){check(await db.from('leads_agent_sessions').delete().eq('user_id',user.id).eq('edit_token',body.edit_token));return json({ok:true})}
   if(action==='save'){

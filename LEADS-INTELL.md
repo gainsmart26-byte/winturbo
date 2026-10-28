@@ -22,3 +22,5 @@ From/To date filters use registration dates for registered players and added dat
 
 
 Agents can use the expanded Add lead manually form with a phone number or username and a required source (select a suggestion or type up to 100 characters). The authenticated gateway validates and persists the source and attributes the insert to the signed-in agent. Existing leads and responses are preserved. Source labels appear in the lead table, opened detail and source filter. Spreadsheet imports retain the Manual default.
+
+Selecting WATI in the Source filter reveals an account filter, defaulting to All WATI accounts. Membership comes from normalized phone matches to synced WATI contacts (including contact-only leads), and preserves multiple account memberships without duplicating a contact-only lead. The manual lead form does not select or require a WATI account. Agents receive only account labels/business numbers and per-lead membership IDs; contact phone lists remain server-side and masked in responses.
