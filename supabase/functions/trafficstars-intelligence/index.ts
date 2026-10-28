@@ -16,11 +16,21 @@ Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return new Response('ok',{headers:cors});if(req.method!=='POST')return json({error:'Method not allowed'},405);
  try{
  const secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,db=createClient(Deno.env.get('SUPABASE_URL')!,secret,{auth:{persistSession:false}});
- const token=req.headers.get('Authorization')?.replace(/^Bearer\s+/i,'');if(!token)return json({error:'Sign in required'},401);
- const {data:{user},error}=await db.auth.getUser(token);if(error||!user)return json({error:'Sign in required'},401);
- const profile=check(await db.from('profiles').select('role,is_active').eq('id',user.id).maybeSingle());if(profile?.role!=='admin'||!profile.is_active)return json({error:'Active admin access required'},403);
  if(Number(req.headers.get('content-length'))>20000)return json({error:'Request too large'},413);
- const b=await req.json();if(!['status','connect','report'].includes(b.action))return json({error:'Unknown action'},400);
+ const b=await req.json();let user:any=null;
+ if(b.action==='scheduled_report'){
+ const schedulerToken=req.headers.get('x-trafficstars-scheduler');if(!schedulerToken)return json({error:'Scheduler authentication required'},401);
+ const scheduler=check(await db.from('trafficstars_scheduler').select('secret_hash').eq('id',1).maybeSingle());
+ const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(schedulerToken)))).map(x=>x.toString(16).padStart(2,'0')).join('');
+ if(!scheduler||scheduler.secret_hash!==hash)return json({error:'Scheduler authentication required'},401);
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ Object.assign(b,{action:'report',date_to:today,date_from:new Date(Date.parse(today+'T00:00:00Z')-6*86400000).toISOString().slice(0,10),group_by:'campaign',campaigns:[],refresh:true});
+ }else{
+ const token=req.headers.get('Authorization')?.replace(/^Bearer\s+/i,'');if(!token)return json({error:'Sign in required'},401);
+ const auth=await db.auth.getUser(token);user=auth.data.user;if(auth.error||!user)return json({error:'Sign in required'},401);
+ const profile=check(await db.from('profiles').select('role,is_active').eq('id',user.id).maybeSingle());if(profile?.role!=='admin'||!profile.is_active)return json({error:'Active admin access required'},403);
+ }
+ if(!['status','connect','report'].includes(b.action))return json({error:'Unknown action'},400);
  const connection=check(await db.from('trafficstars_connection').select('*').eq('id',1).maybeSingle());
  if(b.action==='status')return json({connected:!!connection,label:connection?.label||null,currency:connection?.currency||'USD',updated_at:connection?.updated_at||null});
  const key=await crypto.subtle.importKey('raw',await crypto.subtle.digest('SHA-256',new TextEncoder().encode(secret+':trafficstars-v1')),'AES-GCM',false,['encrypt','decrypt']);

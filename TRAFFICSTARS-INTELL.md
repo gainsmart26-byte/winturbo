@@ -16,7 +16,7 @@ API keys are validated against TrafficStars, encrypted with AES-GCM server-side,
 - Apply `supabase/trafficstars-intelligence.sql` to create backend-only storage with RLS and no anon/authenticated table grants.
 - Deploy `supabase/functions/trafficstars-intelligence/index.ts` and its `core.js` dependency with JWT verification enabled. No additional provider secrets are required; the connection form supplies the key.
 - Publish `dashboard.html`, `trafficstars-core.js`, `trafficstars-intell.js`, and `trafficstars-intell.css` together.
-- No scheduled synchronization is configured. Fetch latest makes a live request; Load saved report returns the exact selection's last saved report (or fetches when none exists). The fetched timestamp is shown in IST.
+- Background campaign reports for the last seven days (through today in IST) refresh every 15 minutes using pg_cron and pg_net. The scheduler credential is generated inside Supabase Vault and its hash is stored in a backend-only table. Jobs make no external request until a TrafficStars connection exists. Apply `supabase/trafficstars-scheduler.sql` to install the schedule. Fetch latest makes a live request; Load saved report returns the exact selection's last saved report (or fetches when none exists). The fetched timestamp is shown in IST.
 
 ## API contracts
 
