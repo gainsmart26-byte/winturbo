@@ -17,7 +17,7 @@ Deno.serve(async(req:Request)=>{
  try{
  const secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,db=createClient(Deno.env.get('SUPABASE_URL')!,secret,{auth:{persistSession:false}});
  if(Number(req.headers.get('content-length'))>20000)return json({error:'Request too large'},413);
- const b=await req.json();let user:any=null;
+ const b=await req.json(),scheduled=b.action==='scheduled_report';let user:any=null;
  if(b.action==='scheduled_report'){
  const schedulerToken=req.headers.get('x-trafficstars-scheduler');if(!schedulerToken)return json({error:'Scheduler authentication required'},401);
  const scheduler=check(await db.from('trafficstars_scheduler').select('secret_hash').eq('id',1).maybeSingle());
@@ -31,11 +31,25 @@ Deno.serve(async(req:Request)=>{
  const profile=check(await db.from('profiles').select('role,is_active').eq('id',user.id).maybeSingle());if(profile?.role!=='admin'||!profile.is_active)return json({error:'Active admin access required'},403);
  }
  if(!['status','connect','report'].includes(b.action))return json({error:'Unknown action'},400);
- const connection=check(await db.from('trafficstars_connection').select('*').eq('id',1).maybeSingle());
- if(b.action==='status')return json({connected:!!connection,label:connection?.label||null,currency:connection?.currency||'USD',updated_at:connection?.updated_at||null});
+ let connection=check(await db.from('trafficstars_connection').select('*').eq('id',1).maybeSingle());
  const key=await crypto.subtle.importKey('raw',await crypto.subtle.digest('SHA-256',new TextEncoder().encode(secret+':trafficstars-v1')),'AES-GCM',false,['encrypt','decrypt']);
  const encrypt=async(value:string)=>{const iv=crypto.getRandomValues(new Uint8Array(12)),data=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv},key,new TextEncoder().encode(value)));return btoa(String.fromCharCode(...iv,...data));};
  const decrypt=async(value:string)=>{try{const bytes=Uint8Array.from(atob(value),c=>c.charCodeAt(0));return new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes.slice(0,12)},key,bytes.slice(12)));}catch{throw Error('Reconnect TrafficStars to renew the saved API key.');}};
+ // A server secret takes precedence over the optional dashboard connection.
+ const serverKey=(Deno.env.get('TRAFFICSTARS_API_KEY')||'').trim();
+ if(serverKey){
+ if(serverKey.length<10||serverKey.length>10000)throw Error('The TrafficStars Supabase secret is invalid. Check TRAFFICSTARS_API_KEY.');
+ let savedKey='';if(connection)try{savedKey=await decrypt(connection.ciphertext);}catch{}
+ const currency=(Deno.env.get('TRAFFICSTARS_CURRENCY')||'USD').trim().toUpperCase(),label=(Deno.env.get('TRAFFICSTARS_ACCOUNT_LABEL')||'WinTurbo').trim().slice(0,100);
+ if(!['USD','EUR','INR','GBP'].includes(currency))throw Error('Set TRAFFICSTARS_CURRENCY to USD, EUR, INR or GBP.');
+ if(!connection||savedKey!==serverKey||connection.currency!==currency||connection.label!==label){
+ // Bootstrap or rotate the encrypted connection automatically. Never return or log the key.
+ connection={id:1,label:label||'WinTurbo',currency,ciphertext:await encrypt(serverKey),updated_by:user?.id||null,updated_at:new Date().toISOString()};
+ check(await db.from('trafficstars_connection').upsert(connection));
+ }
+ }
+ if(b.action==='status')return json({connected:!!connection,managed_by:serverKey?'supabase':'dashboard',label:connection?.label||null,currency:connection?.currency||'USD',updated_at:connection?.updated_at||null});
+ if(b.action==='connect'&&serverKey)return json({error:'This account is managed by the Supabase TRAFFICSTARS_API_KEY secret. Update it in Supabase.'},409);
  if(b.action==='connect'){
  const apiKey=String(b.api_key||'').trim(),label=String(b.label||'WinTurbo').trim(),currency=String(b.currency||'USD');if(apiKey.length<10||apiKey.length>10000||!label||label.length>100||!['USD','EUR','INR','GBP'].includes(currency))throw Error('Enter a valid API key, label and account currency.');
  const access=await accessToken(apiKey);const list=await campaigns(access);
@@ -44,7 +58,7 @@ Deno.serve(async(req:Request)=>{
  check(await db.from('trafficstars_reports').delete().neq('report_key',''));
  return json({ok:true,connected:true,label,currency,campaign_count:list.length});
  }
- if(!connection)return json({error:'Connect your TrafficStars API key first.',code:'NOT_CONNECTED'},409);
+ if(!connection)return scheduled?json({ok:true,skipped:true,reason:'TrafficStars is not configured'}):json({error:'Add TRAFFICSTARS_API_KEY in Supabase Edge Function secrets, or connect your API key in this dashboard.',code:'NOT_CONNECTED'},409);
  const dates=C.range(b.date_from,b.date_to),group=String(b.group_by||'campaign');if(!['campaign','date','creative','country','device','spot'].includes(group))throw Error('Unsupported report grouping.');
  const ids=b.campaigns??[];if(!Array.isArray(ids)||ids.length>10000||ids.some((id:any)=>!Number.isSafeInteger(id)||id<1))throw Error('Invalid campaign filter.');
  const reportKey=JSON.stringify([connection.updated_at,dates.date_from,dates.date_to,group,[...ids].sort((a,b)=>a-b)]);

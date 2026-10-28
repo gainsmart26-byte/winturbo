@@ -19,5 +19,5 @@ select cron.schedule('trafficstars-campaign-refresh','*/15 * * * *', $job$
   headers:=jsonb_build_object('Content-Type','application/json','Authorization','Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4c3BzcXRkdm5naW92anZza3VxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyMDE1NDgsImV4cCI6MjEwNDc3NzU0OH0.oKcpPGHmLhCvl7j2L2mVrp2tYt_vR4jA9RzNX5XSs-w','x-trafficstars-scheduler',(select decrypted_secret from vault.decrypted_secrets where name='trafficstars_scheduler_token' limit 1)),
   body:='{"action":"scheduled_report"}'::jsonb,
   timeout_milliseconds:=60000
- ) where exists(select 1 from public.trafficstars_connection where id=1);
+ );
 $job$);
