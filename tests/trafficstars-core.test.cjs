@@ -1,0 +1,6 @@
+const assert=require('node:assert/strict'),C=require('../trafficstars-core.js');
+const items=C.rows({data:[{id:1,name:'One',impressions:10000,clicks:100,costs:20,leads:5,earnings:50},{id:2,name:'Two',impressions:1000,clicks:20,costs:10,leads:1,earnings:0}]});
+const m=C.metrics(items);assert.equal(m.spend,30);assert.equal(m.conversions,6);assert.equal(m.cpa,5);assert.equal(m.ctr,120/11000*100);assert.equal(m.cpc,.25);assert.equal(m.roas,50/30);assert.equal(C.metrics([]).cpa,null);assert.equal(C.metrics([{...items[0],conversions:null}]).cpa,null);
+assert.throws(()=>C.rows({data:[{impressions:1,clicks:1}]}));assert.throws(()=>C.rows({response:[]}));assert.throws(()=>C.range('2026-02-30','2026-03-01'));assert.throws(()=>C.range('2026-10-10','2026-10-01'));assert.throws(()=>C.range('2026-01-01','2026-10-28'));assert.deepEqual(C.range('2026-10-28','2026-10-28'),{date_from:'2026-10-28',date_to:'2026-10-28'});
+assert(C.insights(items,3).some(x=>x.title.includes('Above target')));assert(!C.insights(items,0).some(x=>x.title.includes('target')));assert(C.insights([{...items[0],no_funds:true,has_rejected_creatives:true,conversions:0}],5).length>=3);assert(C.csv([{...items[0],name:'=IMPORTXML("x")'}]).includes("'=IMPORTXML"));
+console.log('PASS weighted metrics, zero/missing data, strict upstream fields, dates, measured recommendations, CSV formula escaping');
