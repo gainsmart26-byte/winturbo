@@ -15,7 +15,7 @@ Deno.serve(async(req:Request)=>{
   const token=req.headers.get('Authorization')?.replace(/^Bearer\s+/i,'');if(!token)return json({error:'Sign in required'},401);
   const {data:{user},error:authError}=await db.auth.getUser(token);if(authError||!user)return json({error:'Sign in required'},401);
   const {data:profile,error:profileError}=await db.from('profiles').select('role,is_active').eq('id',user.id).single();if(profileError||!profile?.is_active)return json({error:'Access denied'},403);
-  const admin=profile.role==='admin',body=await req.json(),action=body.action;actionLabel=['agents','create_agent','update_agent','history','list','open','close','save','login','import'].includes(action)?action:'unknown';stage='validate_request';
+  const admin=profile.role==='admin',body=await req.json(),action=body.action;actionLabel=['agents','create_agent','update_agent','history','list','open','close','save','login','import','wati_sources'].includes(action)?action:'unknown';stage='validate_request';
   const check=(r:any)=>{if(r.error)throw Error(r.error.message);return r.data};
   if(['agents','create_agent','update_agent','history'].includes(action)){
    if(!admin)return json({error:'Admin access required'},403);
@@ -47,6 +47,7 @@ Deno.serve(async(req:Request)=>{
   const agent=check(await db.from('leads_agents').select('user_id,name,is_active').eq('user_id',user.id).maybeSingle());
   const grant=check(await db.from('user_access_grants').select('is_active,access_level,allowed_sections').eq('user_id',user.id).maybeSingle());
   if(!agent?.is_active||!grant?.is_active||grant.access_level!=='section'||!grant.allowed_sections?.includes('leadsIntell'))return json({error:'Agent access inactive'},403);
+  if(action==='wati_sources')return json({connections:check(await db.from('wati_connections').select('id,label,business_number').order('label'))});
   if(action==='login'){
    const claims=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
    check(await db.rpc('record_agent_login',{p_actor:user.id,p_session:claims.session_id}));
@@ -59,6 +60,10 @@ Deno.serve(async(req:Request)=>{
    const source=body.source===undefined?'Manual':typeof body.source==='string'?body.source.trim():'';
    if(!source||source.length>100||/[\x00-\x1f\x7f]/.test(source))return json({error:'Enter a lead source (1–100 characters).'},400);
    if(!Array.isArray(body.items)||body.items.length<1||body.items.length>100)return json({error:'Import between 1 and 100 leads per request.'},400);
+   let watiId:string|null=null;if(source.toLowerCase()==='wati'){
+    if(typeof body.wati_connection_id!=='string'||!/^[-a-f0-9]{36}$/i.test(body.wati_connection_id))return json({error:'Select a connected WATI account.'},400);
+    const connection=check(await db.from('wati_connections').select('id').eq('id',body.wati_connection_id).maybeSingle());if(!connection)return json({error:'Selected WATI account no longer exists. Refresh and choose another.'},400);watiId=connection.id;
+   }
    const keys=new Set(records.map((r:any)=>r.lead_key)),users=new Set([...players,...records].map((r:any)=>String(r.username||'').trim().toLowerCase()).filter(Boolean)),numbers=new Set([...players,...records].map((r:any)=>core.phone(r.phone)).filter(Boolean));
    let skipped=0,invalid=0;const fresh:any[]=[];
    for(const item of body.items){
@@ -70,7 +75,7 @@ Deno.serve(async(req:Request)=>{
     if(keys.has(lead_key)||(username&&users.has(username.toLowerCase()))||(number&&numbers.has(number))){skipped++;continue}
     keys.add(lead_key);if(username)users.add(username.toLowerCase());if(number)numbers.add(number);
     // Only new identities can be inserted. Ignore client keys, ownership, response and status fields.
-    fresh.push({lead_key,username:username||null,phone:number||null,lead_source:source,lead_date:core.day(),tags:['Agent Upload'],updated_by:user.id});
+    fresh.push({lead_key,username:username||null,phone:number||null,lead_source:source,lead_date:core.day(),tags:['Agent Upload',...(watiId?['WATI:'+watiId]:[])],updated_by:user.id});
    }
    stage='insert_agent_leads';let added=0;if(fresh.length){const saved=check(await db.from('lead_intell_records').upsert(fresh,{onConflict:'lead_key',ignoreDuplicates:true}).select('lead_key'));added=saved.length;skipped+=fresh.length-added}
    return json({ok:true,added,skipped,invalid});
@@ -80,12 +85,12 @@ Deno.serve(async(req:Request)=>{
   const mapped=await Promise.all(leads.map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
   if(action==='list'){
    const page=Math.max(0,Math.floor(Number(body.page)||0)),selected=mapped.slice(page*50,page*50+50);
-   return json({total:leads.length,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
+   return json({total:leads.length,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
   }
   const found=mapped.find((x:any)=>x.id===body.key);if(!found)return json({error:'Lead not found'},404);const l=found.lead;
   if(action==='open'){
    const session=check(await db.from('leads_agent_sessions').upsert({user_id:user.id,lead_key:l.record?.lead_key||l.key,edit_token:crypto.randomUUID(),expires_at:new Date(Date.now()+15*60000).toISOString()}).select('edit_token').single());
-   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,record:l.record?{lead_source:l.record.lead_source,response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
+   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,record:l.record?{lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
   }
   if(action==='close'){check(await db.from('leads_agent_sessions').delete().eq('user_id',user.id).eq('edit_token',body.edit_token));return json({ok:true})}
   if(action==='save'){
