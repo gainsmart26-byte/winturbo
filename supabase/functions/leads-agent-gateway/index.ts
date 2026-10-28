@@ -56,6 +56,8 @@ Deno.serve(async(req:Request)=>{
   const [players,records]=await Promise.all([all('admin_players','username,phone,ftd,lifetime_deposits,deposit_count,registered_at','username'),all('lead_intell_records','*','lead_key')]);
   if(action==='import'){
    stage='validate_lead_import';
+   const source=body.source===undefined?'Manual':typeof body.source==='string'?body.source.trim():'';
+   if(!source||source.length>100||/[\x00-\x1f\x7f]/.test(source))return json({error:'Enter a lead source (1–100 characters).'},400);
    if(!Array.isArray(body.items)||body.items.length<1||body.items.length>100)return json({error:'Import between 1 and 100 leads per request.'},400);
    const keys=new Set(records.map((r:any)=>r.lead_key)),users=new Set([...players,...records].map((r:any)=>String(r.username||'').trim().toLowerCase()).filter(Boolean)),numbers=new Set([...players,...records].map((r:any)=>core.phone(r.phone)).filter(Boolean));
    let skipped=0,invalid=0;const fresh:any[]=[];
@@ -68,7 +70,7 @@ Deno.serve(async(req:Request)=>{
     if(keys.has(lead_key)||(username&&users.has(username.toLowerCase()))||(number&&numbers.has(number))){skipped++;continue}
     keys.add(lead_key);if(username)users.add(username.toLowerCase());if(number)numbers.add(number);
     // Only new identities can be inserted. Ignore client keys, ownership, response and status fields.
-    fresh.push({lead_key,username:username||null,phone:number||null,lead_source:'Manual',lead_date:core.day(),tags:['Agent Upload'],updated_by:user.id});
+    fresh.push({lead_key,username:username||null,phone:number||null,lead_source:source,lead_date:core.day(),tags:['Agent Upload'],updated_by:user.id});
    }
    stage='insert_agent_leads';let added=0;if(fresh.length){const saved=check(await db.from('lead_intell_records').upsert(fresh,{onConflict:'lead_key',ignoreDuplicates:true}).select('lead_key'));added=saved.length;skipped+=fresh.length-added}
    return json({ok:true,added,skipped,invalid});
@@ -83,7 +85,7 @@ Deno.serve(async(req:Request)=>{
   const found=mapped.find((x:any)=>x.id===body.key);if(!found)return json({error:'Lead not found'},404);const l=found.lead;
   if(action==='open'){
    const session=check(await db.from('leads_agent_sessions').upsert({user_id:user.id,lead_key:l.record?.lead_key||l.key,edit_token:crypto.randomUUID(),expires_at:new Date(Date.now()+15*60000).toISOString()}).select('edit_token').single());
-   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,record:l.record?{response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
+   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,registration:l.registration,lifetime_deposits:l.lifetime_deposits,record:l.record?{lead_source:l.record.lead_source,response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
   }
   if(action==='close'){check(await db.from('leads_agent_sessions').delete().eq('user_id',user.id).eq('edit_token',body.edit_token));return json({ok:true})}
   if(action==='save'){
@@ -95,3 +97,4 @@ Deno.serve(async(req:Request)=>{
   return json({error:'Unknown action'},400);
  }catch(e){const detail=e instanceof Error?e.message:String((e as any)?.message||'Request failed');console.error(JSON.stringify({event:'agent_gateway_failure',action:actionLabel,stage,code:String((e as any)?.code||'request_rejected')}));return json({error:detail+' [step: '+stage+']'},400)}
 });
+

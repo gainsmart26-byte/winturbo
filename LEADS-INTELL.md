@@ -19,3 +19,6 @@ The DOM integration test covers 501 registered users, pagination, deposit filter
 Agents receive masked phone numbers (last five digits) and opaque lead identifiers from the authenticated gateway. Full numbers are returned only for an opened lead, with a 15-minute edit token; opening another lead invalidates the earlier edit session. Agents have no direct player/lead-table access, import, or export. Notes and response edits use server-verified actor attribution and an atomic audit trail. Admins see the last editor and recent updates.
 
 From/To date filters use registration dates for registered players and added dates for manual leads, in IST.
+
+
+Agents can use the expanded Add lead manually form with a phone number or username and a required source (select a suggestion or type up to 100 characters). The authenticated gateway validates and persists the source and attributes the insert to the signed-in agent. Existing leads and responses are preserved. Source labels appear in the lead table, opened detail and source filter. Spreadsheet imports retain the Manual default.

@@ -20,3 +20,15 @@ test('agents import only new validated leads, preserve responses, attribute uplo
  assert.equal((await f.invoke({action:'import',items:[]})).status,400);assert.equal((await f.invoke({action:'import',items:Array.from({length:101},()=>({phone:'9999900002'}))})).status,400);
  assert.equal((await f.invoke({action:'import',items:[{phone:'9999900002'}]},'bad')).status,401);f.deactivate();assert.equal((await f.invoke({action:'import',items:[{phone:'9999900002'}]})).status,403);
 });
+
+test('manual source is validated, persisted and returned without trusting client attribution',async()=>{
+ const f=fixture();
+ const r=await f.invoke({action:'import',source:'  Referral  ',items:[{phone:'+919999900009',lead_source:'spoof',updated_by:'spoof'}]});
+ assert.equal(r.status,200);assert.equal(r.body.added,1);
+ const saved=f.getRecords().find(x=>x.phone==='9999900009');assert.equal(saved.lead_source,'Referral');assert.equal(saved.updated_by,'agent-a');
+ const rows=(await f.invoke({action:'list'})).body.rows;
+ const row=rows.find(x=>x.record?.lead_source==='Referral');assert.ok(row);assert.equal(row.phone,'xxxxx00009');
+ const opened=(await f.invoke({action:'open',key:row.key})).body;assert.equal(opened.lead.record.lead_source,'Referral');
+ const duplicate=await f.invoke({action:'import',source:'Changed',items:[{phone:'9999900009'}]});assert.equal(duplicate.body.added,0);assert.equal(saved.lead_source,'Referral');
+ for(const source of ['', '   ', 'x'.repeat(101), {}, 'bad\nsource'])assert.equal((await f.invoke({action:'import',source,items:[{phone:'9999900010'}]})).status,400);
+});
