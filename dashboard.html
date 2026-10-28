@@ -5491,8 +5491,8 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
   let publishingAccounts=[];
   let hydrating=false;
 
-  const IDS=['offersIntell','quoraIntell','overview','growth','creative','telegramSources','otherSources','discordSources','timing','quality','verification','contentIdeas','approval','trafficIntelligence'];
-  const TITLES={offersIntell:'Offers Intell',quoraIntell:'Quora Intell',overview:'Executive Overview',growth:'Growth Analytics',creative:'Creative Explorer',telegramSources:'Telegram Sources',otherSources:'Instagram & Web',discordSources:'Discord Sources',timing:'Posting Intelligence',quality:'Data Quality & AI',verification:'Verification',contentIdeas:'Content Ideas',approval:'Approval',trafficIntelligence:'Traffic Intelligence'};
+  const IDS=['offersIntell','quoraIntell','overview','growth','creative','telegramSources','otherSources','discordSources','timing','quality','verification','contentIdeas','approval','trafficIntelligence','trafficStarsIntell'];
+  const TITLES={offersIntell:'Offers Intell',quoraIntell:'Quora Intell',overview:'Executive Overview',growth:'Growth Analytics',creative:'Creative Explorer',telegramSources:'Telegram Sources',otherSources:'Instagram & Web',discordSources:'Discord Sources',timing:'Posting Intelligence',quality:'Data Quality & AI',verification:'Verification',contentIdeas:'Content Ideas',approval:'Approval',trafficIntelligence:'Traffic Intelligence',trafficStarsIntell:'TrafficStars Intell'};
 
   function ensureApprovalNav(){
     const nav=document.querySelector('.nav'); if(!nav)return;
@@ -5939,7 +5939,7 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
     ['telegramSources','Telegram Sources'],['otherSources','Instagram & Web'],['discordSources','Discord Sources'],
     ['timing','Posting Intelligence'],['quality','Data Quality & AI'],['verification','Verification'],
     ['contentIdeas','Content Ideas'],['eventsIntelligence','Events'],['socialManagement','Social Media Management'],['approval','Approval'],['expense','Expense'],
-    ['offersIntell','Offers Intell'],['quoraIntell','Quora Intell'],['leadsIntell','Leads Intell'],['bonusIntelligence','Bonus Intelligence'],['trafficIntelligence','Traffic Intelligence']
+    ['offersIntell','Offers Intell'],['quoraIntell','Quora Intell'],['leadsIntell','Leads Intell'],['bonusIntelligence','Bonus Intelligence'],['trafficIntelligence','Traffic Intelligence'],['trafficStarsIntell','TrafficStars Intell']
   ];
   let accessContext=null;
   let accessRows=[];
@@ -6150,6 +6150,9 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
 <script src="./performance-overview-core.js?v=lead-count-20261021"></script>
 <script src="./performance-overview.js?v=lead-count-20261021"></script>
 <script src="bonus-offers.js"></script>
+<link rel="stylesheet" href="./trafficstars-intell.css?v=20261028">
+<script src="./trafficstars-core.js?v=20261028"></script>
+<script src="./trafficstars-intell.js?v=20261028"></script>
 </body>
 <script>/* WINTURBO_PASSWORD_RECOVERY_V65 */
 (function(){
