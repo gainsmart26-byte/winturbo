@@ -81,7 +81,31 @@ Deno.serve(async(req:Request)=>{
   if(action==='list'){
    const page=Math.max(0,Math.floor(Number(body.page)||0)),pageSize=Math.max(1,Math.min(1000,Math.floor(Number(body.page_size)||50)));
    const selected=await Promise.all(leads.slice(page*pageSize,(page+1)*pageSize).map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
-   return json({total:leads.length,page_size:pageSize,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at||l.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
+   const contactActivity=new Map();
+   if(body.contact_view===true){
+    // Only summary dates/status leave the server. Raw call numbers and edit history stay private.
+    const selectedPhones=[...new Set(selected.map(({lead}:any)=>core.phone(lead.phone)).filter(Boolean))];
+    const selectedKeys=[...new Set(selected.map(({lead}:any)=>lead.record?.lead_key||lead.key))];
+    const activityByPhone=new Map(),calledKeys=new Set();
+    for(let i=0;i<selectedPhones.length;i+=100){
+     const numbers=selectedPhones.slice(i,i+100),variants=[...new Set(numbers.flatMap((n:string)=>[n,'+91'+n,'91'+n,'+'+n]))];
+     for(let start=0;;){const rows=check(await db.from('stringeex_calls').select('call_id,phone,status,started_at,end_reason').in('phone',variants).order('call_id').range(start,start+499));
+      for(const call of rows){const number=core.phone(call.phone);if(!activityByPhone.has(number))activityByPhone.set(number,[]);activityByPhone.get(number).push(call)}
+      if(rows.length<500)break;start+=rows.length;
+     }
+    }
+    for(let i=0;i<selectedKeys.length;i+=100){
+     for(let start=0;;){const rows=check(await db.from('leads_edit_history').select('id,lead_key').in('lead_key',selectedKeys.slice(i,i+100)).in('response',['Disconnected','Connected Not Interested','Need Offer','Call Back']).order('id').range(start,start+499));
+      rows.forEach((r:any)=>calledKeys.add(r.lead_key));if(rows.length<500)break;start+=rows.length;
+     }
+    }
+    for(const {lead,id} of selected){const calls=activityByPhone.get(core.phone(lead.phone))||[],validDay=(value:any)=>value&&Number.isFinite(Date.parse(value))?core.day(value):null;
+     const days=(predicate:any)=>[...new Set(calls.filter(predicate).map((c:any)=>validDay(c.started_at)).filter(Boolean))];
+     const latest=calls.reduce((a:any,b:any)=>!a||Date.parse(b.started_at)>Date.parse(a.started_at)?b:a,null);
+     contactActivity.set(id,{attempted:calls.length>0||calledKeys.has(lead.record?.lead_key||lead.key)||['Disconnected','Connected Not Interested','Need Offer','Call Back'].includes(lead.record?.response),answered_days:days((c:any)=>c.status==='Answered'),disconnected_days:days((c:any)=>c.status==='Disconnected'||/DISCONNECT/i.test(c.end_reason||'')),last_call:latest?{status:latest.status,started_at:latest.started_at,end_reason:latest.end_reason}:null});
+    }
+   }
+   return json({total:leads.length,page_size:pageSize,rows:selected.map(({lead:l,id}:any)=>({key:id,...(body.contact_view===true?{contact_activity:contactActivity.get(id)}:{}),editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at||l.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
   }
   const mapped=await Promise.all(leads.map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
   const found=mapped.find((x:any)=>x.id===body.key);if(!found)return json({error:'Lead not found'},404);const l=found.lead;
@@ -99,4 +123,5 @@ Deno.serve(async(req:Request)=>{
   return json({error:'Unknown action'},400);
  }catch(e){const detail=e instanceof Error?e.message:String((e as any)?.message||'Request failed');console.error(JSON.stringify({event:'agent_gateway_failure',action:actionLabel,stage,code:String((e as any)?.code||'request_rejected')}));return json({error:detail+' [step: '+stage+']'},400)}
 });
+
 
