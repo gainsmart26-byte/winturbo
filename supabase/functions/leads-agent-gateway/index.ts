@@ -78,11 +78,12 @@ Deno.serve(async(req:Request)=>{
   }
   const names=new Map((await all('leads_agents','user_id,name','user_id')).map((x:any)=>[x.user_id,x.name]));const leads=core.attachWati(core.merge(players,records),await all('wati_contacts','phone,connection_id,first_seen_at,contact_created_at','phone')),key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const opaque=async(value:string)=>Array.from(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))).map(v=>v.toString(16).padStart(2,'0')).join('');
-  const mapped=await Promise.all(leads.map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
   if(action==='list'){
-   const page=Math.max(0,Math.floor(Number(body.page)||0)),selected=mapped.slice(page*50,page*50+50);
-   return json({total:leads.length,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at||l.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
+   const page=Math.max(0,Math.floor(Number(body.page)||0)),pageSize=Math.max(1,Math.min(1000,Math.floor(Number(body.page_size)||50)));
+   const selected=await Promise.all(leads.slice(page*pageSize,(page+1)*pageSize).map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
+   return json({total:leads.length,page_size:pageSize,rows:selected.map(({lead:l,id}:any)=>({key:id,editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at||l.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
   }
+  const mapped=await Promise.all(leads.map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
   const found=mapped.find((x:any)=>x.id===body.key);if(!found)return json({error:'Lead not found'},404);const l=found.lead;
   if(action==='open'){
    const session=check(await db.from('leads_agent_sessions').upsert({user_id:user.id,lead_key:l.record?.lead_key||l.key,edit_token:crypto.randomUUID(),expires_at:new Date(Date.now()+15*60000).toISOString()}).select('edit_token').single());
