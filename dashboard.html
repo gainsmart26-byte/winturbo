@@ -6069,7 +6069,27 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
       const rev=e.target.closest?.('.accessRevoke');if(rev){e.preventDefault();revokeGrant(rev.dataset.id);return}
       const del=e.target.closest?.('.accessDelete');if(del){e.preventDefault();deleteGrant(del.dataset.id);return}
     },false);
-    const login=q('loginBtn');if(login){login.onclick=async()=>{if(q('msg'))q('msg').textContent='Signing in…';const {data,error}=await sb.auth.signInWithPassword({email:q('email').value.trim(),password:q('pass').value});if(error){if(q('msg'))q('msg').textContent=error.message;return}if(data?.user){const ctx=await loadCurrentAccess();if(!ctx){if(q('msg'))q('msg').textContent='This email is not authorized for dashboard access.';await sb.auth.signOut();return}if(typeof showApp==='function')showApp();applyAccessUI(ctx);if(ctx.access_level==='admin')renderAccessUsers();}}}
+    const login=q('loginBtn');if(login){login.onclick=async()=>{
+      if(login.disabled)return;
+      login.disabled=true;let expired=false,timer;
+      const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{expired=true;reject(new Error('Sign-in timed out. The authentication service did not respond. Check your connection and try again.'))},20000)});
+      if(q('msg'))q('msg').textContent='Signing in…';
+      try{
+        await Promise.race([(async()=>{
+          const {data,error}=await sb.auth.signInWithPassword({email:q('email').value.trim(),password:q('pass').value});
+          if(expired)return;
+          if(error)throw error;
+          if(!data?.user)throw new Error('Sign-in did not return a user. Please try again.');
+          const ctx=await loadCurrentAccess();if(expired)return;
+          if(!ctx){if(q('msg'))q('msg').textContent='This email is not authorized for dashboard access.';await sb.auth.signOut();return}
+          if(typeof showApp==='function')showApp();applyAccessUI(ctx);
+          if(q('msg'))q('msg').textContent='';
+          if(ctx.access_level==='admin')renderAccessUsers();
+        })(),deadline]);
+      }catch(error){
+        if(q('msg'))q('msg').textContent=/fetch|network/i.test(error?.message||'')?'Cannot reach the authentication service. Check your internet connection or VPN and try again.':error?.message||'Sign-in failed. Please try again.';
+      }finally{clearTimeout(timer);login.disabled=false;}
+    }}
     sb.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_IN'&&session?.user)setTimeout(enforceAccess,0)});
     setTimeout(enforceAccess,100);
   }
