@@ -4777,6 +4777,7 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
 
 
 <script src="./login-request.js?v=20261030"></script>
+<script src="./panel-module-loader.js?v=20261030"></script>
 <script>
 /* WINTURBO_USER_ACCESS_V33_START */
 (function(){
@@ -4851,6 +4852,7 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
     q('login')?.classList.add('hide');q('app')?.classList.remove('hide');
     if(typeof showApp==='function'&&ctx.access_level==='admin')showApp();
     applyAccessUI(ctx);
+    document.dispatchEvent(new Event('winturbo-access-ready'));
     if(ctx.access_level==='admin')renderAccessUsers().catch(error=>setAccessMessage(error.message||'Could not load access list.',true));
   }
 
