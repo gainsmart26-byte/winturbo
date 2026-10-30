@@ -451,8 +451,7 @@
   }
 
   async function boot(){
-    const {data:{user}}=await sb.auth.getUser(); if(!user)return;
-    const {data:profile}=await sb.from("profiles").select("role,is_active").eq("id",user.id).maybeSingle();
+    const {user,profile}=await window.WinTurboLoadProfile();if(!user)return;
     if(!profile?.is_active)return;
     if(profile.role==="admin"){accessMode="admin";mountReport();}
     else {
@@ -462,6 +461,7 @@
     }
     mount();
   }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(boot,700),{once:true});else setTimeout(boot,700);
+  if(!window.WinTurboRegisterModule)if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>setTimeout(boot,700),{once:true});else setTimeout(boot,700);
   document.addEventListener("click",e=>{if(e.target.closest("#loginBtn"))setTimeout(boot,1200)});
+window.WinTurboRegisterModule?.('adminIntelligence',boot);
 })();
