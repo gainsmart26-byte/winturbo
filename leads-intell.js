@@ -20,7 +20,19 @@
   let watiSources=[];
   let callStatuses=new Map(),callStatusReady=false;
   let editorNames=new Map(),agentMode=false,agentEditToken=null,players=[],records=[],leads=[],page=0,editing=null,pending=[],loading=false,ready=false;
-  const gateway=async body=>{const r=await sb.functions.invoke('leads-agent-gateway',{body});if(r.error){let detail;try{detail=await r.error.context?.json()}catch{}throw Error(detail?.error||r.error.message)}if(r.data?.error)throw Error(r.data.error);return r.data};
+  const gateway=async body=>{
+    const readOnly=['list','wati_sources'].includes(body.action);
+    for(let attempt=0;;attempt++){
+      let r;try{r=await sb.functions.invoke('leads-agent-gateway',{body})}catch(error){r={error}}
+      if(!r.error){if(r.data?.error)throw Error(r.data.error);return r.data}
+      const status=Number(r.error.context?.status||0);
+      const transient=[502,503,504,546].includes(status)||(!status&&/fetch|network|connection/i.test(r.error.message||''));
+      if(readOnly&&transient&&attempt<2){await new Promise(resolve=>setTimeout(resolve,500*(attempt+1)));continue}
+      let detail;try{detail=await r.error.context?.json()}catch{}
+      const fallback=status===401?'Your session expired. Sign out and sign in again.':status===403?'Agent access was denied. Ask an admin to check your access.':transient?'The lead service is temporarily unavailable. Click Refresh leads to retry.':r.error.message;
+      throw Error(detail?.error||detail?.message||fallback||'Lead request failed.');
+    }
+  };
   const message=(v,error=false)=>{ $('leadMessage').textContent=v;$('leadMessage').classList.toggle('error',error) };
   async function all(table,columns,order){let rows=[],offset=0;for(;;){const {data,error}=await sb.from(table).select(columns).order(order).range(offset,offset+499);if(error)throw error;if(!data)throw Error('Could not read leads.');rows.push(...data);if(data.length<500)return rows;offset+=data.length}}
   function mount(){
