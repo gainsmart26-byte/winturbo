@@ -1,0 +1,58 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs'),{stripTypeScriptTypes}=require('node:module'),{webcrypto}=require('node:crypto');
+function fixture(){let handler,session=null,lastSave=null,cleanup=null;let active=true;const tables={stringeex_calls:[],leads_edit_history:[],profiles:[{id:'agent-a',role:'viewer',is_active:true}],leads_agents:[{user_id:'agent-a',name:'Agent A',is_active:true}],user_access_grants:[{user_id:'agent-a',is_active:true,access_level:'section',allowed_sections:['leadsIntell']}],wati_contacts:[{phone:'+919876543210',connection_id:'11111111-1111-4111-8111-111111111111'}],wati_connections:[{id:'11111111-1111-4111-8111-111111111111',label:'WATI One',business_number:'+910000000001'}],admin_players:[{username:'alice',phone:'+919876543210',registered_at:'2026-10-19T00:00:00Z',lifetime_deposits:100,ftd:true},{username:'9876543211',phone:'+919876543211',lifetime_deposits:0,ftd:false}],lead_intell_records:[{lead_key:'user:alice',username:'alice',phone:'+919876543210',notes:'Private note +919876543210',response:'Need Offer',updated_by:'agent-a'}]};
+ const db={auth:{admin:{createUser:async()=>({error:{message:'Account already exists'}})},getUser:async t=>t==='valid'?{data:{user:{id:'agent-a'}}}:{data:{user:null},error:{message:'invalid'}}},from(table){let filters=[],payload,operation='read';const apply=()=>{let data=table==='leads_agent_sessions'?(session?[session]:[]):tables[table]||[];if(table==='leads_agents')data=data.map(x=>({...x,is_active:active}));return data.filter(x=>filters.every(([k,v])=>(v?.values?v.values.includes(x[k]):x[k]===v)))};const q={select(){return q},eq(k,v){filters.push([k,v]);return q},in(k,v){filters.push([k,{values:v}]);return q},order(){return q},range:async(a,b)=>({data:apply().slice(a,b+1)}),insert(p){payload=p;operation='insert';return q},upsert(p){payload=p;operation='upsert';return q},delete(){operation='delete';return q},single:async()=>{if(operation==='insert')return {data:{id:'new-grant'}};if(operation==='upsert'){session=payload;return {data:session}}return {data:apply()[0]||null}},maybeSingle:async()=>({data:apply()[0]||null}),then(resolve){if(operation==='upsert'&&table==='lead_intell_records'){const inserted=[];for(const row of payload){if(!tables.lead_intell_records.some(x=>x.lead_key===row.lead_key)){tables.lead_intell_records.push({...row});inserted.push({lead_key:row.lead_key})}}return Promise.resolve({data:inserted}).then(resolve)}if(operation==='delete'&&table==='user_access_grants')cleanup=filters;if(operation==='delete'&&apply().length)session=null;return Promise.resolve({data:apply()}).then(resolve)}};return q},rpc:async(name,p)=>{lastSave=p;if(!session||session.edit_token!==p.p_token||session.lead_key!==p.p_key||session.user_id!==p.p_actor)return {error:{message:'Reopen this lead before saving'}};return {data:{ok:true}}}};
+ const context=vm.createContext({Request,Response,TextEncoder,crypto:webcrypto,createClient:()=>db,Deno:{env:{get:key=>key==='SUPABASE_SERVICE_ROLE_KEY'?'secret':'https://test'},serve:fn=>handler=fn}});
+ vm.runInContext(fs.readFileSync('leads-intell-core.js','utf8'),context);const source=fs.readFileSync('supabase/functions/leads-agent-gateway/index.ts','utf8').replace(/^import .*;\n/gm,'');vm.runInContext(stripTypeScriptTypes(source),context);
+ const invoke=async(body,token='valid')=>{const response=await handler(new Request('https://test/functions/v1/leads-agent-gateway',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify(body)}));return {status:response.status,body:await response.json()}};
+ return {invoke,tables,getRecords:()=>tables.lead_intell_records,getPlayers:()=>tables.admin_players,promote:()=>tables.profiles[0].role='admin',getCleanup:()=>cleanup,getSave:()=>lastSave,deactivate:()=>active=false};}
+ test('gateway never returns full list phones or phone-based identifiers; only opened detail reveals phone',async()=>{const f=fixture(),list=await f.invoke({action:'list'});assert.equal(list.status,200);const serialized=JSON.stringify(list.body);assert.ok(!serialized.includes('9876543210'));assert.ok(!serialized.includes('9876543211'));assert.ok(!serialized.includes('Private note'));assert.equal(list.body.rows[0].phone,'xxxxx43210');assert.equal(list.body.rows[1].username,'xxxxx43211');assert.match(list.body.rows[0].key,/^[a-f0-9]{64}$/);const opened=await f.invoke({action:'open',key:list.body.rows[0].key});assert.equal(opened.body.lead.phone,'+919876543210');assert.ok(opened.body.edit_token)});
+ test('save uses logged-in agent identity, requires current open token, and rejects admin actions',async()=>{const f=fixture(),list=(await f.invoke({action:'list'})).body.rows;const first=(await f.invoke({action:'open',key:list[0].key})).body;assert.equal((await f.invoke({action:'save',key:list[0].key,edit_token:first.edit_token,response:'Message Sent',actor_id:'spoof',notes:'hello'})).status,200);assert.equal(f.getSave().p_actor,'agent-a');await f.invoke({action:'open',key:list[1].key});assert.equal((await f.invoke({action:'save',key:list[0].key,edit_token:first.edit_token,response:'Need Offer'})).status,400);assert.equal((await f.invoke({action:'create_agent'})).status,403);assert.equal((await f.invoke({action:'list'},'bad')).status,401);f.deactivate();assert.equal((await f.invoke({action:'list'})).status,403)});
+
+test('failed agent creation cleans up only its new grant, preserving existing access',async()=>{const f=fixture();f.promote();const r=await f.invoke({action:'create_agent',name:'Test Agent',phone:'+919999900001',password:'fake-test-password'});assert.equal(r.status,400);assert.equal(f.getCleanup()[0][0],'id');assert.equal(f.getCleanup()[0][1],'new-grant')});
+
+test('agents import only new validated leads, preserve responses, attribute uploader and never expose raw contact lists',async()=>{
+ const f=fixture(),before=JSON.stringify(f.getRecords()[0]);
+ const result=await f.invoke({action:'import',items:[{phone:'9876543210',response:'Disconnected'},{phone:'919999900001',lead_key:'user:alice',updated_by:'attacker',lead_source:'WATI',response:'Need Offer'},{phone:'+919999900001'},{phone:'not-a-phone'},{username:'new-player'}]});
+ assert.equal(result.status,200);assert.equal(result.body.added,2);assert.equal(result.body.skipped,2);assert.equal(result.body.invalid,1);assert.equal(JSON.stringify(f.getRecords()[0]),before);
+ const added=f.getRecords().find(x=>x.phone==='9999900001');assert.equal(added.lead_key,'phone:9999900001');assert.equal(added.updated_by,'agent-a');assert.equal(added.lead_source,'Manual');assert.equal(added.response,undefined);assert.equal(JSON.stringify(added.tags),JSON.stringify(['Agent Upload']));
+ const list=await f.invoke({action:'list'});const unregistered=list.body.rows.filter(x=>x.registration==='Unregistered');assert.equal(unregistered.length,2);assert.equal(JSON.stringify(list.body).includes('9999900001'),false);
+ assert.equal((await f.invoke({action:'import',items:[{phone:'9999900001'}]})).body.added,0);
+ assert.equal((await f.invoke({action:'import',items:[]})).status,400);assert.equal((await f.invoke({action:'import',items:Array.from({length:101},()=>({phone:'9999900002'}))})).status,400);
+ assert.equal((await f.invoke({action:'import',items:[{phone:'9999900002'}]},'bad')).status,401);f.deactivate();assert.equal((await f.invoke({action:'import',items:[{phone:'9999900002'}]})).status,403);
+});
+
+test('manual source is validated, persisted and returned without trusting client attribution',async()=>{
+ const f=fixture();
+ const r=await f.invoke({action:'import',source:'  Referral  ',items:[{phone:'+919999900009',lead_source:'spoof',updated_by:'spoof'}]});
+ assert.equal(r.status,200);assert.equal(r.body.added,1);
+ const saved=f.getRecords().find(x=>x.phone==='9999900009');assert.equal(saved.lead_source,'Referral');assert.equal(saved.updated_by,'agent-a');
+ const rows=(await f.invoke({action:'list'})).body.rows;
+ const row=rows.find(x=>x.record?.lead_source==='Referral');assert.ok(row);assert.equal(row.phone,'xxxxx00009');
+ const opened=(await f.invoke({action:'open',key:row.key})).body;assert.equal(opened.lead.record.lead_source,'Referral');
+ const duplicate=await f.invoke({action:'import',source:'Changed',items:[{phone:'9999900009'}]});assert.equal(duplicate.body.added,0);assert.equal(saved.lead_source,'Referral');
+ for(const source of ['', '   ', 'x'.repeat(101), {}, 'bad\nsource'])assert.equal((await f.invoke({action:'import',source,items:[{phone:'9999900010'}]})).status,400);
+});
+
+test('WATI sources and membership are available only to active agents, with masked contacts',async()=>{
+ const f=fixture(),id='11111111-1111-4111-8111-111111111111';
+ const sources=await f.invoke({action:'wati_sources'});assert.equal(sources.status,200);assert.equal(sources.body.connections[0].id,id);
+ const rows=(await f.invoke({action:'list'})).body.rows;assert.ok(rows[0].wati_connection_ids.includes(id));assert.equal(rows[0].phone,'xxxxx43210');
+ const added=await f.invoke({action:'import',source:'WATI',items:[{phone:'9999900020'}]});assert.equal(added.body.added,1);
+ f.deactivate();assert.equal((await f.invoke({action:'wati_sources'})).status,403);
+});
+
+test('WATI membership normalizes numbers, keeps multi-account matches and adds contact-only leads once',()=>{
+ const C=require('../leads-intell-core.js'),leads=C.merge([{username:'alice',phone:'9876543210'}],[]);
+ C.attachWati(leads,[{phone:'+919876543210',connection_id:'a'},{phone:'00919876543210',connection_id:'b'},{phone:'9999900011',connection_id:'a'},{phone:'+919999900011',connection_id:'b'}]);
+ assert.equal(leads.length,2);assert.equal(leads[0].source,'Registered');assert.deepEqual(leads[0].wati_connection_ids,['a','b']);assert.equal(leads[1].source,'WATI');assert.deepEqual(leads[1].wati_connection_ids,['a','b']);
+});
+
+ test('large list batches retain masking, clamp size and paginate without missing leads',async()=>{const f=fixture();for(let n=0;n<1100;n++)f.getPlayers().push({username:'player'+n,phone:String(9000000000+n)});const first=await f.invoke({action:'list',page:0,page_size:1000});assert.equal(first.status,200);assert.equal(first.body.rows.length,1000);assert.equal(first.body.page_size,1000);const next=await f.invoke({action:'list',page:1,page_size:1000});assert.equal(next.body.rows.length,102);assert.equal(new Set([...first.body.rows,...next.body.rows].map(x=>x.key)).size,1102);assert.ok(first.body.rows.every(x=>/^xxxxx/.test(x.phone)));assert.equal((await f.invoke({action:'list',page_size:5000})).body.page_size,1000);assert.equal((await f.invoke({action:'list'})).body.rows.length,50)});
+
+test('contact summary respects calls and historical responses without exposing numbers',async()=>{
+ const f=fixture();f.tables.stringeex_calls=[{call_id:'1',phone:'+919876543210',status:'Answered',started_at:'2026-10-30T00:00:00Z'},{call_id:'2',phone:'9876543210',status:'Unanswered',end_reason:'DISCONNECT',started_at:'2026-10-29T20:00:00Z'}];
+ f.tables.lead_intell_records[0].response=null;f.tables.leads_edit_history=[{id:1,lead_key:'user:alice',response:'Call Back'}];
+ let r=await f.invoke({action:'list',contact_view:true,page_size:1000});assert.equal(r.status,200);
+ const a=r.body.rows[0].contact_activity;assert.equal(a.attempted,true);assert.equal(a.answered_days[0],'2026-10-30');assert.equal(a.disconnected_days[0],'2026-10-30');assert.equal(JSON.stringify(r.body).includes('9876543210'),false);
+ f.tables.stringeex_calls=[];r=await f.invoke({action:'list',contact_view:true});assert.equal(r.body.rows[0].contact_activity.attempted,true);assert.equal(r.body.rows[1].contact_activity.attempted,false);
+});
