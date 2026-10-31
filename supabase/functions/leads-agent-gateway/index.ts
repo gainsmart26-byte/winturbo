@@ -54,14 +54,15 @@ Deno.serve(async(req:Request)=>{
    return json({ok:true});
   }
   async function all(table:string,columns:string,order:string){let rows:any[]=[],start=0;for(;;){const batch=check(await db.from(table).select(columns).order(order).range(start,start+499));rows.push(...batch);if(batch.length<500)return rows;start+=batch.length}}
-  const [players,records]=await Promise.all([all('admin_players','username,phone,ftd,lifetime_deposits,deposit_count,registered_at','username'),all('lead_intell_records','*','lead_key')]);
+  // Imports need identity columns only; do not transfer every saved note/response on each batch.
+  const [players,records]=await Promise.all([all('admin_players',action==='import'?'username,phone':'username,phone,ftd,lifetime_deposits,deposit_count,registered_at','username'),all('lead_intell_records',action==='import'?'lead_key,username,phone':'*','lead_key')]);
   if(action==='import'){
    stage='validate_lead_import';
    const source=body.source===undefined?'Manual':typeof body.source==='string'?body.source.trim():'';
    if(!source||source.length>100||/[\x00-\x1f\x7f]/.test(source))return json({error:'Enter a lead source (1–100 characters).'},400);
-   if(!Array.isArray(body.items)||body.items.length<1||body.items.length>100)return json({error:'Import between 1 and 100 leads per request.'},400);
+   if(!Array.isArray(body.items)||body.items.length<1||body.items.length>1000)return json({error:'Import between 1 and 1,000 leads per request.'},400);
    const keys=new Set(records.map((r:any)=>r.lead_key)),users=new Set([...players,...records].map((r:any)=>String(r.username||'').trim().toLowerCase()).filter(Boolean)),numbers=new Set([...players,...records].map((r:any)=>core.phone(r.phone)).filter(Boolean));
-   let skipped=0,invalid=0;const fresh:any[]=[];
+   let skipped=0,invalid=0;const fresh:any[]=[],leadDate=core.day();
    for(const item of body.items){
     if(!item||typeof item!=='object'||(item.phone!=null&&typeof item.phone!=='string')||(item.username!=null&&typeof item.username!=='string')){invalid++;continue}
     const rawPhone=String(item.phone||'').trim(),rawUser=String(item.username||'').trim();
@@ -71,7 +72,7 @@ Deno.serve(async(req:Request)=>{
     if(keys.has(lead_key)||(username&&users.has(username.toLowerCase()))||(number&&numbers.has(number))){skipped++;continue}
     keys.add(lead_key);if(username)users.add(username.toLowerCase());if(number)numbers.add(number);
     // Only new identities can be inserted. Ignore client keys, ownership, response and status fields.
-    fresh.push({lead_key,username:username||null,phone:number||null,lead_source:source,lead_date:core.day(),tags:['Agent Upload'],updated_by:user.id});
+    fresh.push({lead_key,username:username||null,phone:number||null,lead_source:source,lead_date:leadDate,tags:['Agent Upload'],updated_by:user.id});
    }
    stage='insert_agent_leads';let added=0;if(fresh.length){const saved=check(await db.from('lead_intell_records').upsert(fresh,{onConflict:'lead_key',ignoreDuplicates:true}).select('lead_key'));added=saved.length;skipped+=fresh.length-added}
    return json({ok:true,added,skipped,invalid});

@@ -17,7 +17,7 @@ test('agents import only new validated leads, preserve responses, attribute uplo
  const added=f.getRecords().find(x=>x.phone==='9999900001');assert.equal(added.lead_key,'phone:9999900001');assert.equal(added.updated_by,'agent-a');assert.equal(added.lead_source,'Manual');assert.equal(added.response,undefined);assert.equal(JSON.stringify(added.tags),JSON.stringify(['Agent Upload']));
  const list=await f.invoke({action:'list'});const unregistered=list.body.rows.filter(x=>x.registration==='Unregistered');assert.equal(unregistered.length,2);assert.equal(JSON.stringify(list.body).includes('9999900001'),false);
  assert.equal((await f.invoke({action:'import',items:[{phone:'9999900001'}]})).body.added,0);
- assert.equal((await f.invoke({action:'import',items:[]})).status,400);assert.equal((await f.invoke({action:'import',items:Array.from({length:101},()=>({phone:'9999900002'}))})).status,400);
+ assert.equal((await f.invoke({action:'import',items:[]})).status,400);assert.equal((await f.invoke({action:'import',items:Array.from({length:1001},()=>({phone:'9999900002'}))})).status,400);
  assert.equal((await f.invoke({action:'import',items:[{phone:'9999900002'}]},'bad')).status,401);f.deactivate();assert.equal((await f.invoke({action:'import',items:[{phone:'9999900002'}]})).status,403);
 });
 
