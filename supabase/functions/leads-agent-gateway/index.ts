@@ -53,7 +53,7 @@ Deno.serve(async(req:Request)=>{
    check(await db.rpc('record_agent_login',{p_actor:user.id,p_session:claims.session_id}));
    return json({ok:true});
   }
-  async function all(table:string,columns:string,order:string){let rows:any[]=[],start=0;for(;;){const batch=check(await db.from(table).select(columns).order(order).range(start,start+499));rows.push(...batch);if(batch.length<500)return rows;start+=batch.length}}
+  async function all(table:string,columns:string,order:string){let rows:any[]=[],start=0;for(;;){const batch=check(await db.from(table).select(columns).order(order).range(start,start+999));rows.push(...batch);if(batch.length<1000)return rows;start+=batch.length}}
   // Imports need identity columns only; do not transfer every saved note/response on each batch.
   const [players,records]=await Promise.all([all('admin_players',action==='import'?'username,phone':'username,phone,ftd,lifetime_deposits,deposit_count,registered_at','username'),all('lead_intell_records',action==='import'?'lead_key,username,phone':'*','lead_key')]);
   if(action==='import'){
@@ -83,7 +83,7 @@ Deno.serve(async(req:Request)=>{
   const names=new Map((await all('leads_agents','user_id,name','user_id')).map((x:any)=>[x.user_id,x.name]));const leads=core.attachWati(core.merge(players,records),await all('wati_contacts','phone,connection_id,first_seen_at,contact_created_at','phone')),key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const opaque=async(value:string)=>Array.from(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))).map(v=>v.toString(16).padStart(2,'0')).join('');
   if(action==='list'){
-   const page=Math.max(0,Math.floor(Number(body.page)||0)),pageSize=Math.max(1,Math.min(1000,Math.floor(Number(body.page_size)||50)));
+   const page=Math.max(0,Math.floor(Number(body.page)||0)),pageSize=Math.max(1,Math.min(5000,Math.floor(Number(body.page_size)||50)));
    const selected=await Promise.all(leads.slice(page*pageSize,(page+1)*pageSize).map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
    const contactActivity=new Map();
    if(body.contact_view===true){
@@ -91,18 +91,22 @@ Deno.serve(async(req:Request)=>{
     const selectedPhones=[...new Set(selected.map(({lead}:any)=>core.phone(lead.phone)).filter(Boolean))];
     const selectedKeys=[...new Set(selected.map(({lead}:any)=>lead.record?.lead_key||lead.key))];
     const activityByPhone=new Map(),calledKeys=new Set();
-    for(let i=0;i<selectedPhones.length;i+=100){
-     const numbers=selectedPhones.slice(i,i+100),variants=[...new Set(numbers.flatMap((n:string)=>[n,'+91'+n,'91'+n,'+'+n]))];
+    // Independent activity lookups run in bounded waves, rather than waiting
+    // for 100 serial round trips on each large contact page.
+    const tasks:Array<()=>Promise<void>>=[];
+    for(let i=0;i<selectedPhones.length;i+=100){const numbers=selectedPhones.slice(i,i+100);
+     tasks.push(async()=>{const variants=[...new Set(numbers.flatMap((n:string)=>[n,'+91'+n,'91'+n,'+'+n]))];
      for(let start=0;;){const rows=check(await db.from('stringeex_calls').select('call_id,phone,status,started_at,end_reason').in('phone',variants).order('call_id').range(start,start+499));
       for(const call of rows){const number=core.phone(call.phone);if(!activityByPhone.has(number))activityByPhone.set(number,[]);activityByPhone.get(number).push(call)}
       if(rows.length<500)break;start+=rows.length;
-     }
+     }});
     }
-    for(let i=0;i<selectedKeys.length;i+=100){
-     for(let start=0;;){const rows=check(await db.from('leads_edit_history').select('id,lead_key').in('lead_key',selectedKeys.slice(i,i+100)).in('response',['Disconnected','Connected Not Interested','Need Offer','Call Back']).order('id').range(start,start+499));
+    for(let i=0;i<selectedKeys.length;i+=100){const keys=selectedKeys.slice(i,i+100);tasks.push(async()=>{
+     for(let start=0;;){const rows=check(await db.from('leads_edit_history').select('id,lead_key').in('lead_key',keys).in('response',['Disconnected','Connected Not Interested','Need Offer','Call Back']).order('id').range(start,start+499));
       rows.forEach((r:any)=>calledKeys.add(r.lead_key));if(rows.length<500)break;start+=rows.length;
-     }
+     }});
     }
+    let nextTask=0;await Promise.all(Array.from({length:Math.min(6,tasks.length)},async()=>{while(nextTask<tasks.length){const task=tasks[nextTask++];await task()}}));
     for(const {lead,id} of selected){const calls=activityByPhone.get(core.phone(lead.phone))||[],validDay=(value:any)=>value&&Number.isFinite(Date.parse(value))?core.day(value):null;
      const days=(predicate:any)=>[...new Set(calls.filter(predicate).map((c:any)=>validDay(c.started_at)).filter(Boolean))];
      const latest=calls.reduce((a:any,b:any)=>!a||Date.parse(b.started_at)>Date.parse(a.started_at)?b:a,null);
