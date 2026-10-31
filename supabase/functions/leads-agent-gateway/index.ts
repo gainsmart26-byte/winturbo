@@ -60,7 +60,7 @@ Deno.serve(async(req:Request)=>{
    stage='validate_lead_import';
    const source=body.source===undefined?'Manual':typeof body.source==='string'?body.source.trim():'';
    if(!source||source.length>100||/[\x00-\x1f\x7f]/.test(source))return json({error:'Enter a lead source (1–100 characters).'},400);
-   if(!Array.isArray(body.items)||body.items.length<1||body.items.length>1000)return json({error:'Import between 1 and 1,000 leads per request.'},400);
+   if(!Array.isArray(body.items)||body.items.length<1||body.items.length>5000)return json({error:'Import between 1 and 5,000 leads per request.'},400);
    const keys=new Set(records.map((r:any)=>r.lead_key)),users=new Set([...players,...records].map((r:any)=>String(r.username||'').trim().toLowerCase()).filter(Boolean)),numbers=new Set([...players,...records].map((r:any)=>core.phone(r.phone)).filter(Boolean));
    let skipped=0,invalid=0;const fresh:any[]=[],leadDate=core.day();
    for(const item of body.items){
@@ -74,7 +74,10 @@ Deno.serve(async(req:Request)=>{
     // Only new identities can be inserted. Ignore client keys, ownership, response and status fields.
     fresh.push({lead_key,username:username||null,phone:number||null,lead_source:source,lead_date:leadDate,tags:['Agent Upload'],updated_by:user.id});
    }
-   stage='insert_agent_leads';let added=0;if(fresh.length){const saved=check(await db.from('lead_intell_records').upsert(fresh,{onConflict:'lead_key',ignoreDuplicates:true}).select('lead_key'));added=saved.length;skipped+=fresh.length-added}
+   // Keep each returned rowset within the Data API's default 1,000-row cap.
+   // Identity scans and validation still happen just once for all 5,000 inputs.
+   stage='insert_agent_leads';let added=0;
+   for(let i=0;i<fresh.length;i+=1000){const batch=fresh.slice(i,i+1000),saved=check(await db.from('lead_intell_records').upsert(batch,{onConflict:'lead_key',ignoreDuplicates:true}).select('lead_key'));added+=saved.length;skipped+=batch.length-saved.length}
    return json({ok:true,added,skipped,invalid});
   }
   const names=new Map((await all('leads_agents','user_id,name','user_id')).map((x:any)=>[x.user_id,x.name]));const leads=core.attachWati(core.merge(players,records),await all('wati_contacts','phone,connection_id,first_seen_at,contact_created_at','phone')),key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
