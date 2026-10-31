@@ -83,7 +83,7 @@ Deno.serve(async(req:Request)=>{
   const names=new Map((await all('leads_agents','user_id,name','user_id')).map((x:any)=>[x.user_id,x.name]));const leads=core.attachWati(core.merge(players,records),await all('wati_contacts','phone,connection_id,first_seen_at,contact_created_at','phone')),key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
   const opaque=async(value:string)=>Array.from(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))).map(v=>v.toString(16).padStart(2,'0')).join('');
   if(action==='list'){
-   const page=Math.max(0,Math.floor(Number(body.page)||0)),pageSize=Math.max(1,Math.min(5000,Math.floor(Number(body.page_size)||50)));
+   const page=Math.max(0,Math.floor(Number(body.page)||0)),pageSize=Math.max(1,Math.min(body.contact_view===true?500:5000,Math.floor(Number(body.page_size)||50)));
    const selected=await Promise.all(leads.slice(page*pageSize,(page+1)*pageSize).map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
    const contactActivity=new Map();
    if(body.contact_view===true){
