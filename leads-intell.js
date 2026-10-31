@@ -84,8 +84,9 @@
   }
   function renderContacts(){
     const from=$('leadDateFrom').value,to=$('leadDateTo').value,search=$('leadSearch').value.trim().toLowerCase();
-    const day=value=>value&&Number.isFinite(Date.parse(value))?C.day(value):null;
-    const within=value=>{const d=day(value);return !from&&!to||!!d&&(!from||d>=from)&&(!to||d<=to)};
+    const dateCache=new Map();
+    const day=value=>{if(!value||!Number.isFinite(Date.parse(value)))return null;if(!dateCache.has(value))dateCache.set(value,C.day(value));return dateCache.get(value)};
+    const within=value=>{if(!from&&!to)return true;const d=day(value);return !!d&&(!from||d>=from)&&(!to||d<=to)};
     if(from&&to&&from>to){message('From date must be on or before To date.',true);return}
     const match=(lead,card)=>{const a=lead.contact_activity,r=lead.record;
       if(card==='registered')return registration(lead)==='Registered'&&within(lead.registered_at);
@@ -111,7 +112,7 @@
   function open(due=false){document.querySelectorAll('main.main > section.section').forEach(s=>{const on=s.id==='leadsIntell';s.classList.toggle('on',on);s.style.setProperty('display',on?'block':'none','important');s.setAttribute('aria-hidden',String(!on))});document.querySelectorAll('#app .nav button').forEach(b=>b.classList.toggle('on',b.dataset.s==='leadsIntell'));$('title').textContent=agentMode?'Karo Apne Sapne Poore, Har Lead Conversion Per Incentive':'🎯 Leads Intell';if(due&&!agentMode){['leadSearch','leadSource','leadRegistration','leadDeposit','leadResponseFilter','leadDateFrom','leadDateTo'].forEach(id=>$(id).value='');$('leadDueFilter').value='due';page=0}if(!agentMode)load()}
   async function load(){if(loading)return;loading=true;$('leadRefresh').disabled=true;message('Loading all registered users and saved leads…');try{
     ready=false;if(!agentMode)void loadWatiSources().then(()=>{if(ready)render()});
-    if(agentMode){let rows=[],p=0,total=0;do{const data=await gateway({action:'list',page:p++,page_size:1000,contact_view:true});total=data.total;rows.push(...data.rows);leads=rows;players=rows.filter(x=>x.source==='Registered');render();message(`Loading leads: ${rows.length.toLocaleString('en-IN')} of ${Number(total).toLocaleString('en-IN')}…`);if(!data.rows.length)break}while(rows.length<total);leads=rows;players=rows.filter(x=>x.source==='Registered');records=[];ready=true;render();message('Phone numbers stay masked until you open a lead.');return;}
+    if(agentMode){let rows=[],p=0,total=0;do{const data=await gateway({action:'list',page:p++,page_size:5000,contact_view:true});total=data.total;rows.push(...data.rows);leads=rows;players=rows.filter(x=>x.source==='Registered');if(p===1)render();message(`Loading leads: ${rows.length.toLocaleString('en-IN')} of ${Number(total).toLocaleString('en-IN')}…`);if(!data.rows.length)break}while(rows.length<total);leads=rows;players=rows.filter(x=>x.source==='Registered');records=[];ready=true;render();message('Phone numbers stay masked until you open a lead.');return;}
     const result=await Promise.all([all('admin_players','username,phone,ftd,lifetime_deposits,deposit_count,synced_at,registered_at','username'),all('lead_intell_records','*','lead_key')]);[players,records]=result;leads=C.merge(players,records);const contacts=await all('wati_contacts','phone,connection_id,first_seen_at,contact_created_at','phone');C.attachWati(leads,contacts);const people=await all('profiles','id,full_name,email','id'),names=new Map(people.map(x=>[x.id,x.full_name||x.email]));editorNames=names;leads.forEach(x=>x.editor_name=names.get(x.record?.updated_by));callStatuses.clear();callStatusReady=false;
     try{const result=await sb.functions.invoke('stringeex-call-sync',{body:{action:'analytics',filters:{}}});if(!result.error&&!result.data?.error&&Array.isArray(result.data?.rows)){for(const row of result.data.rows){if(row.last_call)callStatuses.set(C.phone(row.phone),row.last_call)}callStatusReady=true}}catch{}
     ready=true;render();message('All registered users included. Deposit data follows the Admin Intelligence sync.');

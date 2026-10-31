@@ -3,7 +3,8 @@
   const responses=['Disconnected','Message Sent','Connected Not Interested','Need Offer','Call Back'];
   const phone=v=>{let s=String(v??'').trim().replace(/^'/,'').replace(/[\s()+.-]/g,'');if(s.startsWith('0091')&&s.length===14)s=s.slice(2);if(s.length===12&&s.startsWith('91'))s=s.slice(2);return /^\d{7,15}$/.test(s)?s:''};
   const username=v=>{const s=String(v??'').trim();return /^[A-Za-z0-9_.@-]{1,100}$/.test(s)?s:''};
-  const day=(v=new Date())=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(v));
+  const dayFormat=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'});
+  const day=(v=new Date())=>dayFormat.format(new Date(v));
   function merge(players,records){
     const rows=players.map(p=>({...p,key:'user:'+p.username.toLowerCase(),source:'Registered',registration:'Registered',record:null}));
     const users=new Map(rows.map(r=>[r.username.toLowerCase(),r])),phones=new Map();
