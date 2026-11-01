@@ -4374,8 +4374,8 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
   let publishingAccounts=[];
   let hydrating=false;
 
-  const IDS=['offersIntell','quoraIntell','overview','growth','creative','telegramSources','otherSources','discordSources','timing','quality','verification','contentIdeas','approval','trafficIntelligence','trafficStarsIntell'];
-  const TITLES={offersIntell:'Offers Intell',quoraIntell:'Quora Intell',overview:'Executive Overview',growth:'Growth Analytics',creative:'Creative Explorer',telegramSources:'Telegram Sources',otherSources:'Instagram & Web',discordSources:'Discord Sources',timing:'Posting Intelligence',quality:'Data Quality & AI',verification:'Verification',contentIdeas:'Content Ideas',approval:'Approval',trafficIntelligence:'Traffic Intelligence',trafficStarsIntell:'TrafficStars Intell'};
+  const IDS=['offersIntell','quoraIntell','overview','growth','creative','telegramSources','otherSources','discordSources','timing','quality','verification','contentIdeas','approval','trafficIntelligence','trafficStarsIntell','googleIntell'];
+  const TITLES={offersIntell:'Offers Intell',quoraIntell:'Quora Intell',overview:'Executive Overview',growth:'Growth Analytics',creative:'Creative Explorer',telegramSources:'Telegram Sources',otherSources:'Instagram & Web',discordSources:'Discord Sources',timing:'Posting Intelligence',quality:'Data Quality & AI',verification:'Verification',contentIdeas:'Content Ideas',approval:'Approval',trafficIntelligence:'Traffic Intelligence',trafficStarsIntell:'TrafficStars Intell',googleIntell:'Google Intell'};
 
   function ensureApprovalNav(){
     const nav=document.querySelector('.nav'); if(!nav)return;
@@ -4788,7 +4788,7 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
     ['telegramSources','Telegram Sources'],['otherSources','Instagram & Web'],['discordSources','Discord Sources'],
     ['timing','Posting Intelligence'],['quality','Data Quality & AI'],['verification','Verification'],
     ['contentIdeas','Content Ideas'],['eventsIntelligence','Events'],['socialManagement','Social Media Management'],['approval','Approval'],['expense','Expense'],
-    ['offersIntell','Offers Intell'],['quoraIntell','Quora Intell'],['leadsIntell','Leads Intell'],['bonusIntelligence','Bonus Intelligence'],['trafficIntelligence','Traffic Intelligence'],['trafficStarsIntell','TrafficStars Intell']
+    ['offersIntell','Offers Intell'],['quoraIntell','Quora Intell'],['leadsIntell','Leads Intell'],['bonusIntelligence','Bonus Intelligence'],['trafficIntelligence','Traffic Intelligence'],['trafficStarsIntell','TrafficStars Intell'],['googleIntell','Google Intell']
   ];
   let accessContext=null;
   let accessRows=[];
@@ -5421,4 +5421,6 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
 <script src="./offers-generate.js?v=20261024"></script>
 <link rel="stylesheet" href="./match-intell.css?v=20261031">
 <script src="./match-intell.js?v=20261031"></script>
+<link rel="stylesheet" href="./google-intell.css?v=20261101">
+<script src="./google-intell.js?v=20261101"></script>
 </html>
