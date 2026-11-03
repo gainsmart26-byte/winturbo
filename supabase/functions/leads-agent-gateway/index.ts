@@ -26,7 +26,7 @@ Deno.serve(async(req:Request)=>{
    if(action==='create_agent'){
     const email='agent-'+number.slice(1)+'@agents.winturbo.live';
     if(check(await db.from('leads_agents').select('user_id').eq('phone',number).maybeSingle()))throw Error('This phone number is already assigned to an agent.');
-    stage='create_access_grant';const grantRow=check(await db.from('user_access_grants').insert({email,access_level:'section',allowed_sections:['leadsIntell'],is_active:true,granted_by:user.id}).select('id').single());
+    stage='create_access_grant';const grantRow=check(await db.from('user_access_grants').insert({email,access_level:'section',allowed_sections:['leadsIntell','whatsappIntelligence'],is_active:true,granted_by:user.id}).select('id').single());
     stage='create_auth_account';const created=await db.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:name}});
     if(created.error){await db.from('user_access_grants').delete().eq('id',grantRow.id);throw Error(created.error.message)}
     const id=created.data.user.id;stage='save_agent_profile';
@@ -39,7 +39,7 @@ Deno.serve(async(req:Request)=>{
    const updated=await db.auth.admin.updateUserById(existing.user_id,{email,email_confirm:true,...(password?{password}:{}),user_metadata:{full_name:name}});if(updated.error)throw Error(updated.error.message);
    const active=body.is_active===true;
    check(await db.from('leads_agents').update({phone:number,name,is_active:active}).eq('user_id',existing.user_id));
-   check(await db.from('user_access_grants').update({email,is_active:active,access_level:'section',allowed_sections:['leadsIntell']}).eq('user_id',existing.user_id));
+   check(await db.from('user_access_grants').update({email,is_active:active,access_level:'section',allowed_sections:['leadsIntell','whatsappIntelligence']}).eq('user_id',existing.user_id));
    check(await db.from('profiles').update({email,full_name:name,is_active:active}).eq('id',existing.user_id));
    if(!active)check(await db.from('leads_agent_sessions').delete().eq('user_id',existing.user_id));
    return json({ok:true});

@@ -10,8 +10,19 @@ Deno.serve(async req=>{
  try{
  const token=req.headers.get('Authorization')?.replace(/^Bearer\s+/i,'');if(!token)return json({error:'Sign in required'},401);
  const {data:{user},error}=await db.auth.getUser(token);if(error||!user)return json({error:'Sign in required'},401);
- const p=check(await db.from('profiles').select('role,is_active').eq('id',user.id).single());if(p?.role!=='admin'||!p.is_active)return json({error:'Admin access required'},403);
- const b=await req.json();
+ const p=check(await db.from('profiles').select('role,is_active').eq('id',user.id).single());if(!p?.is_active)return json({error:'Access denied'},403);
+ const admin=p.role==='admin',b=await req.json();
+ if(!admin){
+ const agent=check(await db.from('leads_agents').select('is_active').eq('user_id',user.id).maybeSingle());
+ const grant=check(await db.from('user_access_grants').select('is_active,access_level,allowed_sections').eq('user_id',user.id).maybeSingle());
+ if(!agent?.is_active||!grant?.is_active||grant.access_level!=='section'||!grant.allowed_sections?.includes('whatsappIntelligence'))return json({error:'WhatsApp Intelligence access denied'},403);
+ if(!['list','snapshot','messages'].includes(b.action))return json({error:'Admin access required for this action'},403);
+ }
+ if(b.action==='snapshot'){
+ async function all(table:string,columns:string,order:string){let rows:any[]=[];for(let start=0;;start+=500){const batch=check(await db.from(table).select(columns).order(order).range(start,start+499));rows.push(...batch);if(batch.length<500)return rows}}
+ const [connections,contacts,players]=await Promise.all([all('wati_connections','id,label,business_number,last_synced_at,next_page,last_error','id'),all('wati_contacts','connection_id,phone,name,first_seen_at,contact_created_at','phone'),all('admin_players','username,phone,registered_at,lifetime_deposits,synced_at','username')]);
+ return json({connections,contacts,rows:C.match(contacts,players,connections)});
+ }
  if(b.action==='performance_financials'){
  // Financial ledgers stay server-only. Return aggregates after the active-admin check above.
  const grouped:Record<string,number>={};let deposits=0;
