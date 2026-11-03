@@ -1577,9 +1577,9 @@ main.main > section.section:not(#quality) #qualitySources{display:none!important
     <div class="card"><div class="k">FRESHNESS</div><div class="v" id="qualityFreshness">—</div><div class="subv">Latest successful scrape</div></div>
     <div class="card"><div class="k">AI CONFIDENCE</div><div class="v" id="qualityConfidence">—</div><div class="subv">Dominant recommendation confidence</div></div>
   </div>
-  <div class="card" style="margin-top:14px"><div class="sectionHead"><div><h3>Monitored Data Sources</h3><div class="muted small">Latest fetch status per source.</div></div></div><div id="qualitySources"></div></div>
-  <div class="sectionHead" style="margin-top:22px"><div><h2>Likely to Be Successful for WinTurbo</h2><div class="muted small">Evidence-ranked ideas with inline ChatGPT generation and direct routing to the Approval queue for Telegram or Instagram.</div></div><span class="pill greenPill">AI RECOMMENDATIONS</span></div>
-  <div id="aiRecommendations" class="recommendationGrid"><div class="muted">Loading recommendation evidence…</div></div>
+  <div class="card" style="margin-top:14px"><div class="sectionHead"><div><h3>Monitored Data Sources</h3><div class="muted small">Successfully fetched sources only. Queued and failed sources are excluded.</div></div></div><div id="qualitySources"></div></div>
+  <div class="sectionHead" style="margin-top:22px"><div><h2>Likely to Be Successful for WinTurbo</h2><div class="muted small">Daily recommendations from live sources and posts in the last 24 hours. Review and generate a draft for Approval.</div></div><span class="pill greenPill">AI RECOMMENDATIONS</span></div>
+  <div id="qualityDailyUpdated" class="muted small" role="status"></div><div id="aiRecommendations" class="recommendationGrid"><div class="muted">Loading recommendation evidence…</div></div>
   <div style="display:flex;justify-content:center;margin-top:16px"><button id="qualityLoadMore" class="ghost">Load More Recommendations</button></div>
 </section>
 
@@ -4249,7 +4249,7 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
         sb.from('monitored_sources').select('*').order('created_at',{ascending:false}),
         sb.from('content_success_intelligence').select('*').order('success_likelihood_score',{ascending:false}).limit(200)
       ]);
-      const accounts=a.data||[],  creative=c.data||[], sources=sr.data||[], success=si.data||[];
+      const accounts=a.data||[], growth=g.data||[], creative=c.data||[], sources=sr.data||[], success=si.data||[];
       const ac=byHandle(accounts), gr=byHandle(growth), cr=byHandle(creative), suc=byHandle(success);
       const activeSources=selected()==='all'?sources.filter(x=>x.is_active!==false):sources.filter(x=>x.is_active!==false&&x.handle===selected());
 
@@ -4297,32 +4297,8 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
       const otherBody=q('otherSourcesBody');
       if(otherBody)otherBody.innerHTML=oth.map(x=>`<tr><td><b>${esc2(x.source_name||x.source_url)}</b></td><td>${esc2(x.platform||'Web')}</td><td>${esc2(x.scrape_status||'queued')}</td><td>${fmtDate(x.last_scraped_at)}</td><td>—</td><td>—</td><td><a target="_blank" rel="noopener" href="${esc2(x.source_url)}">Open ↗</a></td></tr>`).join('')||'<tr><td colspan="7" class="muted">No Instagram/Web sources.</td></tr>';
 
-      // Data quality metrics based on real stored data.
-      const freshHours=lastScrape?(Date.now()-new Date(lastScrape).getTime())/36e5:null;
-      setText('qualityStatus',cr.length?'Data available':'Awaiting data');
-      setText('qualityCoverage',`${activeSources.length} active links`);
-      setText('qualityFreshness',freshHours==null?'No scrape yet':freshHours<6?'Fresh':freshHours<24?'Recent':Math.round(freshHours)+'h old');
-      const confCounts=suc.reduce((m,x)=>(m[x.confidence]=(m[x.confidence]||0)+1,m),{});
-      setText('qualityConfidence',Object.keys(confCounts).length?Object.entries(confCounts).sort((a,b)=>b[1]-a[1])[0][0]:'Waiting');
-      const badge=q('qualityHealthBadge');if(badge){badge.textContent=freshHours!=null&&freshHours<24?'DATA CURRENT':'REFRESH NEEDED';badge.className='pill '+(freshHours!=null&&freshHours<24?'':'orange')}
-
-      const qs=q('qualitySources');
-      if(qs)qs.innerHTML=activeSources.length?activeSources.map(x=>`<div class="qualitySource"><div><b>${esc2(x.source_name||x.handle||x.source_url)}</b><div class="muted small">${esc2(x.platform||'Source')} · ${x.last_scraped_at?'Updated '+fmtDate(x.last_scraped_at):'Not fetched yet'}${x.last_error?' · '+esc2(x.last_error):''}</div></div><span class="qualityState">${esc2(x.scrape_status||'queued')}</span></div>`).join(''):'<div class="muted">No active monitored links.</div>';
-
-      // Evidence-based posting recommendations from scraped content_success_intelligence.
-      const recHost=q('aiRecommendations');
-      if(recHost){
-        const candidates=[...suc].filter(x=>Number(x.success_likelihood_score||0)>0).sort((a,b)=>Number(b.success_likelihood_score)-Number(a.success_likelihood_score));
-        const seen=new Set(), recs=[];
-        for(const r of candidates){const key=(r.theme||'Unclassified')+'|'+(r.media_type||'');if(seen.has(key))continue;seen.add(key);recs.push(r);if(recs.length>=8)break}
-        recHost.innerHTML=recs.length?recs.map((r,i)=>{
-          const score=Number(r.success_likelihood_score||0), label=r.success_label|| (score>=75?'Likely to be successful':score>=60?'Promising':'Watch');
-          const postingTime=hourIST(r.posted_at);
-          return `<div class="aiItem"><div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><div><b>#${i+1} ${esc2(r.theme||'Content pattern')}</b><div class="muted small">Based on ${esc2(r.account_name||r.handle||'observed source')} · ${esc2(r.media_type||'content')} · observed around ${postingTime}</div></div><span class="pill ${score>=75?'':'orange'}">${score.toFixed(0)}% ${esc2(label)}</span></div><div style="margin-top:9px"><b>Recommended post direction:</b> ${esc2(r.hook||r.post_text||r.theme||'Use this winning content pattern').slice(0,220)}</div><div class="muted small" style="margin-top:7px">Evidence: ${fmtN(r.views||0)} views · creative score ${r.creative_score==null?'n/a':Number(r.creative_score).toFixed(0)} · pattern sample ${fmtN(r.pattern_sample_size||0)} · confidence ${esc2(r.confidence||'—')}.</div><div class="muted small" style="margin-top:5px">Why: ${esc2(r.rationale||'Observed performance and pattern strength support this recommendation.')}</div>${r.post_url?`<div style="margin-top:7px"><a target="_blank" rel="noopener" href="${esc2(r.post_url)}">View source evidence ↗</a></div>`:''}</div>`
-        }).join(''):'<div class="aiItem muted">No recommendation evidence is available yet. Scraped post data will populate this automatically.</div>';
-      }
     }catch(err){
-      const h=q('aiRecommendations');if(h)h.innerHTML=`<div class="aiItem error">Dashboard data load failed: ${esc2(err?.message||err)}</div>`;
+      
       console.error('WinTurbo data runtime',err);
     }finally{busy=false}
   }
@@ -4547,11 +4523,11 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
       ]);
       const accounts=a.data||[],growth=g.data||[],creative=c.data||[],sources=sr.data||[],success=si.data||[],timing=ti.data||[];publishingAccounts=pa.data||[];
       const filter=$('accountFilter');if(filter){const old=filter.value||'all';filter.innerHTML='<option value="all">All monitored accounts</option>'+accounts.map(x=>`<option value="${esc(x.handle)}">${esc(x.account_name||x.handle)}</option>`).join('');filter.value=[...filter.options].some(o=>o.value===old)?old:'all'}
-      renderCreative(creative);const active=renderSources(sources);renderTiming(timing);renderQuality(active,success);renderRecommendations(success);renderApprovals(pq.data||[]);
+      renderCreative(creative);const active=renderSources(sources);renderTiming(timing);renderApprovals(pq.data||[]);
       set('accounts',filterRows(accounts).length);set('members',n(filterRows(accounts).reduce((z,x)=>z+Number(x.followers_current||0),0)));set('overviewPosts',filterRows(creative).length);set('posts',filterRows(creative).length);set('views',n(filterRows(creative).reduce((z,x)=>z+Number(x.views||0),0)));set('postAccounts',new Set(filterRows(creative).map(x=>x.handle).filter(Boolean)).size);set('activeLinks',active.length);
       const last=active.map(x=>x.last_scraped_at).filter(Boolean).sort().pop();set('lastDataUpdate',last?dt(last):'Waiting for scrape');if($('lastDataUpdateSub'))$('lastDataUpdateSub').textContent=last?'Latest successful source scrape':'No successful scrape yet';
       bindApprovalIntercept();
-    }catch(e){console.error('WinTurbo workflow v23',e);if($('aiRecommendations'))$('aiRecommendations').innerHTML=`<div class="successRec">Data load failed: ${esc(e?.message||e)}</div>`}
+    }catch(e){console.error('WinTurbo workflow v23',e);}
     finally{hydrating=false}
   }
 
@@ -4661,11 +4637,15 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
   const n=v=>new Intl.NumberFormat('en-IN').format(Number(v)||0);
   const dt=v=>v?new Date(v).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Kolkata'}):'—';
-  let rows=[];let visible=30;let loading=false;const drafts=new Map();
+  let rows=[];let sources=[];let refreshedAt=null;let visible=30;let loading=false;const drafts=new Map();
   const rowKey=r=>String(r.id||`${r.handle||''}:${r.platform_post_id||r.posted_at||Math.random()}`);
   const selectedAccount=()=>document.getElementById('accountFilter')?.value||'all';
   const selectedCategory=()=>document.getElementById('entityCategoryFilter')?.value||'all';
-  const filtered=()=>rows.filter(r=>(selectedAccount()==='all'||r.handle===selectedAccount())&&(selectedCategory()==='all'||r.entity_category===selectedCategory())).sort((a,b)=>Number(b.success_likelihood_score||0)-Number(a.success_likelihood_score||0));
+  const normalize=v=>String(v||'').toLowerCase().replace(/^@/,'').trim();
+  const liveSource=s=>s.is_active!==false&&['active','live','success','completed'].includes(normalize(s.scrape_status))&&!!s.last_scraped_at&&!s.last_error;
+  const fresh=t=>Number.isFinite(Date.parse(t))&&Date.now()-Date.parse(t)>=0&&Date.now()-Date.parse(t)<=86400000;
+  const eligible=r=>fresh(r.posted_at)&&Number(r.success_likelihood_score)>0&&sources.some(s=>liveSource(s)&&fresh(s.last_scraped_at)&&normalize(s.handle)&&normalize(s.handle)===normalize(r.handle)&&(!s.platform||!r.platform||normalize(s.platform)===normalize(r.platform)));
+  const filtered=()=>rows.filter(r=>eligible(r)&&(selectedAccount()==='all'||r.handle===selectedAccount())&&(selectedCategory()==='all'||r.entity_category===selectedCategory())).sort((a,b)=>Number(b.success_likelihood_score||0)-Number(a.success_likelihood_score||0));
 
   function promptFor(r,targetCategory,platform){
     const who=targetCategory==='influencer'?'an influencer-led WinTurbo channel':'a WinTurbo company/brand channel';
@@ -4682,13 +4662,34 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
 
   function render(){
     const host=$('aiRecommendations');if(!host)return;
-    const all=filtered(),show=all.slice(0,visible);host.className='v31RecGrid';host.dataset.v31Rendered='1';host.innerHTML=show.length?show.map(card).join(''):'<div class="muted">No recommendation evidence matches the selected filters.</div>';
+    renderHealth();
+    const all=filtered(),show=all.slice(0,visible);host.className='v31RecGrid';host.dataset.v31Rendered='1';host.innerHTML=show.length?show.map(card).join(''):'<div class="muted">Awaiting fresh live-source evidence from the last 24 hours. Recommendations refresh daily in IST and when fresh data is available.</div>';
     const more=$('qualityLoadMore');if(more){more.style.display=visible<all.length?'inline-flex':'none';more.textContent=`Load More Recommendations (${Math.max(0,all.length-visible)} remaining)`;}
+  }
+
+  function renderHealth(){
+    const selected=sources.filter(s=>liveSource(s)&&(selectedAccount()==='all'||s.handle===selectedAccount())&&(selectedCategory()==='all'||s.entity_category===selectedCategory()));
+    const live=selected.filter(s=>fresh(s.last_scraped_at)),evidence=filtered();
+    const set=(id,text)=>{if($(id))$(id).textContent=text};
+    set('qualityStatus',evidence.length?'Live evidence available':'Awaiting fresh data');
+    set('qualityCoverage',`${live.length} fresh / ${selected.length} live`);
+    const last=selected.map(s=>s.last_scraped_at).sort().pop();set('qualityFreshness',last?dt(last):'No successful fetch');
+    const confidence={};evidence.forEach(r=>{if(r.confidence)confidence[r.confidence]=(confidence[r.confidence]||0)+1});set('qualityConfidence',Object.entries(confidence).sort((a,b)=>b[1]-a[1])[0]?.[0]||'Waiting');
+    set('qualityHealthBadge',evidence.length?'DAILY LIVE EVIDENCE':'AWAITING FRESH DATA');
+    const host=$('qualitySources');if(host)host.innerHTML=selected.length?selected.map(s=>`<div class="qualitySource"><div><b>${esc(s.source_name||s.handle||s.source_url)}</b><div class="muted small">${esc(s.platform||'Source')} · Last successful fetch ${dt(s.last_scraped_at)}</div></div><span class="qualityState">${fresh(s.last_scraped_at)?'Live':'Stale — refresh needed'}</span></div>`).join(''):'<div class="muted">No successfully fetched live sources for this selection.</div>';
+    set('qualityDailyUpdated',refreshedAt?'Updated '+dt(refreshedAt)+' · Last 24 hours · Daily refresh at 12:00 AM IST':'Loading daily evidence…');
   }
 
   async function load(){
     if(loading)return;loading=true;
-    try{const {data,error}=await sb.from('content_success_intelligence').select('*').order('success_likelihood_score',{ascending:false}).limit(100);if(error)throw error;rows=data||[];render();}
+    try{
+      const [posts,links]=await Promise.all([
+        sb.from('content_success_intelligence').select('*').gte('posted_at',new Date(Date.now()-86400000).toISOString()).order('success_likelihood_score',{ascending:false}).limit(500),
+        sb.from('monitored_sources').select('*').eq('is_active',true)
+      ]);
+      if(posts.error)throw posts.error;if(links.error)throw links.error;
+      sources=links.data||[];rows=posts.data||[];refreshedAt=new Date();render();
+    }
     catch(e){const host=$('aiRecommendations');if(host){host.dataset.v31Rendered='1';host.innerHTML=`<div class="muted">Recommendation load failed: ${esc(e?.message||e)}</div>`;}}
     finally{loading=false}
   }
@@ -4712,8 +4713,13 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
     document.addEventListener('click',e=>{const g=e.target.closest?.('.v31Generate');if(g){e.preventDefault();generate(g);return}const a=e.target.closest?.('.v31Approve');if(a){e.preventDefault();sendApproval(a);return}},true);
     $('qualityLoadMore')?.addEventListener('click',()=>{visible+=20;render()});
     $('accountFilter')?.addEventListener('change',()=>{visible=30;render()});$('entityCategoryFilter')?.addEventListener('change',()=>{visible=30;render()});
-    const host=$('aiRecommendations');if(host){new MutationObserver(()=>{if(host.dataset.v31Rendered!=='1'){setTimeout(render,0)}}).observe(host,{childList:true,subtree:false});}
+
     load();setTimeout(load,1200);
+    document.addEventListener('winturbo-access-ready',load);
+    document.addEventListener('click',e=>{if(e.target.closest?.('#loginBtn,#refresh,button[data-s="quality"]'))setTimeout(load,500)});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
+    setInterval(load,60*60*1000);
+    function daily(){const now=Date.now(),ist=now+19800000,next=(Math.floor(ist/86400000)+1)*86400000-19800000;setTimeout(()=>{load();daily()},next-now+1000)}daily();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
