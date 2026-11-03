@@ -54,12 +54,39 @@ Deno.serve(async(req:Request)=>{
  if(req.method!=='POST')return reply({error:'Method not allowed'},405);
  const raw=await req.text();if(raw.length>16000)return reply({error:'Message is too large.'},413);
  let b;try{b=JSON.parse(raw)}catch{return reply({error:'Invalid request'},400)}
- const action=b.action||'chat';if(!['chat','voice_token','handoff'].includes(action))return reply({error:'Unknown support action'},400);
+ const action=b.action||'chat';if(!['chat','voice_token','handoff','member_otp_start','member_otp_verify'].includes(action))return reply({error:'Unknown support action'},400);
  const language=languages.includes(b.language)?b.language:'Auto';
- const user=await identity(req),ipHash=await hash(ip),identifier=await hash(user?.id||ipHash);
+ const user=action.startsWith('member_otp_')?null:await identity(req),ipHash=await hash(ip),identifier=await hash(user?.id||ipHash);
  const quota=await db.rpc('turboman_take_quota',{p_bucket:'support:'+ipHash,p_limit:120});
  if(quota.error)throw Error('Support is temporarily unavailable.');
  if(!quota.data)return reply({error:'Please wait before sending more requests.'},429);
+ if(action==='member_otp_start'){
+  if(!await otpEnabled())return reply({error:'Member OTP login is not enabled yet. Please call +91 79717 01093 for account support.'},503);
+  const username=String(b.username||'').trim();if(!/^[a-zA-Z0-9_.@-]{2,64}$/.test(username))return reply({error:'Enter your WinTurbo username.'},400);
+  const q=await db.rpc('turboman_take_quota',{p_bucket:'member-otp:'+ipHash,p_limit:6});
+  const uq=await db.rpc('turboman_take_quota',{p_bucket:'member-name:'+await hash(username.toLowerCase()),p_limit:3});
+  if(q.error||uq.error||!q.data||!uq.data)return reply({error:'Please wait before requesting another OTP.'},429);
+  const member=await db.rpc('turboman_find_member',{p_username:username});if(member.error)throw Error('Member login is temporarily unavailable.');
+  let canonical:string|null=null,phone='';
+  if(member.data?.length===1){canonical=member.data[0].username;phone=String(member.data[0].phone||'').replace(/\D/g,'');if(phone.length===10)phone='91'+phone;if(!/^91[6-9]\d{9}$/.test(phone)){canonical=null;phone='';}}
+  if(canonical){const own=await db.rpc('turboman_verified_player',{p_phone:phone});if(own.error||own.data?.length!==1||own.data[0].username!==canonical){canonical=null;phone='';}}
+  const c=await db.from('chatbot_member_challenges').insert({username:canonical}).select('id').single();if(c.error)throw Error('Could not start member verification.');
+  if(canonical){const authClient=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_ANON_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});const sent=await authClient.auth.signInWithOtp({phone:'+'+phone,options:{shouldCreateUser:true}});if(sent.error)throw Error('OTP delivery is temporarily unavailable. Please call human support.');}
+  return reply({ok:true,challenge_id:c.data.id,message:'If this username is registered and eligible, an OTP has been sent to its registered mobile number. Never share it in chat.'});
+ }
+ if(action==='member_otp_verify'){
+  if(!/^[0-9a-f-]{36}$/i.test(String(b.challenge_id||''))||!/^\d{6,8}$/.test(String(b.otp||'')))return reply({error:'Enter a valid OTP.'},400);
+  const c=await db.rpc('turboman_otp_attempt',{p_challenge:b.challenge_id});if(c.error||c.data?.length!==1||!c.data[0].username)return reply({error:'Invalid or expired OTP. Please request a new code.'},401);
+  const m=await db.rpc('turboman_find_member',{p_username:c.data[0].username});if(m.error||m.data?.length!==1)return reply({error:'Invalid or expired verification.'},401);
+  let phone=String(m.data[0].phone||'').replace(/\D/g,'');if(phone.length===10)phone='91'+phone;
+  if(!/^91[6-9]\d{9}$/.test(phone))return reply({error:'Invalid or expired verification.'},401);
+  const authClient=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_ANON_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
+  const verified=await authClient.auth.verifyOtp({phone:'+'+phone,token:String(b.otp),type:'sms'});
+  if(verified.error||!verified.data.session||!verified.data.user?.phone_confirmed_at||verified.data.user.phone?.replace(/\D/g,'')!==phone)return reply({error:'Invalid or expired OTP.'},401);
+  const done=await db.from('chatbot_member_challenges').update({consumed_at:new Date().toISOString()}).eq('id',b.challenge_id).is('consumed_at',null).select('id');
+  if(done.error||done.data?.length!==1)return reply({error:'This OTP has already been used.'},401);
+  return reply({ok:true,access_token:verified.data.session.access_token,expires_in:verified.data.session.expires_in,username:m.data[0].username});
+ }
  const visitor=typeof b.visitor_id==='string'&&/^[a-zA-Z0-9-]{16,120}$/.test(b.visitor_id)?b.visitor_id:crypto.randomUUID();
  let session:any=null;
  if(typeof b.session_id==='string'&&/^[0-9a-f-]{36}$/i.test(b.session_id)){

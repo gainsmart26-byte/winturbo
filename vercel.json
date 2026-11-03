@@ -3,8 +3,23 @@
   "rewrites": [
     {
       "source": "/",
+      "destination": "/turboman-vip.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "winturbo.vip"
+        }
+      ]
+    },
+    {
+      "source": "/",
       "destination": "/dashboard.html",
-      "has": [{ "type": "host", "value": "winturbo.io" }]
+      "has": [
+        {
+          "type": "host",
+          "value": "winturbo.io"
+        }
+      ]
     },
     {
       "source": "/",
