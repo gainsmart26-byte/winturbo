@@ -8,7 +8,7 @@
   const nav=document.querySelector('#app .nav'),main=document.querySelector('#app main.main');if(!nav||!main)return;
   const b=document.createElement('button');b.dataset.s='telegramIntell';b.textContent='✈ Telegram Intell';const anchor=nav.querySelector('[data-s="trafficIntelligence"]');anchor?anchor.insertAdjacentElement('afterend',b):nav.appendChild(b);
   const s=document.createElement('section');s.id='telegramIntell';s.className='section';s.innerHTML=`
-   <div class="tgintel-hero"><div><div class="k">ADVERTISING + CHANNEL PERFORMANCE</div><h2>Telegram Intell</h2><div class="muted">Telegram Ads spend and conversion intelligence combined with WinTurbo channel growth.</div></div><div class="tgintel-controls"><label>From<input id="tgIntelFrom" type="date"></label><label>To<input id="tgIntelTo" type="date"></label><label>Ads account<select id="tgIntelAccount"><option value="all">All accounts</option></select></label><button id="tgIntelApply" class="primary">Apply</button><button id="tgIntelRefresh" class="ghost">Refresh Data</button></div></div>
+   <div class="tgintel-hero"><div><div class="k">ADVERTISING + CHANNEL PERFORMANCE</div><h2>Telegram Intell</h2><div class="muted">Telegram Ads spend and conversion intelligence combined with WinTurbo channel growth.</div></div><div class="tgintel-controls"><label>From<input id="tgIntelFrom" type="date"></label><label>To<input id="tgIntelTo" type="date"></label><label>Ads account<select id="tgIntelAccount"><option value="all">All accounts</option></select></label><button id="tgIntelApply" class="primary">Apply</button><button id="tgIntelRefresh" class="ghost">Reload saved data</button></div></div>
    <div id="tgIntelMessage" class="tgintel-sync"></div><div id="tgIntelKpis" class="tgintel-grid"></div>
    <div class="tgintel-layout"><div class="card"><div class="sectionHead"><div><h3>Daily spend and acquisition</h3><div class="muted small">Animated bars show Telegram Ads views; labels include spend and joined users.</div></div><span class="pill">GRAM</span></div><div id="tgIntelTrend" class="tgintel-bars"></div></div>
    <div class="card"><div class="sectionHead"><div><h3>Channel intelligence</h3><div class="muted small">Latest connected Telegram channel snapshots.</div></div></div><div id="tgIntelChannels"></div></div></div>
@@ -17,7 +17,7 @@
   const end=today(),start=new Date(Date.now()-29*86400000).toISOString().slice(0,10);$('tgIntelFrom').value=start;$('tgIntelTo').value=end;$('tgIntelApply').onclick=load;$('tgIntelRefresh').onclick=load;
  }
  async function load(){
-  if(typeof sb==='undefined')return;const msg=$('tgIntelMessage'),btn=$('tgIntelRefresh');btn.disabled=true;btn.textContent='Refreshing…';msg.textContent='Loading connected Telegram Ads and channel data…';
+  if(typeof sb==='undefined')return;const msg=$('tgIntelMessage'),btn=$('tgIntelRefresh');btn.disabled=true;btn.textContent='Refreshing…';msg.textContent='Loading saved Telegram Ads and channel data…';
   try{
    const from=$('tgIntelFrom').value,to=$('tgIntelTo').value,account=$('tgIntelAccount').value;
    const [accounts,ads,daily,channels]=await Promise.all([
@@ -29,8 +29,9 @@
    const prev=$('tgIntelAccount').value,acc=accounts.data||[];$('tgIntelAccount').innerHTML='<option value="all">All accounts</option>'+acc.map(x=>`<option value="${x.id}">${esc(x.account_name)}</option>`).join('');$('tgIntelAccount').value=acc.some(x=>x.id===prev)?prev:'all';
    const selected=$('tgIntelAccount').value,adRows=(ads.data||[]).filter(x=>selected==='all'||x.account_id===selected),ids=new Set(adRows.map(x=>x.id)),days=(daily.data||[]).filter(x=>ids.has(x.ad_id));
    renderKpis(adRows,days,acc.filter(x=>selected==='all'||x.id===selected));renderTrend(days);renderAds(adRows);renderChannels(channels.data||[]);
-   const last=acc.map(x=>x.last_synced_at).filter(Boolean).sort().pop();msg.textContent=`Connected advertiser account${acc.length===1?'':'s'}: ${acc.length} · Source: Telegram Ads · Last imported ${last?new Date(last).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'not available'}`;
-  }catch(e){msg.textContent='Telegram Intell error: '+(e.message||e);$('tgIntelKpis').innerHTML='';}finally{btn.disabled=false;btn.textContent='Refresh Data'}
+   const chosen=acc.filter(x=>selected==='all'||x.id===selected),last=chosen.map(x=>x.last_synced_at).filter(Boolean).sort()[0],stale=!last||Date.now()-new Date(last).getTime()>86400000;
+   msg.textContent=`Saved advertiser accounts: ${chosen.length} · Last imported ${last?new Date(last).toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}):'not available'} · ${stale?'STALE DATA — ':''}Live Telegram Ads sync is not configured. Reload only reads saved records; import a current advertiser report to update figures.`;
+  }catch(e){msg.textContent='Telegram Intell error: '+(e.message||e);$('tgIntelKpis').innerHTML='';}finally{btn.disabled=false;btn.textContent='Reload saved data'}
  }
  function renderKpis(ads,days,accounts){
   const views=days.reduce((a,x)=>a+n(x.views),0),clicks=days.reduce((a,x)=>a+n(x.clicks),0),joined=days.reduce((a,x)=>a+n(x.joined),0),spend=days.reduce((a,x)=>a+n(x.spend),0),balance=accounts.reduce((a,x)=>a+n(x.available_balance),0);
