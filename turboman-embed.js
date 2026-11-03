@@ -1,131 +1,69 @@
-(() => {
-  if (window.__turboManEmbed) return;
-  window.__turboManEmbed = true;
-  const script = document.currentScript;
-  const assetBase = new URL(".", script?.src || location.href).href;
-  const supabaseUrl = "https://kxspsqtdvngiovjvskuq.supabase.co";
-  const endpoint = `${supabaseUrl}/functions/v1/turboman-chat`;
-  const apiKey = "sb_publishable_mY0ClcO6rmkXBE9ppsX5ew_IFQ4jvD8";
-  const visitor = localStorage.turbomanVisitor || (localStorage.turbomanVisitor = crypto.randomUUID());
-  let session = localStorage.turbomanSession || "", voice = true, recognition, listening = false, pendingMessage = "";
-  const codes = { English:"en-IN", Hindi:"hi-IN", Hinglish:"hi-IN", Punjabi:"pa-IN", Bengali:"bn-IN", Marathi:"mr-IN", Gujarati:"gu-IN", Tamil:"ta-IN", Telugu:"te-IN", Kannada:"kn-IN", Malayalam:"ml-IN", Auto:"en-IN" };
-  const token = () => sessionStorage.getItem("turbomanAccessToken") || "";
-
-  const host = document.createElement("div");
-  host.id = "turboman-chatbot";
-  document.body.appendChild(host);
-  const root = host.attachShadow({ mode:"open" });
-  root.innerHTML = `<style>
+/* Turbo Man v2: explicit microphone control; server-verified account tools. */
+(()=>{
+ if(window.__turboManEmbed)return;window.__turboManEmbed=true;
+ const script=document.currentScript,assetBase=new URL('.',script?.src||location.href).href;
+ const supabaseUrl='https://kxspsqtdvngiovjvskuq.supabase.co',endpoint=supabaseUrl+'/functions/v1/turboman-support',apiKey='sb_publishable_mY0ClcO6rmkXBE9ppsX5ew_IFQ4jvD8';
+ const host=document.createElement('div');host.id='turboman-chatbot';document.body.appendChild(host);const root=host.attachShadow({mode:'open'});
+ root.innerHTML=`<style>
     *{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}.launch{position:fixed;right:20px;bottom:20px;z-index:2147483646;border:0;border-radius:999px;background:linear-gradient(135deg,#42e36c,#ff8a2b);color:#07100a;font-weight:950;padding:14px 18px;box-shadow:0 14px 40px #0009;cursor:pointer}.panel{position:fixed;right:20px;bottom:82px;z-index:2147483647;width:min(390px,calc(100vw - 24px));height:min(650px,calc(100vh - 104px));display:none;grid-template-rows:auto 1fr auto;background:#0b120e;color:#f4fff7;border:1px solid #314038;border-radius:20px;overflow:hidden;box-shadow:0 28px 80px #000d}.panel.open{display:grid}.head{display:flex;align-items:center;gap:10px;padding:13px;background:linear-gradient(120deg,#14251a,#15170f);border-bottom:1px solid #29362e}.avatar{width:44px;height:44px;border-radius:13px;filter:drop-shadow(0 0 8px #42e36c77)}.identity{min-width:0}.identity b,.identity small{display:block}.identity small{font-size:10px;color:#9caf9f}.head select{margin-left:auto;max-width:105px;background:#111b15;color:#fff;border:1px solid #334238;border-radius:8px;padding:7px}.close{border:0;background:transparent;color:#fff;font-size:22px;cursor:pointer}.messages{overflow:auto;padding:14px;display:flex;flex-direction:column;gap:9px}.msg{max-width:86%;padding:10px 12px;border-radius:14px;white-space:pre-wrap;line-height:1.42;font-size:13px}.bot{align-self:flex-start;background:#17231b;border:1px solid #2a3c30}.user{align-self:flex-end;background:#42e36c;color:#07100a}.compose{display:grid;grid-template-columns:auto 1fr auto;gap:7px;padding:11px;border-top:1px solid #29362e}.compose textarea{resize:none;min-height:44px;max-height:90px;border:1px solid #334238;border-radius:10px;background:#111a14;color:#fff;padding:10px}.compose button{border:0;border-radius:9px;background:#223027;color:#fff;padding:0 11px;cursor:pointer}.compose .send{background:#42e36c;color:#07100a;font-weight:900}.mic.live{background:#ff8a2b;color:#07100a}.tools{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;color:#82958a;font-size:9px}.tools button{padding:4px 7px;font-size:9px}.verify{display:none;position:absolute;inset:70px 16px auto;padding:16px;background:#111b15;border:1px solid #42e36c;border-radius:14px;z-index:3;box-shadow:0 16px 50px #000}.verify.open{display:block}.verify h3{margin:0 0 6px}.verify p{font-size:11px;color:#a9b9ae}.verify input{width:100%;padding:10px;margin:5px 0;background:#08100b;color:#fff;border:1px solid #34483b;border-radius:8px}.verify button{padding:9px 11px;margin-top:5px;border:0;border-radius:8px;background:#42e36c;color:#07100a;font-weight:800}.verify .cancel{background:#26352b;color:#fff}.verify small{display:block;margin-top:7px;color:#ffbd85}@media(max-width:520px){.launch{right:12px;bottom:12px}.panel{right:12px;bottom:68px}}
-  </style>
-  <button class="launch">⚡ Ask TurboMan · 24×7</button>
-  <aside class="panel" aria-label="TurboMan chat">
-    <header class="head"><img class="avatar" src="${assetBase}turboman-icon.svg" alt="TurboMan"><div class="identity"><b>TurboMan</b><small>Here 24×7 · Multilingual support</small></div><select class="language"><option>Auto</option></select><button class="close">×</button></header>
-    <div class="verify"><h3>Verify your account</h3><p>Enter the phone number registered with WinTurbo. We will send a one-time password. Never share the OTP with an agent.</p><input class="phone" inputmode="tel" placeholder="+91 98765 43210"><button class="sendOtp">Send OTP</button><input class="otp" inputmode="numeric" maxlength="8" placeholder="Enter OTP" hidden><button class="verifyOtp" hidden>Verify & show my details</button><button class="cancel">Cancel</button><small class="verifyStatus"></small></div>
-    <div class="messages"></div>
-    <div class="compose"><button class="mic" title="Start hands-free conversation">🎙</button><textarea maxlength="2000" placeholder="Ask in any language…"></textarea><button class="send">Send</button><div class="tools"><span>Account details require registered-phone OTP</span><button class="voice">🔊 Voice on</button></div></div>
+   .tools{gap:5px;flex-wrap:wrap}.tools button{cursor:pointer}.voiceStatus{font-size:10px}.callSupport{color:#74efa0;font-size:10px;text-decoration:none;padding:4px 7px}.compose button:disabled{opacity:.5;cursor:wait}.messages{min-height:0}.msg{overflow-wrap:anywhere}button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #ff8a2b;outline-offset:2px}</style>
+  <button class="launch">⚡ Turbo Man · AI Support</button>
+  <aside class="panel" aria-label="Turbo Man AI support">
+    <header class="head"><img class="avatar" src="${assetBase}turboman-icon.svg" alt=""><div class="identity"><b>Turbo Man</b><small>AI assistant · Voice + text</small></div><select class="language" aria-label="Support language"><option>Auto</option></select><button class="close" aria-label="Close support">×</button></header>
+    <div class="verify"><h3>Verify your account</h3><p class="verifyHelp">Use your registered mobile number. Enter the OTP only in this secure form.</p><input class="phone" aria-label="Registered mobile number" inputmode="tel" placeholder="+91 98765 43210"><button class="sendOtp">Send OTP</button><input class="otp" aria-label="One-time password" autocomplete="one-time-code" inputmode="numeric" maxlength="8" placeholder="Enter OTP" hidden><button class="verifyOtp" hidden>Verify account</button><button class="cancel">Close</button><small class="verifyStatus" role="status"></small></div>
+    <div class="messages" role="log" aria-live="polite"></div>
+    <div class="compose"><button class="mic" aria-label="Start natural voice conversation" title="Start voice conversation">🎙</button><textarea maxlength="2000" aria-label="Support message" placeholder="Type in your language…"></textarea><button class="send">Send</button><div class="tools"><button class="verifyAccount">Verify account</button><button class="human">Human support</button><a class="callSupport" href="tel:+917971701093">Call support</a><button class="logout" hidden>Clear verification</button></div><div class="tools"><span class="voiceStatus" role="status">Text ready · Microphone off</span></div></div>
   </aside>`;
-  const q = s => root.querySelector(s), panel = q(".panel"), messages = q(".messages"), input = q("textarea"), language = q(".language");
-
-  function speak(text) {
-    if (!voice || !("speechSynthesis" in window)) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = codes[language.value] || "en-IN";
-    speechSynthesis.speak(u);
-  }
-  function add(text, type) {
-    const d = document.createElement("div");
-    d.className = `msg ${type}`;
-    d.textContent = text;
-    messages.appendChild(d);
-    messages.scrollTop = messages.scrollHeight;
-    if (type === "bot") speak(text);
-  }
-  async function send(messageOverride) {
-    const message = (messageOverride || input.value).trim();
-    if (!message) return;
-    if (!messageOverride) { input.value = ""; add(message, "user"); }
-    q(".send").disabled = true;
-    try {
-      const headers = { "Content-Type":"application/json", apikey:apiKey };
-      if (token()) headers.Authorization = `Bearer ${token()}`;
-      const r = await fetch(endpoint, { method:"POST", headers, body:JSON.stringify({ message, session_id:session, visitor_id:visitor, language:language.value }) });
-      const data = await r.json();
-      if (!r.ok) throw Error(data.error || "TurboMan is unavailable");
-      session = data.session_id;
-      localStorage.turbomanSession = session;
-      add(data.answer, "bot");
-      if (data.verification_required) { pendingMessage = message; q(".verify").classList.add("open"); }
-    } catch (e) { add(e.message, "bot"); }
-    finally { q(".send").disabled = false; }
-  }
-  function stopListening() {
-    listening = false;
-    q(".mic").classList.remove("live");
-    q(".mic").textContent = "🎙";
-    try { recognition?.stop(); } catch {}
-  }
-  function toggleListening() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return alert("Voice input is not supported in this browser.");
-    if (listening) return stopListening();
-    recognition = new SR();
-    recognition.lang = codes[language.value] || "en-IN";
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.onspeechstart = () => { if ("speechSynthesis" in window) speechSynthesis.cancel(); };
-    recognition.onresult = e => {
-      let finalText = "";
-      for (let i=e.resultIndex;i<e.results.length;i++) if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
-      if (finalText.trim()) { input.value = finalText.trim(); send(); }
-    };
-    recognition.onend = () => { if (listening) { try { recognition.start(); } catch {} } };
-    recognition.onerror = e => { if (e.error === "not-allowed" || e.error === "service-not-allowed") stopListening(); };
-    listening = true;
-    q(".mic").classList.add("live");
-    q(".mic").textContent = "■";
-    recognition.start();
-  }
-  const cleanPhone = value => {
-    const digits = value.replace(/\D/g, "");
-    return digits.length === 10 ? `+91${digits}` : `+${digits}`;
-  };
-  async function requestOtp() {
-    const phone = cleanPhone(q(".phone").value);
-    if (!/^\+\d{10,15}$/.test(phone)) return q(".verifyStatus").textContent = "Enter a valid phone number with country code.";
-    q(".verifyStatus").textContent = "Sending OTP…";
-    const r = await fetch(`${supabaseUrl}/auth/v1/otp`, { method:"POST", headers:{ apikey:apiKey, "Content-Type":"application/json" }, body:JSON.stringify({ phone, create_user:true }) });
-    if (!r.ok) { const e = await r.json().catch(()=>({})); q(".verifyStatus").textContent = e.msg || e.message || "Phone verification is not configured yet."; return; }
-    q(".otp").hidden = q(".verifyOtp").hidden = false;
-    q(".verifyStatus").textContent = "OTP sent. It expires shortly.";
-  }
-  async function verifyOtp() {
-    const phone = cleanPhone(q(".phone").value), otp = q(".otp").value.trim();
-    q(".verifyStatus").textContent = "Verifying…";
-    const r = await fetch(`${supabaseUrl}/auth/v1/verify`, { method:"POST", headers:{ apikey:apiKey, "Content-Type":"application/json" }, body:JSON.stringify({ phone, token:otp, type:"sms" }) });
-    const data = await r.json().catch(()=>({}));
-    if (!r.ok || !data.access_token) return q(".verifyStatus").textContent = data.msg || data.message || "The OTP is invalid or expired.";
-    sessionStorage.setItem("turbomanAccessToken", data.access_token);
-    q(".verify").classList.remove("open");
-    add("Phone verified securely. I’m retrieving your account information now.", "bot");
-    if (pendingMessage) { const retry = pendingMessage; pendingMessage = ""; await send(retry); }
-  }
-
-  q(".launch").onclick = () => panel.classList.add("open");
-  q(".close").onclick = () => { panel.classList.remove("open"); stopListening(); };
-  q(".send").onclick = () => send();
-  q(".mic").onclick = toggleListening;
-  input.onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
-  q(".voice").onclick = () => { voice = !voice; if (!voice) speechSynthesis?.cancel(); q(".voice").textContent = voice ? "🔊 Voice on" : "🔇 Voice off"; };
-  q(".sendOtp").onclick = requestOtp;
-  q(".verifyOtp").onclick = verifyOtp;
-  q(".cancel").onclick = () => q(".verify").classList.remove("open");
-  fetch(endpoint, { headers:{ apikey:apiKey } }).then(async r => {
-    const c = await r.json();
-    if (!r.ok) throw Error(c.error);
-    language.innerHTML = "<option>Auto</option>" + c.supported_languages.map(x => `<option>${x}</option>`).join("");
-    add(c.welcome_message, "bot");
-    if (script?.dataset.open === "true") panel.classList.add("open");
-  }).catch(e => { q(".launch").hidden = true; console.warn("TurboMan:", e.message); });
+ const q=s=>root.querySelector(s),panel=q('.panel'),messages=q('.messages'),input=q('textarea'),language=q('.language');
+ let session='',accessToken=sessionStorage.getItem('turbomanAccessToken')||'',config={},pc=null,dc=null,mic=null,audio=null,voiceTimer=null,starting=false,busy=false,generation=0,identityEpoch=0;
+ const visitor=crypto.randomUUID();
+ const status=s=>q('.voiceStatus').textContent=s;
+ function add(text,type){const d=document.createElement('div');d.className='msg '+type;d.textContent=String(text||'');messages.appendChild(d);messages.scrollTop=messages.scrollHeight;}
+ function stopVoice(){generation++;starting=false;clearTimeout(voiceTimer);voiceTimer=null;if(dc){dc.close();dc=null}if(pc){pc.close();pc=null}if(mic){mic.getTracks().forEach(t=>t.stop());mic=null}if(audio){audio.pause();audio.srcObject=null;audio.remove();audio=null}q('.mic').classList.remove('live');q('.mic').textContent='🎙';q('.mic').setAttribute('aria-label','Start natural voice conversation');status('Text ready · Microphone off');}
+ function resetIdentity(token=''){identityEpoch++;stopVoice();accessToken=token;session='';sessionStorage.removeItem('turbomanAccessToken');if(token)sessionStorage.setItem('turbomanAccessToken',token);messages.replaceChildren();q('.logout').hidden=!token;add(token?'Verification received. Account access will be checked securely on your next request.':'Verification cleared. You can continue with general support.','bot');}
+ // The website must provide a server-issued Supabase customer session. Never pass a username as proof of identity.
+ window.WinTurboSupport={setAccessToken:token=>resetIdentity(String(token||'')),clearIdentity:()=>resetIdentity(),open:()=>panel.classList.add('open')};
+ async function request(body){const actor=identityEpoch;const headers={'Content-Type':'application/json',apikey:apiKey};if(accessToken)headers.Authorization='Bearer '+accessToken;
+ const r=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({session_id:session,visitor_id:visitor,language:language.value,...body}),signal:AbortSignal.timeout(60000)});const data=await r.json();if(actor!==identityEpoch)throw Error('Verification changed. Please send your request again.');
+ if(r.status===401){resetIdentity();throw Error('Your verification expired. Please verify again.');}
+ if(!r.ok)throw Error(data.error||'Support is temporarily unavailable.');if(data.session_id)session=data.session_id;return data;}
+ function callLink(phone){if(phone!=='+917971701093')return;const row=document.createElement('div');row.className='msg bot';const a=document.createElement('a');a.href='tel:'+phone;a.textContent='📞 Call human support · +91 79717 01093';a.style.color='#74efa0';row.appendChild(a);messages.appendChild(row);messages.scrollTop=messages.scrollHeight;}
+ function showVerify(){q('.verify').classList.add('open');const enabled=config.otp_enabled===true;q('.phone').hidden=q('.sendOtp').hidden=!enabled;q('.verifyHelp').textContent=enabled?'Use your registered mobile number. Enter the OTP only in this secure form.':'Phone OTP is not enabled yet. Please use Human support for account-specific help. General voice and text support remain available.';}
+ async function ask(message,{voice=false,handoff=false}={}){const actor=identityEpoch;if(busy)return {answer:'Please wait for the current answer before continuing.'};busy=true;q('.send').disabled=true;
+ if(!voice){stopVoice();add(message||'Please connect me to human support.','user');input.value='';}status('Getting a support answer…');
+ try{const d=await request({action:handoff?'handoff':'chat',message});add(d.answer,'bot');if(d.handoff)callLink(d.handoff_phone);if(d.verification_required)showVerify();status(voice?'Voice connected · You can interrupt':'Text ready · Microphone off');return {answer:d.answer,verification_required:d.verification_required,handoff:d.handoff,handoff_phone:d.handoff_phone};}
+ catch(e){if(actor===identityEpoch)add(e.message,'bot');return {answer:e.message,error:true};}finally{busy=false;q('.send').disabled=false;}}
+ async function startVoice(){if(pc||starting){stopVoice();return}if(!navigator.mediaDevices?.getUserMedia||!window.RTCPeerConnection){add('Natural voice is unavailable in this browser. Please use text or try a recent Chrome or Safari browser.','bot');return}
+ starting=true;const current=++generation;status('Connecting voice…');let activePc,activeDc;
+ try{
+ const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}});if(current!==generation){stream.getTracks().forEach(t=>t.stop());return}mic=stream;
+ const data=await request({action:'voice_token'});if(current!==generation)return;
+ pc=activePc=new RTCPeerConnection();audio=document.createElement('audio');audio.autoplay=true;audio.setAttribute('aria-hidden','true');root.appendChild(audio);
+ activePc.ontrack=e=>{if(audio){audio.srcObject=e.streams[0];audio.play().catch(()=>status('Tap the microphone to reconnect audio.'));}};
+ mic.getTracks().forEach(t=>activePc.addTrack(t,mic));dc=activeDc=activePc.createDataChannel('oai-events');
+ voiceTimer=setTimeout(()=>{if(current===generation&&starting){stopVoice();add('Voice connection timed out. You can continue by text.','bot');}},30000);
+ activeDc.onopen=()=>{if(current!==generation)return;clearTimeout(voiceTimer);starting=false;q('.mic').classList.add('live');q('.mic').textContent='■';q('.mic').setAttribute('aria-label','End voice conversation');status('Voice connected · Speak in your language');voiceTimer=setTimeout(()=>{stopVoice();add('Voice session ended after 5 minutes. Tap the microphone to continue.','bot');},300000);};
+ activeDc.onmessage=async e=>{if(current!==generation)return;let event;try{event=JSON.parse(e.data)}catch{return}
+ if(event.type==='conversation.item.input_audio_transcription.completed')add(event.transcript,'user');
+ if(event.type==='input_audio_buffer.speech_started')status('Listening…');
+ if(event.type==='response.function_call_arguments.done'&&event.name==='support_question'){
+  let args;try{args=JSON.parse(event.arguments)}catch{args={question:''}}
+  const question=String(args.question||'').trim().slice(0,2000);const result=question?await ask(question,{voice:true}):{answer:'Please repeat your question.',error:true};
+  if(activeDc.readyState==='open'&&current===generation){activeDc.send(JSON.stringify({type:'conversation.item.create',item:{type:'function_call_output',call_id:event.call_id,output:JSON.stringify(result)}}));activeDc.send(JSON.stringify({type:'response.create'}));}
+ }
+ if(event.type==='error'){status('Voice error · Text remains available');}
+ };
+ activePc.onconnectionstatechange=()=>{if(['failed','closed','disconnected'].includes(activePc.connectionState)&&current===generation)stopVoice();};
+ const offer=await activePc.createOffer();await activePc.setLocalDescription(offer);
+ const r=await fetch('https://api.openai.com/v1/realtime/calls',{method:'POST',headers:{Authorization:'Bearer '+data.client_secret,'Content-Type':'application/sdp'},body:offer.sdp,signal:AbortSignal.timeout(30000)});
+ if(!r.ok)throw Error('Voice could not connect. Please use text and try voice again shortly.');if(current!==generation)return;
+ await activePc.setRemoteDescription({type:'answer',sdp:await r.text()});
+ }catch(e){if(current===generation){stopVoice();add(e.name==='NotAllowedError'?'Microphone permission was not granted. You can continue by text.':e.message,'bot');}}finally{if(current===generation)starting=false;}}
+ const cleanPhone=v=>{const d=v.replace(/\D/g,'');return d.length===10?'+91'+d:'+'+d};
+ q('.sendOtp').onclick=async()=>{const phone=cleanPhone(q('.phone').value);if(!/^\+91[6-9]\d{9}$/.test(phone)){q('.verifyStatus').textContent='Enter your registered Indian mobile number.';return}q('.sendOtp').disabled=true;try{const r=await fetch(supabaseUrl+'/auth/v1/otp',{method:'POST',headers:{apikey:apiKey,'Content-Type':'application/json'},body:JSON.stringify({phone,create_user:true})});if(!r.ok)throw Error('OTP could not be sent. Please use human support.');q('.otp').hidden=q('.verifyOtp').hidden=false;q('.verifyStatus').textContent='OTP sent. Enter it in this form only.';}catch(e){q('.verifyStatus').textContent=e.message}finally{q('.sendOtp').disabled=false}};
+ q('.verifyOtp').onclick=async()=>{q('.verifyOtp').disabled=true;try{const r=await fetch(supabaseUrl+'/auth/v1/verify',{method:'POST',headers:{apikey:apiKey,'Content-Type':'application/json'},body:JSON.stringify({phone:cleanPhone(q('.phone').value),token:q('.otp').value.trim(),type:'sms'})});const data=await r.json();if(!r.ok||!data.access_token)throw Error('The OTP is invalid or expired.');resetIdentity(data.access_token);q('.verify').classList.remove('open');q('.otp').value='';}catch(e){q('.verifyStatus').textContent=e.message}finally{q('.verifyOtp').disabled=false}};
+ q('.launch').onclick=()=>panel.classList.add('open');q('.close').onclick=()=>{panel.classList.remove('open');stopVoice()};q('.send').onclick=()=>{const m=input.value.trim();if(m)ask(m)};q('.mic').onclick=startVoice;q('.verifyAccount').onclick=showVerify;q('.cancel').onclick=()=>q('.verify').classList.remove('open');q('.human').onclick=()=>ask('',{handoff:true});q('.logout').onclick=()=>resetIdentity();q('.logout').hidden=!accessToken;
+ input.onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();q('.send').click()}};language.onchange=()=>{if(pc||starting){stopVoice();add('Language changed. Tap the microphone to resume in your selected language.','bot')}};
+ window.addEventListener('pagehide',stopVoice);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopVoice()});
+ fetch(endpoint,{headers:{apikey:apiKey}}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);config=d;for(const l of d.supported_languages||[]){const o=document.createElement('option');o.value=l;o.textContent=l;language.appendChild(o)}q('.mic').disabled=!d.voice_available;add(d.welcome_message,'bot');if(script?.dataset.open==='true')panel.classList.add('open');}).catch(e=>{add(e.message,'bot');q('.mic').disabled=true});
 })();
