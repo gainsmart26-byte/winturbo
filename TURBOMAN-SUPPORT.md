@@ -61,3 +61,9 @@ Knowledge entries support editing, draft/approval, enable/disable, keywords/alia
 All submitted text requests and AI support answers are persisted. Voice stores delivered user/assistant transcription events (not raw audio) with idempotent event IDs; backend voice tool questions have a separate record type and do not inflate customer-turn analytics. Browser/network failure can prevent a final voice event reaching the server; failed persistence ends voice with a visible warning. Existing voice conversations cannot be reconstructed retroactively. Website conversations outside this widget and external WhatsApp/social messages are not ingested by this feature.
 
 Tests: `node tests/turboman-support.test.cjs`, `node tests/turboman-widget.test.cjs`, syntax checks for both JS files, and transactional `tests/turboman-analytics.sql` (run with a role able to create fixtures, always rolls back). Live admin browser UI is behind login, so signed-in visual QA remains outstanding.
+
+## VIP phone entry filter
+
+The VIP page requires an Indian phone number before loading its support content. The `vip-access` Edge Function normalizes 10-digit and +91 numbers and matches them against the synced `admin_players` registered records through the existing restricted RPC. A match opens the page; no match shows Register Now — GET VIP STATUS linking to winturbo.com. No OTP is sent for page entry. Lookup failures keep the gate closed and show a retry message. Checks are limited to 60 per IP per hour.
+
+This is a page entry filter, not authentication: knowing a registered number permits page access. It creates no account session, exposes no member data and does not unlock personal account tools. Those retain their existing secure verification. The phone is not persisted in browser storage, so reopening/reloading requires another check. Newly registered users depend on admin record sync; unavailable or stale records do not grant access.

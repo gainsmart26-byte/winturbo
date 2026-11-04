@@ -13,6 +13,16 @@
     },
     {
       "source": "/",
+      "destination": "/turboman-vip.html",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.winturbo.vip"
+        }
+      ]
+    },
+    {
+      "source": "/",
       "destination": "/dashboard.html",
       "has": [
         {
