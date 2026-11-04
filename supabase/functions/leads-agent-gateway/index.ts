@@ -46,16 +46,17 @@ Deno.serve(async(req:Request)=>{
   }
   const agent=check(await db.from('leads_agents').select('user_id,name,is_active').eq('user_id',user.id).maybeSingle());
   const grant=check(await db.from('user_access_grants').select('is_active,access_level,allowed_sections').eq('user_id',user.id).maybeSingle());
-  if(!agent?.is_active||!grant?.is_active||grant.access_level!=='section'||!grant.allowed_sections?.includes('leadsIntell'))return json({error:'Agent access inactive'},403);
-  if(action==='wati_sources')return json({connections:check(await db.from('wati_connections').select('id,label,business_number').order('label'))});
+  if(!admin&&(!agent?.is_active||!grant?.is_active||grant.access_level!=='section'||!grant.allowed_sections?.includes('leadsIntell')))return json({error:'Agent access inactive'},403);
+  if(action==='wati_sources')return json({connections:check(await db.from('wati_connections').select('id,label,business_number,last_synced_at').order('label'))});
   if(action==='login'){
+   if(admin)return json({ok:true});
    const claims=JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
    check(await db.rpc('record_agent_login',{p_actor:user.id,p_session:claims.session_id}));
    return json({ok:true});
   }
   async function all(table:string,columns:string,order:string){let rows:any[]=[],start=0;for(;;){const batch=check(await db.from(table).select(columns).order(order).range(start,start+999));rows.push(...batch);if(batch.length<1000)return rows;start+=batch.length}}
   // Imports need identity columns only; do not transfer every saved note/response on each batch.
-  const [players,records]=await Promise.all([all('admin_players',action==='import'?'username,phone':'username,phone,ftd,lifetime_deposits,deposit_count,registered_at','username'),all('lead_intell_records',action==='import'?'lead_key,username,phone':'*','lead_key')]);
+  const [players,records]=await Promise.all([all('admin_players',action==='import'?'username,phone':'username,phone,ftd,lifetime_deposits,deposit_count,registered_at,ftd_at,last_deposit_at,synced_at','username'),all('lead_intell_records',action==='import'?'lead_key,username,phone':'*','lead_key')]);
   if(action==='import'){
    stage='validate_lead_import';
    const source=body.source===undefined?'Manual':typeof body.source==='string'?body.source.trim():'';
@@ -113,23 +114,28 @@ Deno.serve(async(req:Request)=>{
      contactActivity.set(id,{attempted:calls.length>0||calledKeys.has(lead.record?.lead_key||lead.key)||['Disconnected','Connected Not Interested','Need Offer','Call Back'].includes(lead.record?.response),answered_days:days((c:any)=>c.status==='Answered'),disconnected_days:days((c:any)=>c.status==='Disconnected'||/DISCONNECT/i.test(c.end_reason||'')),last_call:latest?{status:latest.status,started_at:latest.started_at,end_reason:latest.end_reason}:null});
     }
    }
-   return json({total:leads.length,page_size:pageSize,rows:selected.map(({lead:l,id}:any)=>({key:id,...(body.contact_view===true?{contact_activity:contactActivity.get(id)}:{}),editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,created_at:l.record?.created_at||l.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
+   return json({total:leads.length,page_size:pageSize,rows:selected.map(({lead:l,id}:any)=>({key:id,...(body.contact_view===true?{contact_activity:contactActivity.get(id)}:{}),editor_name:names.get(l.record?.updated_by)||null,username:safeName(l.username),phone:mask(l.phone),source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,deposit_count:l.deposit_count,registered_at:l.registered_at,ftd_at:l.ftd_at,last_deposit_at:l.last_deposit_at,synced_at:l.synced_at,created_at:l.record?.created_at||l.created_at,record:l.record?{lead_date:l.record.lead_date,lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,updated_at:l.record.updated_at}:null}))});
   }
   const mapped=await Promise.all(leads.map(async(lead:any)=>({lead,id:await opaque(lead.key)})));
   const found=mapped.find((x:any)=>x.id===body.key);if(!found)return json({error:'Lead not found'},404);const l=found.lead;
   if(action==='open'){
-   const session=check(await db.from('leads_agent_sessions').upsert({user_id:user.id,lead_key:l.record?.lead_key||l.key,edit_token:crypto.randomUUID(),expires_at:new Date(Date.now()+15*60000).toISOString()}).select('edit_token').single());
-   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,record:l.record?{lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
+   const session=admin?{edit_token:null}:check(await db.from('leads_agent_sessions').upsert({user_id:user.id,lead_key:l.record?.lead_key||l.key,edit_token:crypto.randomUUID(),expires_at:new Date(Date.now()+15*60000).toISOString()}).select('edit_token').single());
+   return json({lead:{key:found.id,username:l.username,phone:l.phone,source:l.source,wati_connection_ids:l.wati_connection_ids,registration:l.registration,lifetime_deposits:l.lifetime_deposits,registered_at:l.registered_at,ftd_at:l.ftd_at,last_deposit_at:l.last_deposit_at,synced_at:l.synced_at,deposit_count:l.deposit_count,record:l.record?{lead_source:l.record.lead_source,tags:(l.record.tags||[]).filter((t:string)=>t.startsWith('WATI:')),response:l.record.response,callback_at:l.record.callback_at,notes:l.record.notes}:null},edit_token:session.edit_token});
   }
-  if(action==='close'){check(await db.from('leads_agent_sessions').delete().eq('user_id',user.id).eq('edit_token',body.edit_token));return json({ok:true})}
+  if(action==='close'){if(admin)return json({ok:true});check(await db.from('leads_agent_sessions').delete().eq('user_id',user.id).eq('edit_token',body.edit_token));return json({ok:true})}
   if(action==='save'){
    const response=body.response||null,notes=String(body.notes||'');if(response&&!core.responses.includes(response))throw Error('Invalid response');if(notes.length>2000)throw Error('Notes must be at most 2000 characters.');
    const callback=response==='Call Back'?body.callback_at:null;if(response==='Call Back'&&(!callback||!Number.isFinite(Date.parse(callback))||Date.parse(callback)<=Date.now()))throw Error('Choose a future callback time.');
+   if(admin){
+    check(await db.from('lead_intell_records').upsert({lead_key:l.record?.lead_key||l.key,username:l.username||null,phone:l.phone||null,response,callback_at:callback,notes,updated_by:user.id},{onConflict:'lead_key'}));
+    return json({ok:true});
+   }
    check(await db.rpc('save_agent_lead',{p_actor:user.id,p_key:l.record?.lead_key||l.key,p_token:body.edit_token,p_username:l.username||null,p_phone:l.phone||null,p_response:response,p_callback:callback,p_notes:notes}));
    return json({ok:true});
   }
   return json({error:'Unknown action'},400);
  }catch(e){const detail=e instanceof Error?e.message:String((e as any)?.message||'Request failed');console.error(JSON.stringify({event:'agent_gateway_failure',action:actionLabel,stage,code:String((e as any)?.code||'request_rejected')}));return json({error:detail+' [step: '+stage+']'},400)}
 });
+
 
 
