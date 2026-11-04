@@ -1,19 +1,13 @@
-(()=>{
- const $=id=>document.getElementById(id),C=window.CallIntellCore,esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+window.WinTurboMountCallIntell=async(root,db,user)=>{
+ const $=id=>root.getElementById(id),C=window.CallIntellCore,esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const responses=['Disconnected','Message Sent','Connected Not Interested','Need Offer','Call Back'];
  const state={rows:[],sources:[],page:0,loading:false,ready:false,selected:null,token:null,user:null,epoch:0,opening:false};
  const money=v=>'₹'+Number(v||0).toLocaleString('en-IN'),stamp=v=>v&&Number.isFinite(Date.parse(v))?new Date(v).toLocaleString('en-IN',{timeZone:'Asia/Kolkata',dateStyle:'medium',timeStyle:'short'})+' IST':'Not recorded';
  const statusLabels={paid:'Registered · Paid',unpaid:'Registered · Not paid',unregistered:'Not registered',review:'Needs review'};
  const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error)};
- if(!window.supabase){$('loginMessage').textContent='The login service could not load. Please reload this page.';return;}
- const db=window.supabase.createClient('https://kxspsqtdvngiovjvskuq.supabase.co','sb_publishable_mY0ClcO6rmkXBE9ppsX5ew_IFQ4jvD8');
  for(const id of ['outcome','responseFilter'])for(const text of responses){const o=document.createElement('option');o.value=text;o.textContent=text;$(id).append(o)}
  async function gateway(body){const r=await db.functions.invoke('leads-agent-gateway',{body});if(r.error){let d;try{d=await r.error.context?.json()}catch{}throw Error(d?.error||r.error.message||'Request failed.')}if(r.data?.error)throw Error(r.data.error);return r.data;}
- function hideWorkspace(){state.epoch++;state.rows=[];state.sources=[];state.user=null;state.ready=false;state.selected=null;state.token=null;$('rows').replaceChildren();$('sourceRows').replaceChildren();$('dailyRows').replaceChildren();$('metrics').replaceChildren();$('notes').value='';$('customerTitle').textContent='';$('customerInfo').textContent='';$('callCustomer').removeAttribute('href');if($('editor').open)$('editor').close();$('workspace').hidden=true;$('login').hidden=false;}
- async function enter(user){const epoch=++state.epoch;await gateway({action:'login'});if(epoch!==state.epoch)return;state.user=user;$('accountLabel').textContent=user.email?.startsWith('agent-')?'Agent account':user.email||'Signed in';$('login').hidden=true;$('workspace').hidden=false;$('loginPassword').value='';await load();}
- $('loginForm').onsubmit=async e=>{e.preventDefault();$('loginButton').disabled=true;$('loginMessage').textContent='Signing in…';try{let email=$('loginIdentity').value.trim();if(!email.includes('@')){const dial=C.dial(email);if(!dial)throw Error('Enter your agent phone number with country code.');email='agent-'+dial.slice(5)+'@agents.winturbo.live';}const r=await db.auth.signInWithPassword({email,password:$('loginPassword').value});if(r.error)throw r.error;await enter(r.data.user);$('loginMessage').textContent='';}catch(error){$('loginMessage').textContent=error.message;await db.auth.signOut();hideWorkspace();}finally{$('loginButton').disabled=false}};
- $('signOut').onclick=async()=>{hideWorkspace();await db.auth.signOut();};
- db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')hideWorkspace()});
+ db.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){state.epoch++;state.user=null;state.rows=[];root.replaceChildren();}});
  const sourceName=key=>key.startsWith('wati:')?'WATI · '+(state.sources.find(x=>x.id===key.slice(5))?.label||'Account'):key.slice(7);
  const rowSource=x=>C.sourceKeys(x).map(sourceName).join(' · ');
  function filters(){return {segment:$('segment').value,source:$('source').value,search:$('search').value.trim(),basis:$('dateBasis').value,from:$('from').value,to:$('to').value,response:$('responseFilter').value,due:$('due').checked};}
@@ -39,5 +33,5 @@
  $('outcome').onchange=()=>{$('callbackLabel').hidden=$('outcome').value!=='Call Back';$('callback').required=$('outcome').value==='Call Back';};
  $('closeEditor').onclick=()=>$('editor').close();$('editor').addEventListener('close',()=>{const key=state.selected?.key,token=state.token;state.selected=null;state.token=null;$('notes').value='';if(key&&state.user)void gateway({action:'close',key,edit_token:token}).catch(()=>{});});
  $('noteForm').onsubmit=async e=>{e.preventDefault();if(!state.selected)return;const epoch=state.epoch;let callback=null;if($('outcome').value==='Call Back'){const d=new Date($('callback').value+':00+05:30');if(!Number.isFinite(d.getTime())||d<=new Date()){$('noteMessage').textContent='Choose a future callback date and time in IST.';return;}callback=d.toISOString();}$('save').disabled=true;$('noteMessage').textContent='Saving…';try{await gateway({action:'save',key:state.selected.key,edit_token:state.token,response:$('outcome').value||null,callback_at:callback,notes:$('notes').value.trim()});if(epoch!==state.epoch)return;$('editor').close();await load();message('Notes and call outcome saved under your account.');}catch(error){if(epoch===state.epoch)$('noteMessage').textContent=error.message+' Reopen the customer if your editing session has expired.';}finally{$('save').disabled=false;}};
- db.auth.getSession().then(async r=>{if(r.data.session?.user)try{await enter(r.data.session.user)}catch(error){hideWorkspace();$('loginMessage').textContent=error.message;await db.auth.signOut();}}).catch(error=>{$('loginMessage').textContent=error.message});
-})();
+ state.user=user;await load();
+};
