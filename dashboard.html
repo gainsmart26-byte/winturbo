@@ -4798,7 +4798,7 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
     setReadOnlyUI(!admin);
     const current=document.querySelector('main.main > section.section.on')?.id;
     if(current==='userAccess'&&!admin)showSectionDirect([...allowed][0]||'overview');
-    else if(current&&!allowed.has(current)&&current!=='userAccess')showSectionDirect([...allowed][0]||'overview');
+    else if(current&&!allowed.has(current)&&current!=='userAccess'&&!(current==='callIntell'&&(admin||allowed.has('leadsIntell'))))showSectionDirect([...allowed][0]||'overview');
   }
 
   async function loadCurrentAccess(){

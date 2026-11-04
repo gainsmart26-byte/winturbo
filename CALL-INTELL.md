@@ -9,3 +9,9 @@ Paid means positive recorded lifetime deposits, not pending deposits or a count 
 Call opens a native `tel:` link. It does not automatically originate a server-side call, record audio, report call connection or change a customer account. Agents manually save outcomes and callback times in IST. Notes remain shared lead records with audit history.
 
 Validation: `node --test tests/call-intell.test.cjs tests/leads-agent-gateway.test.cjs tests/agent-contact-gateway.test.cjs`; syntax checks for call-intell.js, call-intell-core.js and leads-intell.js. Authenticated browser tests with an actual managed agent remain required for full device-call QA.
+
+## Integrated panel
+
+Call Intell now mounts as a section within dashboard.html using the existing `sb` client and signed-in user. Its UI lives in a Shadow DOM to isolate table/filter styles and element IDs. It creates no Supabase client and contains no login form. Both navigation links open the section in-place. The old /call-intell.html address redirects to /dashboard.html#callIntell so visitors use only the normal agent login. Existing Leads Intell permissions cover the integrated section, while backend authorization stays unchanged.
+
+Validation: `node tests/call-intell-integration.test.cjs` verifies use of the supplied authenticated client and record rendering with no secondary sign-in implementation.
