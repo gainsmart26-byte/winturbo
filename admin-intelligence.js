@@ -82,7 +82,7 @@
       </div>
       <div class="card adminDailyDepositsCard">
         <div class="sectionHead"><div><h3>Deposits received</h3><div id="adminDepositRangeNote" class="muted small">Credited API deposit transactions for the selected date range.</div></div><span class="pill">LIVE LEDGER</span></div>
-        <div class="tableWrap"><table class="adminTable"><thead><tr><th>Username</th><th>Deposit received</th><th>Detected at</th><th>Lifetime total</th><th>Phone</th><th>Agent</th></tr></thead><tbody id="adminDailyDepositRows"></tbody></table></div>
+        <div class="tableWrap"><table class="adminTable"><thead><tr><th>Username</th><th>Registration date · IST</th><th>Deposit received</th><th>Detected at</th><th>Lifetime total</th><th>Phone</th><th>Agent</th></tr></thead><tbody id="adminDailyDepositRows"></tbody></table></div>
       </div>
       <div class="card adminPlayersCard">
         <div class="sectionHead adminPlayerHead"><div><h3>Player databank</h3><div id="adminResultCount" class="muted small">Loading…</div></div>
@@ -182,6 +182,8 @@
     if(request!==summaryRequest)return;
     button.disabled=false; button.textContent="Apply date range";
     if(error){message(error.hint||error.message,true);return}
+    const depositRows=await withDepositRegistrationDates(data?.today_deposits||[]);
+    if(request!==summaryRequest)return;
     const t=data?.totals||{}, label=rangeLabel();
     $("adminRangeLabel").textContent=`Showing ${label} · Times shown in IST`;
     $("admDepositPeriodLabel").textContent="DEPOSITS RECEIVED As Selected Date";
@@ -202,7 +204,7 @@
     $("admWithdrawals").textContent=money(t.withdrawals); $("admWithdrawalUsers").textContent=`${num(t.withdrawal_users)} users · approved / paid only`;
     $("segAll").textContent=num(t.registrations_today); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Math.max(0,Number(t.registrations_today||0)-Number(t.ftd_today||0))); $("segFtd").textContent=num(t.ftd_today);
     $("segInactive").textContent=num(t.inactive_30d); $("segHigh").textContent=num(t.high_value); $("segNegative").textContent=num(t.negative_ggr);
-    renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(data?.today_deposits||[]);
+    renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(depositRows);
   }
 
   function renderTrend(rows){
@@ -241,8 +243,18 @@
     $("adminAgents").innerHTML=rows.length?rows.slice(0,12).map((x,i)=>`<div class="adminAgent"><b>#${i+1} ${esc(x.agent_name)}</b><span>${num(x.players)} players · ${x.ftd_rate||0}% FTD</span><strong>${money(x.ngr)}</strong></div>`).join(""):'<div class="muted">No agent data yet.</div>';
   }
 
+  async function withDepositRegistrationDates(rows){
+    const names=[...new Set(rows.filter(x=>!x.registered_at&&x.username).map(x=>x.username))],dates=new Map();
+    for(let i=0;i<names.length;i+=100){
+      const {data,error}=await sb.from("admin_players").select("username,registered_at").in("username",names.slice(i,i+100));
+      if(error){message("Deposits loaded, but registration dates could not be loaded. Refresh to retry.",true);break}
+      for(const player of data||[])dates.set(player.username,player.registered_at);
+    }
+    return rows.map(x=>({...x,registered_at:x.registered_at||dates.get(x.username)||null}));
+  }
+
   function renderDailyDeposits(rows){
-    $("adminDailyDepositRows").innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.username)}</b></td><td class="adminDepositAmount"><b>${money(x.amount)}</b></td><td>${when(x.detected_at)}</td><td>${money(x.lifetime_after)}</td><td>${esc(x.phone||"—")}</td><td>${esc(x.agent?.username||"Unassigned")}</td></tr>`).join(""):'<tr><td colspan="6" class="muted">No deposit increases were detected in the selected range. Press Sync now to check for updates.</td></tr>';
+    $("adminDailyDepositRows").innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.username)}</b></td><td class="adminRegisteredAt"><b>${registrationDate(x.registered_at)}</b><small>${registrationTime(x.registered_at)}</small></td><td class="adminDepositAmount"><b>${money(x.amount)}</b></td><td>${when(x.detected_at)}</td><td>${money(x.lifetime_after)}</td><td>${esc(x.phone||"—")}</td><td>${esc(x.agent?.username||"Unassigned")}</td></tr>`).join(""):'<tr><td colspan="7" class="muted">No deposit increases were detected in the selected range. Press Sync now to check for updates.</td></tr>';
   }
 
   function query(){
