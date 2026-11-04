@@ -1,0 +1,21 @@
+const {readFileSync}=require('node:fs');
+const {stripTypeScriptTypes}=require('node:module');
+const vm=require('node:vm');
+const assert=require('node:assert/strict');
+let lookup={data:[]},quota={data:true},calls=[];
+let source=readFileSync(__dirname+'/../supabase/functions/vip-access/index.ts','utf8').replace(/^import .*\n/,'').replace(/^const db=.*\n/m,'').replaceAll('export ','').replace('Deno.serve(handle);','');
+const db={rpc:async(name,args)=>{calls.push({name,args});return name==='turboman_take_quota'?quota:lookup}};
+const ctx=vm.createContext({db,Response,Request,crypto,TextEncoder,console});
+vm.runInContext(stripTypeScriptTypes(source),ctx);
+const req=(phone,origin='https://winturbo.vip')=>new Request('https://test/',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json','x-forwarded-for':'192.0.2.1'},body:JSON.stringify({phone})});
+(async()=>{
+ for(const phone of ['9876543210','+91 98765-43210','919876543210'])assert.equal(ctx.normalizePhone(phone),'919876543210');
+ for(const phone of ['123','+1 9876543210','9876543210 OR true','0000000000'])assert.equal(ctx.normalizePhone(phone),null);
+ lookup={data:[{username:'PRIVATE',lifetime_deposits:12345}]};let r=await ctx.handle(req('+91 9876543210'));assert.equal(r.status,200);assert.deepEqual(await r.json(),{registered:true});assert.equal(calls.at(-1).args.p_phone,'919876543210');
+ lookup={data:[]};assert.deepEqual(await (await ctx.handle(req('9876543210'))).json(),{registered:false});
+ lookup={error:{message:'database offline'}};r=await ctx.handle(req('9876543210'));assert.equal(r.status,503);assert.equal((await r.json()).registered,undefined);
+ quota={data:false};assert.equal((await ctx.handle(req('9876543210'))).status,429);
+ assert.equal((await ctx.handle(req('123'))).status,400);assert.equal((await ctx.handle(req('9876543210','https://evil.example'))).status,403);
+ assert.equal((await ctx.handle(new Request('https://test/',{method:'OPTIONS',headers:{Origin:'https://www.winturbo.vip'}}))).status,204);
+ console.log('PASS: normalization, matching, no match, no account-data disclosure, failure closed, rate limit, bad input and origins.');
+})().catch(e=>{console.error(e);process.exitCode=1});

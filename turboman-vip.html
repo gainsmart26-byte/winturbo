@@ -45,9 +45,48 @@
 @keyframes turboCharacterIn{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:1000px){.art.turbo-character{min-height:400px}.turbo-man-hero{height:400px}}
 @media(max-width:700px){.hero{grid-template-columns:1fr}.art.turbo-character{display:flex;min-height:290px;margin-top:-8px}.turbo-man-hero{height:310px;width:100%;max-width:360px}.caption-strip{margin-top:20px}}
+
+/* The VIP entry screen is visible before any support content or widget loads. */
+body:not(.vip-unlocked)>[data-vip-content]{display:none!important}
+[hidden]{display:none!important}
+.vip-gate{min-height:100dvh;display:grid;place-items:center;padding:28px 18px;background:radial-gradient(ellipse at top,#284b2b88,transparent 65%)}
+.vip-gate-box{width:min(100%,470px);padding:36px;border:1px solid #466239;border-radius:26px;background:#101b14;box-shadow:0 24px 90px #0005}
+.vip-gate-box .logo{display:block;margin:0 auto 30px}
+.vip-gate-box h1{font-family:'Space Grotesk',sans-serif;font-size:36px;letter-spacing:-1.5px;line-height:1.1;margin:14px 0}
+.vip-gate-box p{color:#b1c0b4;line-height:1.65;font-size:14px}
+.vip-gate-box label{display:block;font-size:13px;margin:22px 0 10px}
+.vip-gate-box input{width:100%;padding:15px;border:1px solid #52684c;border-radius:12px;background:#09100d;color:white;font:inherit;font-size:18px}
+.vip-gate-box button,.vip-register-link{display:block;width:100%;padding:15px;border:0;border-radius:12px;background:#b8f168;color:#13200e;font:inherit;font-weight:700;text-align:center;margin-top:15px;cursor:pointer}
+.vip-gate-box button:disabled{opacity:.6;cursor:wait}
+.vip-gate-box :focus-visible{outline:3px solid #f4d082;outline-offset:4px}
+.vip-gate-status{min-height:24px;font-size:13px;color:#d8e8ca;margin-top:16px;line-height:1.6}
+.vip-registration{border-top:1px solid #3a5032;margin-top:22px;padding-top:20px}
+.vip-registration h2{font-size:27px;color:#b8f168;margin:0}
+@media(max-width:500px){.vip-gate-box{padding:27px 22px}.vip-gate-box h1{font-size:32px}}
 </style></head><body>
-<header><a href="https://winturbo.com" aria-label="WinTurbo home"><img class="logo" src="https://winturbo.com/uploads/whitelabel-logos/uploaded/2026/09/543f570d-437c-4a22-84b9-8c659e888ca9.png" alt="WINTURBO"></a><div class="header-right"><span class="mini">A little more personal. A lot more support.</span><button class="member-login" id="memberLogin">Member login <span>↗</span></button></div></header>
-<main><section class="hero"><div><div class="eyebrow">EXCLUSIVELY FOR THE WINTURBO COMMUNITY</div><h1 class="support-headline"><span class="headline-lead">Turbo Man Ka Support</span> <span class="headline-time">24 <i>x</i> 7</span> <span class="headline-end">Apke Saath<span class="headline-dot">.</span></span></h1><div class="vip-tag">✧ &nbsp; VIP MEMBERS ONLY</div><p class="intro">Your time matters. Your experience matters more.<br>Choose how you’d like to connect. We’re here to help.</p></div><div class="art turbo-character"><img class="turbo-man-hero" src="/assets/turbo-man-genz-logo.webp" alt="Turbo Man, your WinTurbo support superhero, wearing a green and orange headset outfit" width="1000" height="1094" fetchpriority="high" decoding="async"></div></section>
+<section class="vip-gate" id="vipGate" aria-labelledby="vipGateTitle">
+ <div class="vip-gate-box">
+  <img class="logo" src="https://winturbo.com/uploads/whitelabel-logos/uploaded/2026/09/543f570d-437c-4a22-84b9-8c659e888ca9.png" alt="WINTURBO">
+  <div class="vip-tag">✧ VIP MEMBERS ONLY</div>
+  <h1 id="vipGateTitle">Your VIP support starts here.</h1>
+  <p>Enter the mobile number registered with winturbo.com to access 24×7 VIP support.</p>
+  <form id="vipPhoneForm">
+   <label for="vipPhone">Registered mobile number</label>
+   <input id="vipPhone" name="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="10-digit mobile number or +91…" maxlength="20" required aria-describedby="vipGateStatus">
+   <button type="submit" id="vipContinue">Access VIP Support ↗</button>
+  </form>
+  <div id="vipGateStatus" class="vip-gate-status" role="status" aria-live="polite"></div>
+  <div class="vip-registration" id="vipRegistration" hidden>
+   <h2>GET VIP STATUS</h2>
+   <p>Register with winturbo.com, then return here with your registered mobile number.</p>
+   <a class="vip-register-link" id="vipRegisterLink" href="https://www.winturbo.com/">Register Now — GET VIP STATUS ↗</a>
+  </div>
+  <noscript><p>Please enable JavaScript to check your registered mobile number and access VIP support.</p></noscript>
+ </div>
+</section>
+
+<header data-vip-content hidden inert><a href="https://winturbo.com" aria-label="WinTurbo home"><img class="logo" src="https://winturbo.com/uploads/whitelabel-logos/uploaded/2026/09/543f570d-437c-4a22-84b9-8c659e888ca9.png" alt="WINTURBO"></a><div class="header-right"><span class="mini">A little more personal. A lot more support.</span><button class="member-login" id="memberLogin">Member login <span>↗</span></button></div></header>
+<main data-vip-content hidden inert><section class="hero"><div><div class="eyebrow">EXCLUSIVELY FOR THE WINTURBO COMMUNITY</div><h1 class="support-headline"><span class="headline-lead">Turbo Man Ka Support</span> <span class="headline-time">24 <i>x</i> 7</span> <span class="headline-end">Apke Saath<span class="headline-dot">.</span></span></h1><div class="vip-tag">✧ &nbsp; VIP MEMBERS ONLY</div><p class="intro">Your time matters. Your experience matters more.<br>Choose how you’d like to connect. We’re here to help.</p></div><div class="art turbo-character"><img class="turbo-man-hero" src="/assets/turbo-man-genz-logo.webp" alt="Turbo Man, your WinTurbo support superhero, wearing a green and orange headset outfit" width="1000" height="1094" fetchpriority="high" decoding="async"></div></section>
 <section class="caption-strip" aria-label="VIP support in your language"><div class="caption-main"><div class="caption-label">YOUR LANGUAGE.<br>THE SAME VIP CARE.</div><div class="caption" id="vipCaption" dir="auto">VIP Support for VIP Customers</div></div><select id="captionLanguage" aria-label="Caption language"></select></section>
 <div class="section-label"><h2>HOW WOULD YOU LIKE TO CONNECT?</h2><span>Four ways in. One VIP experience.</span></div>
 <section class="cards" aria-label="Support and social channels">
@@ -55,9 +94,9 @@
 <a class="card whatsapp" href="https://wa.me/919997292089" target="_blank" rel="noopener noreferrer" data-no="02"><span class="icon"><svg viewBox="0 0 24 24"><path d="M21 11.5a9 9 0 0 1-13.3 7.9L3 21l1.5-4.7A9 9 0 1 1 21 11.5Z"/><path d="M8 7c-2 2 4 9 7 8l1-2-3-1-1 1-3-3 1-1-1-2z"/></svg></span><h3>WhatsApp<br>Now</h3><p>A familiar way to connect directly with our support team.</p><span class="link">CHAT ON WHATSAPP <span class="arrow">↗</span></span></a>
 <a class="card instagram" href="https://www.instagram.com/winturboplay/" target="_blank" rel="noopener noreferrer" data-no="03"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6" fill="#e6a4d4"/></svg></span><h3>Instagram<br>Channel</h3><p>Stay close to the WinTurbo community and latest updates.</p><span class="link">@WINTURBOPLAY <span class="arrow">↗</span></span></a>
 <a class="card telegram" href="https://t.me/winturbonow" target="_blank" rel="noopener noreferrer" data-no="04"><span class="icon"><svg viewBox="0 0 24 24"><path d="m22 3-4 18-6-5-4 4 1-7-7-3zM9 13 22 3M12 16l6-10"/></svg></span><h3>Telegram<br>Channel</h3><p>Your direct line to WinTurbo announcements and updates.</p><span class="link">@WINTURBONOW <span class="arrow">↗</span></span></a>
-</section><div class="bottom"><span>✧ &nbsp; Private account details are available only after secure member verification.</span></div></main><footer><span>© 2026 WINTURBO · TURBO SUPPORT</span><span>AI-powered assistance. Human support when you need it.</span></footer>
-<div class="modal" id="chatModal" role="dialog" aria-modal="true" aria-label="Turbo Man support chat"><div class="modal-box"><button class="modal-close" id="closeChat" aria-label="Close chat">×</button><div id="chatMount"></div><div class="status-note" id="memberStatus">General chat available. Account access requires verified membership.</div></div></div>
-<script src="/turboman-embed.js" data-open="true" data-inline="true" data-member-login="true" data-container="chatMount"></script><script>
+</section><div class="bottom"><span>✧ &nbsp; Private account details are available only after secure member verification.</span></div></main><footer data-vip-content hidden inert><span>© 2026 WINTURBO · TURBO SUPPORT</span><span>AI-powered assistance. Human support when you need it.</span></footer>
+<div data-vip-content hidden class="modal" id="chatModal" role="dialog" aria-modal="true" aria-label="Turbo Man support chat"><div class="modal-box"><button class="modal-close" id="closeChat" aria-label="Close chat">×</button><div id="chatMount"></div><div class="status-note" id="memberStatus">General chat available. Account access requires verified membership.</div></div></div>
+<script defer src="/vip-gate.js"></script><script>
 const captions={English:'VIP Support for VIP Customers',Hindi:'वीआईपी ग्राहकों के लिए वीआईपी सहायता',Hinglish:'VIP Customers ke liye VIP Support',Bengali:'ভিআইপি গ্রাহকদের জন্য ভিআইপি সহায়তা',Marathi:'व्हीआयपी ग्राहकांसाठी व्हीआयपी सहाय्य',Gujarati:'વીઆઈપી ગ્રાહકો માટે વીઆઈપી સહાય',Punjabi:'ਵੀਆਈਪੀ ਗਾਹਕਾਂ ਲਈ ਵੀਆਈਪੀ ਸਹਾਇਤਾ',Tamil:'விஐபி வாடிக்கையாளர்களுக்கு விஐபி ஆதரவு',Telugu:'వీఐపీ కస్టమర్ల కోసం వీఐపీ సపోర్ట్',Kannada:'ವಿಐಪಿ ಗ್ರಾಹಕರಿಗೆ ವಿಐಪಿ ಬೆಂಬಲ',Malayalam:'വിഐപി ഉപഭോക്താക്കൾക്കായി വിഐപി പിന്തുണ',Odia:'ଭିଆଇପି ଗ୍ରାହକଙ୍କ ପାଇଁ ଭିଆଇପି ସହାୟତା',Assamese:'ভিআইপি গ্ৰাহকৰ বাবে ভিআইপি সহায়',Urdu:'وی آئی پی صارفین کے لیے وی آئی پی سپورٹ',Nepali:'भिआइपी ग्राहकहरूका लागि भिआइपी सहयोग',Sanskrit:'विशिष्टग्राहकेभ्यः विशिष्टसहायता',Konkani:'वीआयपी ग्राहकांखातीर वीआयपी आदार',Maithili:'वीआईपी ग्राहक सभक लेल वीआईपी सहायता',Sindhi:'وي آءِ پي گراهڪن لاءِ وي آءِ پي مدد',Kashmiri:'وی آئی پی گاہکن باپتھ وی آئی پی مدد',Dogri:'वीआईपी ग्राहकें लेई वीआईपी सहायता',Bodo:'भि आइ पि ग्राहाकफोरनि थाखाय भि आइ पि हेफाजाब',Santali:'ᱣᱤ ᱟᱭ ᱯᱤ ᱜᱽᱨᱟᱦᱚᱠ ᱠᱚ ᱞᱟᱹᱜᱤᱫ ᱣᱤ ᱟᱭ ᱯᱤ ᱜᱚᱲᱚ',Manipuri:'ꯚꯤꯑꯥꯏꯄꯤ ꯀꯁ꯭ꯇꯃꯔꯁꯤꯡꯒꯤꯗꯃꯛ ꯚꯤꯑꯥꯏꯄꯤ ꯁꯄꯣꯔ꯭ꯠ'};
 const select=document.getElementById('captionLanguage'),caption=document.getElementById('vipCaption');for(const [name,text]of Object.entries(captions)){const o=document.createElement('option');o.value=name;o.textContent=name;select.appendChild(o)}select.onchange=()=>{caption.textContent=captions[select.value];caption.lang={Hindi:'hi',Tamil:'ta',Telugu:'te',Urdu:'ur',Bengali:'bn',Marathi:'mr',Gujarati:'gu',Punjabi:'pa',Kannada:'kn',Malayalam:'ml'}[select.value]||''};let rotate;const names=Object.keys(captions);if(!matchMedia('(prefers-reduced-motion: reduce)').matches)rotate=setInterval(()=>{select.selectedIndex=(select.selectedIndex+1)%names.length;select.onchange()},7000);select.addEventListener('change',()=>clearInterval(rotate));
 document.querySelectorAll('.card').forEach(card=>{card.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const r=card.getBoundingClientRect();card.style.setProperty('--mx',(e.clientX-r.left)+'px');card.style.setProperty('--my',(e.clientY-r.top)+'px')});card.addEventListener('pointerleave',()=>{card.style.removeProperty('--mx');card.style.removeProperty('--my')})});
