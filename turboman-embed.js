@@ -26,7 +26,7 @@
  // The website must provide a server-issued Supabase customer session. Never pass a username as proof of identity.
  window.WinTurboSupport={setAccessToken:token=>resetIdentity(String(token||'')),clearIdentity:()=>resetIdentity(),stopVoice:()=>stopVoice(),verify:()=>showVerify(),open:()=>panel.classList.add('open')};
  async function request(body){const actor=identityEpoch;const headers={'Content-Type':'application/json',apikey:apiKey};if(accessToken)headers.Authorization='Bearer '+accessToken;
- const r=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({session_id:session,visitor_id:visitor,language:language.value,...body}),signal:AbortSignal.timeout(60000)});const data=await r.json();if(actor!==identityEpoch)throw Error('Verification changed. Please send your request again.');
+ const r=await fetch(endpoint,{method:'POST',headers,body:JSON.stringify({session_id:session,visitor_id:visitor,language:language.value,contact_phone:script?.dataset.contactPhone||'',...body}),signal:AbortSignal.timeout(60000)});const data=await r.json();if(actor!==identityEpoch)throw Error('Verification changed. Please send your request again.');
  if(r.status===401&&!String(body.action||'').startsWith('member_otp_')){resetIdentity();throw Error('Your verification expired. Please verify again.');}
  if(!r.ok)throw Error(data.error||'Support is temporarily unavailable.');if(data.session_id)session=data.session_id;return data;}
  function callLink(phone){if(phone!=='+917971701093')return;const row=document.createElement('div');row.className='msg bot';const a=document.createElement('a');a.href='tel:'+phone;a.textContent='📞 Call human support · +91 79717 01093';a.style.color='#74efa0';row.appendChild(a);messages.appendChild(row);messages.scrollTop=messages.scrollHeight;}
@@ -72,4 +72,5 @@
  window.addEventListener('pagehide',stopVoice);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopVoice()});
  fetch(endpoint,{headers:{apikey:apiKey}}).then(async r=>{const d=await r.json();if(!r.ok)throw Error(d.error);config=d;for(const l of d.supported_languages||[]){const o=document.createElement('option');o.value=l;o.textContent=l;language.appendChild(o)}q('.mic').disabled=!d.voice_available;add(d.welcome_message,'bot');if(script?.dataset.open==='true')panel.classList.add('open');}).catch(e=>{add(e.message,'bot');q('.mic').disabled=true});
 })();
+
 

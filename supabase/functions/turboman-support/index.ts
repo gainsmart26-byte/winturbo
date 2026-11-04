@@ -88,15 +88,25 @@ Deno.serve(async(req:Request)=>{
   if(done.error||done.data?.length!==1)return reply({error:'This OTP has already been used.'},401);
   return reply({ok:true,access_token:verified.data.session.access_token,expires_in:verified.data.session.expires_in,username:m.data[0].username});
  }
+ // The VIP entry number is contact attribution only, never account authentication.
+ let contactPhone=user?.phone||'',contactSource=contactPhone?'verified_phone':'';
+ if(!contactPhone&&b.contact_phone){
+  let candidate=String(b.contact_phone).replace(/[\s()+-]/g,'');if(candidate.length===10)candidate='91'+candidate;
+  if(/^91[6-9]\d{9}$/.test(candidate)){
+   const matched=await db.rpc('turboman_verified_player',{p_phone:candidate});
+   if(matched.error)throw Error('Could not record your contact number. Please try again.');
+   if(matched.data?.length){contactPhone=candidate;contactSource='registered_match';}
+  }
+ }
  const visitor=typeof b.visitor_id==='string'&&/^[a-zA-Z0-9-]{16,120}$/.test(b.visitor_id)?b.visitor_id:crypto.randomUUID();
  let session:any=null;
  if(typeof b.session_id==='string'&&/^[0-9a-f-]{36}$/i.test(b.session_id)){
-  const r=await db.from('chatbot_sessions').select('id,verified_user_id').eq('id',b.session_id).eq('visitor_id',visitor).eq('origin',host).eq('support_version',2).maybeSingle();
+  const r=await db.from('chatbot_sessions').select('id,verified_user_id,contact_phone,contact_phone_source').eq('id',b.session_id).eq('visitor_id',visitor).eq('origin',host).eq('support_version',2).maybeSingle();
   if(r.error)throw Error('Could not retrieve the chat session.');
   // Never reuse history across anonymous, verified, or different verified identities.
-  if(r.data&&(r.data.verified_user_id||null)===(user?.id||null))session=r.data;
+  if(r.data&&(r.data.verified_user_id||null)===(user?.id||null)&&(r.data.contact_phone||'')===contactPhone&&(r.data.contact_phone_source||'')===contactSource)session=r.data;
  }
- if(!session){const r=await db.from('chatbot_sessions').insert({visitor_id:visitor,origin:host,ip_hash:ipHash,language,verified_user_id:user?.id||null,support_version:2}).select('id').single();if(r.error)throw Error('Could not start support chat.');session=r.data;}
+ if(!session){const r=await db.from('chatbot_sessions').insert({visitor_id:visitor,origin:host,ip_hash:ipHash,language,verified_user_id:user?.id||null,contact_phone:contactPhone||null,contact_phone_source:contactSource||null,support_version:2}).select('id').single();if(r.error)throw Error('Could not start support chat.');session=r.data;}
  loggedSession=session.id;
  const base={ok:true,session_id:session.id,visitor_id:visitor,account_verified:!!user?.phone};
  if(action==='voice_transcript'){
@@ -150,4 +160,5 @@ if(!answer)throw Error('I could not complete that answer. Please try again or re
  return reply({...base,answer,verification_required:verification,handoff,handoff_phone:handoff?'+917971701093':null});
  }catch(e){if(loggedSession){try{await db.from('chatbot_messages').insert({session_id:loggedSession,role:'system',content:'Support request could not be completed. Customer was offered retry or human support.',channel:loggedChannel,record_type:'error',error_code:'SUPPORT_REQUEST_FAILED',response_ms:Date.now()-started});}catch{}}const error=e instanceof Error?e.message:'Support is temporarily unavailable.';return reply({ok:false,error},error.includes('verification expired')?401:502);}
 });
+
 
