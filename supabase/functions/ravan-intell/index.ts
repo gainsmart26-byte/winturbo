@@ -27,6 +27,71 @@ Deno.serve(async (request) => {
 
     const body = await request.json();
     const action = body?.action;
+    const key = Deno.env.get('RAVAN_API_KEY')?.trim();
+    if (!key) return reply({ error: 'RAVAN_API_KEY is missing in Supabase.' }, 503);
+    if (action === 'dial') {
+      const agent = Deno.env.get('RAVAN_AGENT_ID')?.trim();
+      const caller = Deno.env.get('RAVAN_FROM_PHONE_NUMBER')?.trim();
+      if (!agent || !caller || !/^\+[1-9]\d{7,14}$/.test(caller)) {
+        return reply({ error: 'Set RAVAN_AGENT_ID and RAVAN_FROM_PHONE_NUMBER in Supabase before dialing.' }, 503);
+      }
+      const normalize = (value: unknown) => String(value ?? '').replace(/[\s()+.-]/g, '').replace(/^(?:0091|91)(?=\d{10}$)/, '');
+      const phone = normalize(body.phone);
+      const leadKey = body.leadKey;
+      if (body.confirmed !== true || !/^[6-9]\d{9}$/.test(phone) ||
+          typeof leadKey !== 'string' || !/^(?:user|phone):[a-zA-Z0-9_.@-]{1,100}$/.test(leadKey)) {
+        return reply({ error: 'Review and confirm a valid Indian lead number.' }, 400);
+      }
+
+      const recipient = '+91' + phone;
+      const variants = [phone, '91' + phone, recipient, '0091' + phone];
+      const registered = typeof body.username === 'string' &&
+        'user:' + body.username.toLowerCase() === leadKey
+        ? await db.from('admin_players').select('phone').eq('username', body.username).maybeSingle()
+        : { data: null, error: null };
+      const [record, wati, blocked] = await Promise.all([
+        db.from('lead_intell_records').select('phone,response').or(
+          'lead_key.eq.' + leadKey + ',phone.in.(' + variants.join(',') + ')',
+        ),
+        db.from('wati_contacts').select('phone').in('phone', variants).limit(1),
+        db.from('ai_call_contacts').select('phone').in('phone', variants).eq('do_not_call', true).limit(1),
+      ]);
+      if (registered.error || record.error || wati.error || blocked.error) {
+        return reply({ error: 'Could not verify lead and do-not-call records.' }, 503);
+      }
+      if (blocked.data.length || record.data.some((row) =>
+        /^(?:DND|Do Not Call|Connected Not Interested)$/i.test(row.response ?? '')
+      )) return reply({ error: 'This lead is marked as do not call or not interested.' }, 403);
+      const phones = [registered.data?.phone, ...record.data.map((row) => row.phone), ...wati.data.map((row) => row.phone)];
+      if (!phones.some((value) => normalize(value) === phone)) {
+        return reply({ error: 'This number could not be verified against Leads Intell.' }, 400);
+      }
+
+      const { data: dispatch, error: claimError } = await db.from('ravan_call_dispatches')
+        .insert({ phone: recipient, lead_key: leadKey, requested_by: user.id }).select('id').single();
+      if (claimError?.code === '23505') return reply({ error: 'A call was already attempted for this number today (IST).' }, 409);
+      if (claimError || !dispatch) return reply({ error: 'Could not record this call attempt.' }, 503);
+      try {
+        const response = await fetch('https://api.ravan.ai/api/v1/calling/create-call', {
+          method: 'POST',
+          headers: { 'X-Api-Key': key, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'outbound_call', agent_id: agent, from_phone_number: caller, to_phone_number: recipient,
+            metadata: { winturbo_dispatch_id: dispatch.id, winturbo_lead_key: leadKey },
+          }),
+          redirect: 'error',
+          signal: AbortSignal.timeout(15000),
+        });
+        const result = await response.json();
+        if (!response.ok || result.success !== true) throw new Error('Unconfirmed call');
+        await db.from('ravan_call_dispatches').update({ status: 'submitted' }).eq('id', dispatch.id);
+        return reply({ data: { submitted: true } });
+      } catch {
+        await db.from('ravan_call_dispatches').update({ status: 'unconfirmed' }).eq('id', dispatch.id);
+        return reply({ error: 'Ravan did not confirm the call. Check Ravan call history before attempting it again.' }, 502);
+      }
+    }
+
     let path;
     if (action === 'connection') path = 'agents/';
     else if (action === 'history') path = 'calling/call-sessions';
@@ -34,8 +99,6 @@ Deno.serve(async (request) => {
       path = 'calling/call-sessions-detail/' + body.id;
     } else return reply({ error: 'Invalid request.' }, 400);
 
-    const key = Deno.env.get('RAVAN_API_KEY')?.trim();
-    if (!key) return reply({ error: 'RAVAN_API_KEY is missing in Supabase.' }, 503);
     const response = await fetch('https://api.ravan.ai/api/v1/' + path, {
       headers: { 'X-Api-Key': key },
       redirect: 'error',
