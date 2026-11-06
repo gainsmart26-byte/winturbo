@@ -51,7 +51,7 @@ Deno.serve(async(req:Request)=>{
  const ip=(req.headers.get('cf-connecting-ip')||req.headers.get('x-forwarded-for')?.split(',')[0]||'unknown').trim();
  if(['ip','both'].includes(settings.access_mode)&&!(settings.allowed_ips||[]).some((x:string)=>x==='*'||x===ip))return reply({error:'This network is not authorized for support.'},403);
  if(req.method==='OPTIONS')return new Response(null,{headers});
- if(req.method==='GET')return reply({ok:true,version:2,name:settings.bot_name,supported_languages:languages,welcome_message:settings.welcome_message||'Namaste! I’m Turbo Man, your AI support assistant. Type in your language or tap the microphone to talk. Verify your account before checking personal details.',voice_available:!!key,account_login_integration:'supabase_verified_session',otp_enabled:await otpEnabled(),human_support_phone:'+917971701093'});
+ if(req.method==='GET')return reply({ok:true,version:2,name:settings.bot_name,supported_languages:languages,welcome_message:settings.welcome_message||'Namaste! I’m Turbo Man, your AI support assistant. Type in your language or tap the microphone to talk. Verify your account before checking personal details.',voice_available:!!key,account_login_integration:'supabase_verified_session',otp_enabled:await otpEnabled(),human_support_phone:'+919997292089'});
  if(req.method!=='POST')return reply({error:'Method not allowed'},405);
  const raw=await req.text();if(raw.length>16000)return reply({error:'Message is too large.'},413);
  let b;try{b=JSON.parse(raw)}catch{return reply({error:'Invalid request'},400)}
@@ -62,7 +62,7 @@ Deno.serve(async(req:Request)=>{
  if(quota.error)throw Error('Support is temporarily unavailable.');
  if(!quota.data)return reply({error:'Please wait before sending more requests.'},429);
  if(action==='member_otp_start'){
-  if(!await otpEnabled())return reply({error:'Member OTP login is not enabled yet. Please call +91 79717 01093 for account support.'},503);
+  if(!await otpEnabled())return reply({error:'Member OTP login is not enabled yet. WhatsApp Now to +919997292089 for account support.'},503);
   const username=String(b.username||'').trim();if(!/^[a-zA-Z0-9_.@-]{2,64}$/.test(username))return reply({error:'Enter your WinTurbo username.'},400);
   const q=await db.rpc('turboman_take_quota',{p_bucket:'member-otp:'+ipHash,p_limit:6});
   const uq=await db.rpc('turboman_take_quota',{p_bucket:'member-name:'+await hash(username.toLowerCase()),p_limit:3});
@@ -129,7 +129,7 @@ Deno.serve(async(req:Request)=>{
  const save=await db.from('chatbot_messages').insert({session_id:session.id,role:'user',content:message||'Human support requested',language,channel,record_type:channel==='voice'?'tool_question':'message'}).select('id').single();if(save.error)throw Error('Could not save your request.');
  let sources:any[]=[],topic='other',gap=false;
  let handoff=action==='handoff'||b.request_handoff===true,verification=false,answer='';
- if(handoff){answer='Your request for human support has been recorded. Tap Call human support to dial +91 79717 01093. The call starts only when you place it; immediate pickup is not guaranteed.';if(key&&language!=='English'){const translated=await openai('responses',{model:Deno.env.get('TURBOMAN_SUPPORT_MODEL')||'gpt-6.1-terra',instructions:'Translate this support message into '+(language==='Auto'?'the language of the customer’s message; use English if no message is available':language)+'. Preserve the phone number exactly. Return only the translation. Never claim a call has connected.',input:answer,reasoning:{effort:'low'},max_output_tokens:700,store:false},identifier);answer=textOf(translated)||answer;}}
+ if(handoff){answer='Your request for human support has been recorded. WhatsApp Now to +919997292089. Tap Click Here to open the WhatsApp chat.';if(key&&language!=='English'){const translated=await openai('responses',{model:Deno.env.get('TURBOMAN_SUPPORT_MODEL')||'gpt-6.1-terra',instructions:'Translate this support message into '+(language==='Auto'?'the language of the customer’s message; use English if no message is available':language)+'. Preserve the phone number exactly. Return only the translation. Never claim a call has connected.',input:answer,reasoning:{effort:'low'},max_output_tokens:700,store:false},identifier);answer=textOf(translated)||answer;}}
  else{
  if(!key)throw Error('AI support is not configured.');
  const [k,h]=await Promise.all([db.rpc('turboman_search_knowledge',{p_query:message}),db.from('chatbot_messages').select('role,content').eq('session_id',session.id).neq('record_type','spoken_transcript').order('id',{ascending:false}).limit(14)]);
@@ -144,7 +144,7 @@ Deno.serve(async(req:Request)=>{
  for(const c of calls){let result:any={error:'Unsupported tool'};
  if(c.name==='search_support_knowledge'){let query=message;try{query=String(JSON.parse(c.arguments).query||message).slice(0,2000)}catch{}const found=await db.rpc('turboman_search_knowledge',{p_query:query});if(found.error)throw Error('Knowledge search is temporarily unavailable.');result=found.data||[];sources=[...new Map([...sources,...result.map((x:any)=>({id:x.id,title:x.title}))].map(x=>[x.id,x])).values()];}
  if(c.name==='get_my_account'){result=await account(user);verification=!!result.verification_required;}
- if(c.name==='request_human_support'){handoff=true;result={queued:true,phone:'+917971701093',note:'A human handover is recorded with this conversation. The customer can tap Call human support to dial this number. No immediate connection or response time is confirmed.'};}
+ if(c.name==='request_human_support'){handoff=true;result={queued:true,phone:'+919997292089',note:'A human handover is recorded with this conversation. The customer can tap Click Here to open WhatsApp chat with this number. No response time is confirmed.'};}
  input.push({type:'function_call_output',call_id:c.call_id,output:JSON.stringify(result)});
  }
  r=await openai('responses',{model:Deno.env.get('TURBOMAN_SUPPORT_MODEL')||'gpt-6.1-terra',instructions,input,tools,tool_choice:round===2?'none':'auto',reasoning:{effort:'low'},max_output_tokens:1600,store:false},identifier);
@@ -157,7 +157,7 @@ if(!answer)throw Error('I could not complete that answer. Please try again or re
  if(save.data?.id)await db.from('chatbot_messages').update({language}).eq('id',save.data.id);
  const [a,u]=await Promise.all([db.from('chatbot_messages').insert({session_id:session.id,role:'assistant',content:answer,language,channel,sources,response_ms:Date.now()-started,topic,knowledge_gap:gap,verification_required:verification}),db.from('chatbot_sessions').update({last_message_at:new Date().toISOString(),language,...handoff?{handoff_requested:true,status:'handoff'}:{}}).eq('id',session.id)]);
  if(a.error||u.error)throw Error('Could not save the support response.');
- return reply({...base,answer,verification_required:verification,handoff,handoff_phone:handoff?'+917971701093':null});
+ return reply({...base,answer,verification_required:verification,handoff,handoff_phone:handoff?'+919997292089':null});
  }catch(e){if(loggedSession){try{await db.from('chatbot_messages').insert({session_id:loggedSession,role:'system',content:'Support request could not be completed. Customer was offered retry or human support.',channel:loggedChannel,record_type:'error',error_code:'SUPPORT_REQUEST_FAILED',response_ms:Date.now()-started});}catch{}}const error=e instanceof Error?e.message:'Support is temporarily unavailable.';return reply({ok:false,error},error.includes('verification expired')?401:502);}
 });
 
