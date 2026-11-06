@@ -38,9 +38,9 @@
     section.innerHTML = `
       <div class="adminHero"><div><h2>Ravan Intell</h2><p>Ravan connection and recent AI calls</p></div>
       <a href="https://app.ravan.ai" target="_blank" rel="noopener noreferrer">Open Ravan ↗</a></div>
-      <div class="card"><button type="button" data-check>Test connection</button>
-      <button type="button" data-refresh>Refresh recent calls</button>
-      <p role="status">Connection not checked.</p><div data-analytics></div><div data-calls></div></div>
+      <div class="card"><button class="ghost" type="button" data-check>Test connection</button>
+      <button class="primary" type="button" data-refresh>Refresh recent calls</button>
+      <p data-connection class="muted">Connection not checked.</p><p role="status" aria-live="polite">Call history loads when you open this tab.</p><div data-analytics><h3>Call analytics</h3><p class="muted">Waiting for Ravan call history.</p></div><div data-calls></div></div>
       <dialog><form method="dialog"><button>Close</button></form>
       <pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></dialog>`;
     main.append(section);
@@ -99,8 +99,12 @@
       }
       const title = document.getElementById('title');
       if (title) title.textContent = 'Ravan Intell';
+      if (!historyLoaded) refresh.click();
     }, true);
 
+    let historyLoaded = false;
+    const refresh = section.querySelector('[data-refresh]');
+    const connection = section.querySelector('[data-connection]');
     const status = section.querySelector('[role=status]');
     const calls = section.querySelector('[data-calls]');
     const dialog = section.querySelector('dialog');
@@ -111,7 +115,9 @@
         try {
           await operation();
         } catch (error) {
-          status.textContent = error.message;
+          status.textContent = button === refresh
+            ? 'Could not load Ravan call history. ' + error.message
+            : error.message;
         } finally {
           button.disabled = false;
         }
@@ -119,11 +125,18 @@
     }
 
     onClick(section.querySelector('[data-check]'), async () => {
-      await request('connection');
-      status.textContent = 'Connected to Ravan.';
+      try {
+        await request('connection');
+        connection.textContent = 'Connected to Ravan.';
+        status.textContent = 'Connection verified.';
+        if (!historyLoaded) refresh.click();
+      } catch (error) {
+        connection.textContent = 'Connection check failed.';
+        throw error;
+      }
     });
 
-    onClick(section.querySelector('[data-refresh]'), async () => {
+    onClick(refresh, async () => {
       const { callSessions } = await request('history');
       const analytics = section.querySelector('[data-analytics]');
       const counts = new Map();
@@ -158,7 +171,10 @@
           status.textContent = 'Call details loaded.';
         });
       }
-      status.textContent = callSessions.length ? 'Recent Ravan calls loaded.' : 'No recent Ravan calls.';
+      historyLoaded = true;
+      status.textContent = callSessions.length
+        ? 'Recent Ravan calls loaded.'
+        : 'Ravan returned no recent calls for this workspace.';
     });
   }
 
