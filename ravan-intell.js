@@ -21,9 +21,8 @@
 
   async function mount() {
     if (location.hostname !== 'winturbo.live' || typeof sb === 'undefined') return;
-    const { data: { user } } = await sb.auth.getUser();
+    const { user, profile } = await window.WinTurboLoadProfile();
     if (!user) return;
-    const { data: profile } = await sb.from('profiles').select('role,is_active').eq('id', user.id).maybeSingle();
     if (profile?.role !== 'admin' || !profile.is_active || document.getElementById('ravanIntell')) return;
     const nav = document.querySelector('#app .nav');
     const main = document.querySelector('main.main');
@@ -163,7 +162,8 @@
     });
   }
 
-  if (typeof sb !== 'undefined') {
+  if (location.hostname === 'winturbo.live' && typeof sb !== 'undefined') {
+    window.WinTurboRegisterModule('ravanIntell', mount);
     sb.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         document.getElementById('ravanIntell')?.remove();
