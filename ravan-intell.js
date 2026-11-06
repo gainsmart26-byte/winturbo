@@ -40,7 +40,7 @@
       <a href="https://app.ravan.ai" target="_blank" rel="noopener noreferrer">Open Ravan ↗</a></div>
       <div class="card"><button class="ghost" type="button" data-check>Test connection</button>
       <button class="primary" type="button" data-refresh>Refresh recent calls</button>
-      <p data-connection class="muted">Connection not checked.</p><p role="status" aria-live="polite">Call history loads when you open this tab.</p><div data-analytics><h3>Call analytics</h3><p class="muted">Waiting for Ravan call history.</p></div><div data-calls></div></div>
+      <p data-connection class="muted">Connection not checked.</p><p role="status" aria-live="polite">Call history loads when you open this tab.</p><div data-analytics><h3>Call analytics</h3><p class="muted">Waiting for Ravan call history.</p></div><div data-calls style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;margin-top:16px"></div></div>
       <dialog><form method="dialog"><button>Close</button></form>
       <pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></dialog>`;
     main.append(section);
@@ -159,10 +159,41 @@
       analytics.replaceChildren(heading, summary, breakdown);
       calls.replaceChildren();
       for (const call of callSessions) {
-        const row = document.createElement('p');
+        const row = document.createElement('article');
+        row.className = 'card';
+        const number = document.createElement('h3');
+        number.textContent = call.calleeNumber || 'Number unavailable';
+        const date = new Date(call.startedAt || call.createdAt || '');
+        const time = document.createElement('p');
+        time.textContent = Number.isFinite(date.getTime())
+          ? date.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }) + ' IST'
+          : 'Date and time unavailable';
+        const outcome = document.createElement('p');
+        outcome.textContent = 'Status: ' + (call.status || 'Unknown');
+        const sentiment = document.createElement('p');
+        const analysis = call.postCallAnalysisResult;
+        const label = call.sentiment || analysis?.sentiment || analysis?.user_sentiment || analysis?.userSentiment;
+        sentiment.textContent = 'Sentiment: ' + (typeof label === 'string' && label.trim() ? label : 'Unavailable');
+        const recording = document.createElement('p');
+        recording.textContent = 'Recording unavailable';
+        if (typeof call.recordingUrl === 'string') {
+          try {
+            const url = new URL(call.recordingUrl);
+            if (url.protocol === 'https:') {
+              const link = document.createElement('a');
+              link.href = url.href;
+              link.target = '_blank';
+              link.rel = 'noopener noreferrer';
+              link.textContent = 'Open recording ↗';
+              recording.replaceChildren(link);
+            }
+          } catch {}
+        }
         const button = document.createElement('button');
-        button.textContent = 'View call';
-        row.append([call.calleeNumber, call.status, call.channel].filter(Boolean).join(' · ') + ' ', button);
+        button.type = 'button';
+        button.className = 'ghost';
+        button.textContent = 'View call details';
+        row.append(number, time, outcome, sentiment, recording, button);
         calls.append(row);
         onClick(button, async () => {
           const detail = await request('detail', { id: call.id });

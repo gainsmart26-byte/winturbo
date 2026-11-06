@@ -4798,7 +4798,7 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
     setReadOnlyUI(!admin);
     const current=document.querySelector('main.main > section.section.on')?.id;
     if(current==='userAccess'&&!admin)showSectionDirect([...allowed][0]||'overview');
-    else if(current&&!allowed.has(current)&&current!=='userAccess'&&!(current==='callIntell'&&(admin||allowed.has('leadsIntell'))))showSectionDirect([...allowed][0]||'overview');
+    else if(current&&!allowed.has(current)&&current!=='userAccess'&&!(current==='callIntell'&&(admin||allowed.has('leadsIntell')))&&!(current==='ravanIntell'&&admin))showSectionDirect([...allowed][0]||'overview');
   }
 
   async function loadCurrentAccess(){
@@ -5287,5 +5287,5 @@ wrap();if(document.readyState==='loading')document.addEventListener('DOMContentL
 <script src="./match-intell.js?v=20261031"></script>
 <link rel="stylesheet" href="./google-intell.css?v=20261101">
 <script src="./google-intell.js?v=20261101"></script>
-<script src="./ravan-intell.js?v=20261106"></script>
+<script src="./ravan-intell.js?v=20261106-cards"></script>
 </html>
