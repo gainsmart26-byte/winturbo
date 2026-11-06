@@ -17,6 +17,52 @@
     card.style.background = 'linear-gradient(145deg, ' + color + '24, #101a22 78%)';
   }
 
+  const dayFormat = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
+  });
+  const dayOf = (value) => {
+    const date = new Date(value || '');
+    return Number.isFinite(date.getTime()) ? dayFormat.format(date) : '';
+  };
+  const numberKey = (value) => String(value || '').replace(/[\s()+.-]/g, '')
+    .replace(/^(?:0091|91)(?=\d{10}$)/, '');
+  async function lookupPlayers(sessions) {
+    const keys = [...new Set(sessions.map((call) => numberKey(call.calleeNumber))
+      .filter((key) => /^\d{10}$/.test(key)))];
+    const matches = new Map();
+    for (let start = 0; start < keys.length; start += 40) {
+      const variants = keys.slice(start, start + 40).flatMap((key) =>
+        [key, '+91' + key, '91' + key, '0091' + key]);
+      const { data, error } = await sb.from('admin_players')
+        .select('phone,ftd_at,ftd,deposit_count').in('phone', variants);
+      if (error) throw error;
+      for (const player of data) {
+        const key = numberKey(player.phone);
+        matches.set(key, matches.has(key) ? null : player);
+      }
+    }
+    return matches;
+  }
+
+  function playerBadge(call, matches) {
+    const key = numberKey(call.calleeNumber);
+    if (!matches || !/^\d{10}$/.test(key)) return ['Registration unavailable', colors.unknown];
+    if (!matches.has(key)) return ['Non-registered · no synced match', '#ff879c'];
+    const player = matches.get(key);
+    if (!player) return ['Multiple registered matches', '#ffd166'];
+    const first = dayOf(player.ftd_at);
+    const count = player.deposit_count == null ? NaN : Number(player.deposit_count);
+    if (!first && !(Number(player.ftd) > 0) && !(count > 0)) {
+      return ['Registered · Non-FTD', '#bba4ff'];
+    }
+    if (count === 1) {
+      const days = first ? (Date.parse(dayFormat.format(new Date())) - Date.parse(first)) / 86400000 : NaN;
+      const age = Number.isFinite(days) && days >= 0 ? ' · ' + days + (days === 1 ? ' day' : ' days') + ' since FTD' : '';
+      return ['FTD · No additional deposit' + age, '#ffd166'];
+    }
+    return [count > 1 ? 'FTD · Repeat depositor' : 'FTD · Deposit count unavailable', '#57e6ab'];
+  }
+
   async function request(action, fields = {}) {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) throw new Error('Sign in again.');
@@ -56,7 +102,7 @@
       <a href="https://app.ravan.ai" target="_blank" rel="noopener noreferrer">Open Ravan ↗</a></div>
       <div class="card"><button class="ghost" type="button" data-check>Test connection</button>
       <button class="primary" type="button" data-refresh>Refresh recent calls</button>
-      <p data-connection class="muted">Connection not checked.</p><p role="status" aria-live="polite">Call history loads when you open this tab.</p><div data-analytics><h3>Call analytics</h3><p class="muted">Waiting for Ravan call history.</p></div><div data-calls style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;margin-top:16px"></div></div>
+      <p data-connection class="muted">Connection not checked.</p><p role="status" aria-live="polite">Call history loads when you open this tab.</p><div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"><label>From (IST) <input type="date" data-from></label><label>To (IST) <input type="date" data-to></label><button type="button" class="ghost" data-clear>All loaded dates</button></div><div data-analytics><h3>Call analytics</h3><p class="muted">Waiting for Ravan call history.</p></div><div data-calls style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;margin-top:16px"></div></div>
       <dialog><form method="dialog"><button>Close</button></form>
       <pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></dialog>`;
     main.append(section);
@@ -152,8 +198,39 @@
       }
     });
 
+    const from = section.querySelector('[data-from]');
+    const to = section.querySelector('[data-to]');
+    let loadedCalls = [];
+    let players = null;
+    from.onchange = to.onchange = renderHistory;
+    section.querySelector('[data-clear]').onclick = () => {
+      from.value = to.value = '';
+      renderHistory();
+    };
     onClick(refresh, async () => {
       const { callSessions } = await request('history');
+      loadedCalls = callSessions;
+      players = null;
+      try {
+        players = await lookupPlayers(callSessions);
+      } catch {
+        // Call history remains visible when registration data cannot be loaded.
+      }
+      historyLoaded = true;
+      renderHistory();
+    });
+
+    function renderHistory() {
+      if (!historyLoaded) return;
+      if (from.value && to.value && from.value > to.value) {
+        status.textContent = 'Choose a From date on or before the To date.';
+        return;
+      }
+      const callDate = (call) => call.startedAt || call.createdAt;
+      const callSessions = loadedCalls.filter((call) => {
+        const day = dayOf(callDate(call));
+        return (!from.value || day >= from.value) && (!to.value || (day && day <= to.value));
+      }).sort((left, right) => (Date.parse(callDate(right)) || 0) - (Date.parse(callDate(left)) || 0));
       const analytics = section.querySelector('[data-analytics]');
       const counts = new Map();
       let seconds = 0;
@@ -188,7 +265,18 @@
       }
       analytics.replaceChildren(heading, metrics);
       calls.replaceChildren();
+      let previousDay = null;
       for (const call of callSessions) {
+        const day = dayOf(callDate(call));
+        if (day !== previousDay) {
+          const dateHeading = document.createElement('h3');
+          dateHeading.style.gridColumn = '1 / -1';
+          dateHeading.textContent = day
+            ? new Date(day + 'T12:00:00Z').toLocaleDateString('en-IN', { dateStyle: 'full', timeZone: 'Asia/Kolkata' })
+            : 'Date unavailable';
+          calls.append(dateHeading);
+          previousDay = day;
+        }
         const row = document.createElement('article');
         row.className = 'card';
         const color = statusColor(call.status);
@@ -226,7 +314,11 @@
         button.type = 'button';
         button.className = 'ghost';
         button.textContent = 'View call details';
-        row.append(number, time, outcome, sentiment, recording, button);
+        const [badgeText, badgeColor] = playerBadge(call, players);
+        const badge = document.createElement('p');
+        badge.textContent = badgeText;
+        badge.style.cssText = 'padding:7px 10px;border-radius:8px;font-weight:700;color:' + badgeColor + ';background:' + badgeColor + '24';
+        row.append(number, time, outcome, badge, sentiment, recording, button);
         calls.append(row);
         onClick(button, async () => {
           const detail = await request('detail', { id: call.id });
@@ -235,11 +327,11 @@
           status.textContent = 'Call details loaded.';
         });
       }
-      historyLoaded = true;
       status.textContent = callSessions.length
-        ? 'Recent Ravan calls loaded.'
-        : 'Ravan returned no recent calls for this workspace.';
-    });
+        ? callSessions.length + ' of ' + loadedCalls.length + ' loaded calls shown · IST' +
+          (players ? '' : ' · Registration data unavailable')
+        : loadedCalls.length ? 'No loaded calls match these dates.' : 'Ravan returned no recent calls.';
+    }
   }
 
   if (location.hostname === 'winturbo.live' && typeof sb !== 'undefined') {
