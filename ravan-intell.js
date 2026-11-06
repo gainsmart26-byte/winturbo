@@ -322,20 +322,41 @@
         const label = call.sentiment || analysis?.sentiment || analysis?.user_sentiment || analysis?.userSentiment;
         sentiment.textContent = 'Sentiment: ' + (typeof label === 'string' && label.trim() ? label : 'Unavailable');
         const recording = document.createElement('p');
-        recording.textContent = 'Recording unavailable';
-        if (typeof call.recordingUrl === 'string') {
+        const play = document.createElement('button');
+        play.type = 'button';
+        play.className = 'ghost';
+        play.textContent = 'Play recording';
+        const feedback = document.createElement('span');
+        feedback.setAttribute('role', 'status');
+        play.disabled = !call.id && !call.recordingUrl;
+        if (play.disabled) feedback.textContent = 'Recording unavailable';
+        play.onclick = async () => {
+          play.disabled = true;
+          feedback.textContent = ' Loading recording…';
+          recording.querySelector('audio')?.remove();
           try {
-            const url = new URL(call.recordingUrl);
-            if (url.protocol === 'https:') {
-              const link = document.createElement('a');
-              link.href = url.href;
-              link.target = '_blank';
-              link.rel = 'noopener noreferrer';
-              link.textContent = 'Open recording ↗';
-              recording.replaceChildren(link);
-            }
-          } catch {}
-        }
+            const detail = call.id ? await request('detail', { id: call.id }).catch(() => null) : null;
+            const url = new URL(detail?.recordingUrl || detail?.callSession?.recordingUrl || call.recordingUrl || '');
+            if (url.protocol !== 'https:') throw new Error('Invalid recording URL');
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.style.cssText = 'display:block;width:100%;margin-top:8px';
+            audio.setAttribute('aria-label', 'Call recording');
+            audio.onerror = () => {
+              audio.remove();
+              feedback.textContent = ' Recording could not be played. Select Play recording to retry.';
+            };
+            audio.src = url.href;
+            recording.append(audio);
+            feedback.textContent = '';
+            await audio.play().catch(() => {});
+          } catch {
+            feedback.textContent = ' Ravan did not provide a playable recording link.';
+          } finally {
+            play.disabled = false;
+          }
+        };
+        recording.append(play, feedback);
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'ghost';
@@ -426,7 +447,7 @@
           const detail = await request('detail', { id: call.id }).catch(() => null);
           dialog.querySelector('pre').textContent = detail ? JSON.stringify(detail, null, 2) : 'Ravan call details are temporarily unavailable.';
           if (!dialog.open) dialog.showModal();
-          status.textContent = 'Call details loaded.';
+          status.textContent = detail ? 'Call details loaded.' : 'Ravan call details are temporarily unavailable.';
         });
       }
       status.textContent = callSessions.length
