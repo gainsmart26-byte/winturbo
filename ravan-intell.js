@@ -89,6 +89,26 @@
     return result.data;
   }
 
+  function bindDial(button, phone, username, leadKey) {
+    button.disabled = !/^[6-9]\d{9}$/.test(phone);
+    button.title = button.disabled ? 'A valid Indian mobile number is required' : 'Place one Ravan AI call';
+    button.onclick = async (event) => {
+      event.stopPropagation();
+      if (!window.confirm('Place one Ravan AI call to ' + username + ' (+91' + phone +
+          ')? Confirm the lead has agreed to receive this call.')) return;
+      button.disabled = true;
+      button.textContent = 'Calling…';
+      try {
+        await request('dial', { phone, username, leadKey: leadKey, confirmed: true });
+        button.textContent = 'Call submitted';
+      } catch (error) {
+        button.textContent = 'Call Now';
+        button.disabled = false;
+        window.alert(error.message);
+      }
+    };
+  }
+
   async function mount() {
     if (location.hostname !== 'winturbo.live' || typeof sb === 'undefined') return;
     const { user, profile } = await window.WinTurboLoadProfile();
@@ -98,6 +118,8 @@
     const main = document.querySelector('main.main');
     if (!nav || !main) return;
 
+    window.WinTurboBindRavanDial = (button, lead) =>
+      bindDial(button, numberKey(lead.phone), lead.username || 'this lead', lead.key);
     const tab = document.createElement('button');
     tab.dataset.s = 'ravanIntell';
     tab.textContent = '☎ Ravan Intell';
@@ -134,24 +156,8 @@
         button.type = 'button';
         button.dataset.ravanDial = '';
         button.textContent = 'Call Now';
-        button.disabled = !/^[6-9]\d{9}$/.test(phone);
-        button.title = button.disabled ? 'A valid Indian mobile number is required' : 'Place one Ravan AI call';
         cell.append(' ', button);
-        button.onclick = async (event) => {
-          event.stopPropagation();
-          if (!window.confirm('Place one Ravan AI call to ' + username + ' (+91' + phone +
-              ')? Confirm the lead has agreed to receive this call.')) return;
-          button.disabled = true;
-          button.textContent = 'Calling…';
-          try {
-            await request('dial', { phone, username, leadKey: row.dataset.lead, confirmed: true });
-            button.textContent = 'Call submitted';
-          } catch (error) {
-            button.textContent = 'Call Now';
-            button.disabled = false;
-            window.alert(error.message);
-          }
-        };
+        bindDial(button, phone, username, row.dataset.lead);
       }
     }
     window.addEventListener('click', (event) => {
@@ -461,6 +467,7 @@
     window.WinTurboRegisterModule('ravanIntell', mount);
     sb.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
+        delete window.WinTurboBindRavanDial;
         document.getElementById('ravanIntell')?.remove();
         document.querySelectorAll('[data-ravan-dial]').forEach((button) => button.remove());
         document.querySelector('[data-s="ravanIntell"]')?.remove();
