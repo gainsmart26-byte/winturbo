@@ -64,7 +64,11 @@ async function loadConversations(){
  }
  if(version!==admin.listVersion)return;
  admin.rows=d.rows||[];
- list.innerHTML=admin.rows.map(x=>`<button type="button" class="card" style="text-align:left;overflow-wrap:anywhere" data-tmi-session="${escapeTm(x.id)}"><strong>${escapeTm(contactLabel(x))}</strong><p>${escapeTm(conversationTime(x.last_message_at))}</p><p>${escapeTm(x.handoff_requested?'Human requested':x.status||'Status unavailable')} · ${Number(x.message_count)||0} records</p><p>${escapeTm(x.last_question||'No customer question recorded')}</p><small>${escapeTm([x.language,x.origin].filter(Boolean).join(' · '))}</small><p><b>View chat and transcript →</b></p></button>`).join('')||'<p class="muted">No matching conversations in this date range.</p>';
+ const colors={open:['#6ee7b7','#12382e'],handoff:['#ffd38a','#402a18'],closed:['#c4b5fd','#312653']};
+ list.innerHTML=admin.rows.map(x=>{
+  const [accent,tint]=colors[x.handoff_requested?'handoff':x.status]||['#7dd3fc','#17344a'];
+  return `<button type="button" class="card" style="text-align:left;overflow-wrap:anywhere;color:#f1f5f9;border:1px solid ${accent}66;border-top:4px solid ${accent};background:linear-gradient(145deg,${tint},#111827)" data-tmi-session="${escapeTm(x.id)}"><strong>${escapeTm(contactLabel(x))}</strong><p>${escapeTm(conversationTime(x.last_message_at))}</p><p><span style="display:inline-block;padding:3px 9px;border-radius:999px;background:${accent}22;color:${accent};font-weight:700">${escapeTm(x.handoff_requested?'Human requested':x.status||'Status unavailable')}</span> · ${Number(x.message_count)||0} records</p><p>${escapeTm(x.last_question||'No customer question recorded')}</p><small>${escapeTm([x.language,x.origin].filter(Boolean).join(' · '))}</small><p><b style="color:${accent}">View chat and transcript →</b></p></button>`;
+ }).join('')||'<p class="muted">No matching conversations in this date range.</p>';
  list.querySelectorAll('[data-tmi-session]').forEach(button=>button.onclick=()=>run(()=>loadTranscript(button.dataset.tmiSession)));
  $t('tmiPage').textContent=d.total?`${offset+1}–${Math.min(offset+30,d.total)} of ${d.total}`:'0 conversations';
  $t('tmiPrev').disabled=!offset;
