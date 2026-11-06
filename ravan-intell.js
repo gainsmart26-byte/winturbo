@@ -1,6 +1,22 @@
 (() => {
   'use strict';
 
+  const colors = {
+    completed: '#57e6ab', no_answer: '#ffd166', busy: '#f9a65a',
+    failed: '#ff879c', in_progress: '#67d9fb', unknown: '#acb9d3',
+  };
+  const palettes = ['#bba4ff', '#67d9fb', '#f3a3ed'];
+  const statusLabel = (value) => String(value || 'Unknown').replace(/[_-]+/g, ' ')
+    .replace(/^./, (letter) => letter.toUpperCase());
+  const statusColor = (value, fallback = colors.unknown) =>
+    colors[String(value || '').toLowerCase().replace(/[- ]/g, '_')] || fallback;
+
+  function accentCard(card, color) {
+    card.style.borderColor = color + '66';
+    card.style.borderTop = '3px solid ' + color;
+    card.style.background = 'linear-gradient(145deg, ' + color + '24, #101a22 78%)';
+  }
+
   async function request(action, fields = {}) {
     const { data: { session } } = await sb.auth.getSession();
     if (!session) throw new Error('Sign in again.');
@@ -148,19 +164,35 @@
       }
       const heading = document.createElement('h3');
       heading.textContent = 'Analytics for loaded calls';
-      const summary = document.createElement('p');
-      summary.textContent = callSessions.length + ' calls · ' + (seconds / 60).toFixed(1) + ' call minutes';
-      const breakdown = document.createElement('ul');
-      for (const [label, count] of counts) {
-        const item = document.createElement('li');
-        item.textContent = label + ' · ' + count;
-        breakdown.append(item);
+      const metrics = document.createElement('div');
+      metrics.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));gap:12px;margin:12px 0 22px';
+      const totals = [
+        ['Total calls', callSessions.length, palettes[0]],
+        ['Call minutes', (seconds / 60).toFixed(1), palettes[1]],
+        ...[...counts].map(([label, count], index) => [
+          statusLabel(label), count, statusColor(label, palettes[index % palettes.length]),
+        ]),
+      ];
+      for (const [label, value, color] of totals) {
+        const card = document.createElement('article');
+        card.className = 'card';
+        accentCard(card, color);
+        const title = document.createElement('span');
+        title.textContent = label;
+        title.style.color = '#e6edf7';
+        const figure = document.createElement('strong');
+        figure.textContent = value;
+        figure.style.cssText = 'display:block;margin-top:5px;font-size:clamp(1.8rem,3vw,2.6rem);line-height:1.1;color:' + color;
+        card.append(title, figure);
+        metrics.append(card);
       }
-      analytics.replaceChildren(heading, summary, breakdown);
+      analytics.replaceChildren(heading, metrics);
       calls.replaceChildren();
       for (const call of callSessions) {
         const row = document.createElement('article');
         row.className = 'card';
+        const color = statusColor(call.status);
+        accentCard(row, color);
         const number = document.createElement('h3');
         number.textContent = call.calleeNumber || 'Number unavailable';
         const date = new Date(call.startedAt || call.createdAt || '');
@@ -169,7 +201,8 @@
           ? date.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Kolkata' }) + ' IST'
           : 'Date and time unavailable';
         const outcome = document.createElement('p');
-        outcome.textContent = 'Status: ' + (call.status || 'Unknown');
+        outcome.textContent = statusLabel(call.status);
+        outcome.style.cssText = 'display:inline-block;border-radius:999px;padding:4px 10px;font-weight:700;color:' + color + ';background:' + color + '18';
         const sentiment = document.createElement('p');
         const analysis = call.postCallAnalysisResult;
         const label = call.sentiment || analysis?.sentiment || analysis?.user_sentiment || analysis?.userSentiment;
