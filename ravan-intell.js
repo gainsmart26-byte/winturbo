@@ -360,6 +360,7 @@
             entries.textContent = 'No uniquely matched WinTurbo account for this call.';
           } else {
             try {
+              const changes = [];
               const pageSize = 100;
               for (let offset = 0; ; offset += pageSize) {
                 const { data, error } = await sb.from('ravan_player_status_history')
@@ -367,14 +368,55 @@
                   .order('observed_at', { ascending: false }).order('id', { ascending: false })
                   .range(offset, offset + pageSize - 1);
                 if (error) throw error;
-                for (const change of data) {
-                  const item = document.createElement('li');
-                  item.textContent = change.status + ' · ' + statusTime(change.observed_at);
-                  entries.append(item);
-                }
+                changes.push(...data);
                 if (data.length < pageSize) break;
               }
-              if (!entries.children.length) entries.textContent = 'No status changes recorded.';
+              const filters = document.createElement('div');
+              filters.style.cssText = 'display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px';
+              function field(label, control) {
+                const wrapper = document.createElement('label');
+                wrapper.append(label + ' ', control);
+                filters.append(wrapper);
+                control.addEventListener('change', renderChanges);
+                return control;
+              }
+              const since = field('From (IST)', Object.assign(document.createElement('input'), { type: 'date' }));
+              const until = field('To (IST)', Object.assign(document.createElement('input'), { type: 'date' }));
+              const kind = field('Status', document.createElement('select'));
+              kind.add(new Option('All statuses', ''));
+              for (const name of new Set(changes.map((change) => change.status))) {
+                kind.add(new Option(name, name));
+              }
+              const clear = document.createElement('button');
+              clear.type = 'button';
+              clear.className = 'ghost';
+              clear.textContent = 'Clear filters';
+              clear.onclick = () => {
+                since.value = until.value = kind.value = '';
+                renderChanges();
+              };
+              filters.append(clear);
+              history.insertBefore(filters, entries);
+              function renderChanges() {
+                entries.replaceChildren();
+                const add = (value) => {
+                  const item = document.createElement('li');
+                  item.textContent = value;
+                  entries.append(item);
+                };
+                if (since.value && until.value && since.value > until.value) {
+                  add('Choose a From date on or before the To date.');
+                  return;
+                }
+                for (const change of changes) {
+                  const day = dayOf(change.observed_at);
+                  if ((since.value && day < since.value) || (until.value && day > until.value) ||
+                      (kind.value && change.status !== kind.value)) continue;
+                  add(change.status + ' · ' + statusTime(change.observed_at));
+                }
+                if (!entries.children.length) add('No recorded status changes match this selection.');
+              }
+              renderChanges();
             } catch {
               const item = document.createElement('li');
               item.textContent = 'Could not load all status history.';
