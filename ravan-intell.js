@@ -24,6 +24,9 @@
     const date = new Date(value || '');
     return Number.isFinite(date.getTime()) ? dayFormat.format(date) : '';
   };
+  const statusTime = (value) => new Date(value).toLocaleString('en-IN', {
+    dateStyle: 'medium', timeStyle: 'medium', timeZone: 'Asia/Kolkata',
+  }) + ' IST';
   const numberKey = (value) => String(value || '').replace(/[\s()+.-]/g, '')
     .replace(/^(?:0091|91)(?=\d{10}$)/, '');
   async function lookupPlayers(sessions) {
@@ -34,11 +37,16 @@
       const variants = keys.slice(start, start + 40).flatMap((key) =>
         [key, '+91' + key, '91' + key, '0091' + key]);
       const { data, error } = await sb.from('admin_players')
-        .select('phone,ftd_at,ftd,deposit_count').in('phone', variants);
+        .select('username,phone,ftd_at,ftd,deposit_count').in('phone', variants);
       if (error) throw error;
+      if (!data.length) continue;
+      const latest = await sb.from('ravan_latest_player_status')
+        .select('username,observed_at').in('username', data.map((player) => player.username));
+      if (latest.error) throw latest.error;
+      const timestamps = new Map(latest.data.map((row) => [row.username, row.observed_at]));
       for (const player of data) {
         const key = numberKey(player.phone);
-        matches.set(key, matches.has(key) ? null : player);
+        matches.set(key, matches.has(key) ? null : { ...player, statusAt: timestamps.get(player.username) });
       }
     }
     return matches;
@@ -104,7 +112,7 @@
       <button class="primary" type="button" data-refresh>Refresh recent calls</button>
       <p data-connection class="muted">Connection not checked.</p><p role="status" aria-live="polite">Call history loads when you open this tab.</p><div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"><label>From (IST) <input type="date" data-from></label><label>To (IST) <input type="date" data-to></label><button type="button" class="ghost" data-clear>All loaded dates</button></div><div data-analytics><h3>Call analytics</h3><p class="muted">Waiting for Ravan call history.</p></div><div data-calls style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;margin-top:16px"></div></div>
       <dialog><form method="dialog"><button>Close</button></form>
-      <pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></dialog>`;
+      <div data-status-history></div><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></dialog>`;
     main.append(section);
     const leadButtons = new MutationObserver(addLeadButtons);
     leadButtons.observe(main, { childList: true, subtree: true });
@@ -220,6 +228,24 @@
       renderHistory();
     });
 
+    const statusTimer = setInterval(async () => {
+      if (!section.isConnected) {
+        clearInterval(statusTimer);
+        return;
+      }
+      if (!section.classList.contains('on') || !historyLoaded || refresh.disabled || dialog.open) return;
+      const snapshot = loadedCalls;
+      try {
+        const latest = await lookupPlayers(snapshot);
+        if (section.isConnected && snapshot === loadedCalls && !refresh.disabled && !dialog.open) {
+          players = latest;
+          renderHistory();
+        }
+      } catch {
+        // Keep the last successful snapshot during a temporary connection failure.
+      }
+    }, 60000);
+
     function renderHistory() {
       if (!historyLoaded) return;
       if (from.value && to.value && from.value > to.value) {
@@ -318,11 +344,45 @@
         const badge = document.createElement('p');
         badge.textContent = badgeText;
         badge.style.cssText = 'padding:7px 10px;border-radius:8px;font-weight:700;color:' + badgeColor + ';background:' + badgeColor + '24';
-        row.append(number, time, outcome, badge, sentiment, recording, button);
+        const player = players?.get(numberKey(call.calleeNumber));
+        const changed = document.createElement('p');
+        changed.className = 'muted small';
+        if (player?.statusAt) changed.textContent = 'Status recorded ' + statusTime(player.statusAt);
+        row.append(number, time, outcome, badge, changed, sentiment, recording, button);
         calls.append(row);
         onClick(button, async () => {
-          const detail = await request('detail', { id: call.id });
-          dialog.querySelector('pre').textContent = JSON.stringify(detail, null, 2);
+          const history = dialog.querySelector('[data-status-history]');
+          const heading = document.createElement('h3');
+          heading.textContent = 'WinTurbo status history';
+          const entries = document.createElement('ul');
+          history.replaceChildren(heading, entries);
+          if (!player) {
+            entries.textContent = 'No uniquely matched WinTurbo account for this call.';
+          } else {
+            try {
+              const pageSize = 100;
+              for (let offset = 0; ; offset += pageSize) {
+                const { data, error } = await sb.from('ravan_player_status_history')
+                  .select('status,observed_at').eq('username', player.username)
+                  .order('observed_at', { ascending: false }).order('id', { ascending: false })
+                  .range(offset, offset + pageSize - 1);
+                if (error) throw error;
+                for (const change of data) {
+                  const item = document.createElement('li');
+                  item.textContent = change.status + ' · ' + statusTime(change.observed_at);
+                  entries.append(item);
+                }
+                if (data.length < pageSize) break;
+              }
+              if (!entries.children.length) entries.textContent = 'No status changes recorded.';
+            } catch {
+              const item = document.createElement('li');
+              item.textContent = 'Could not load all status history.';
+              entries.append(item);
+            }
+          }
+          const detail = await request('detail', { id: call.id }).catch(() => null);
+          dialog.querySelector('pre').textContent = detail ? JSON.stringify(detail, null, 2) : 'Ravan call details are temporarily unavailable.';
           if (!dialog.open) dialog.showModal();
           status.textContent = 'Call details loaded.';
         });
