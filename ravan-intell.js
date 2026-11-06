@@ -89,6 +89,56 @@
     return result.data;
   }
 
+  const recordingLink = (call) => call?.recordingUrl || call?.recording_url;
+
+  function recordingControls(call, initialDetail) {
+    const recording = document.createElement('div');
+    const info = initialDetail?.callSession || initialDetail || call;
+    const outcome = String(info.status || call.status || '').toLowerCase().replace(/[- ]/g, '_');
+    if (['no_answer', 'busy', 'failed'].includes(outcome) &&
+        Number(info.duration_sec ?? info.durationSec ?? call.durationSec) === 0 &&
+        !recordingLink(info) && !recordingLink(call)) {
+      recording.textContent = 'No recording · the call did not connect.';
+      return recording;
+    }
+    const play = document.createElement('button');
+    play.type = 'button';
+    play.className = 'ghost';
+    play.textContent = 'Play recording';
+    const feedback = document.createElement('span');
+    feedback.setAttribute('role', 'status');
+    play.disabled = !call.id && !recordingLink(info) && !recordingLink(call);
+    if (play.disabled) feedback.textContent = 'Recording unavailable';
+    play.onclick = async () => {
+      play.disabled = true;
+      feedback.textContent = ' Loading recording…';
+      recording.querySelector('audio')?.remove();
+      try {
+        const detail = call.id ? await request('detail', { id: call.id }).catch(() => null) : null;
+        const url = new URL(recordingLink(detail?.callSession || detail) || recordingLink(info) || recordingLink(call) || '');
+        if (url.protocol !== 'https:') throw new Error('Invalid recording URL');
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.style.cssText = 'display:block;width:100%;margin-top:8px';
+        audio.setAttribute('aria-label', 'Call recording');
+        audio.onerror = () => {
+          audio.remove();
+          feedback.textContent = ' Recording could not be played. Select Play recording to retry.';
+        };
+        audio.src = url.href;
+        recording.append(audio);
+        feedback.textContent = '';
+        await audio.play().catch(() => {});
+      } catch {
+        feedback.textContent = ' Ravan did not provide a playable recording link.';
+      } finally {
+        play.disabled = false;
+      }
+    };
+    recording.append(play, feedback);
+    return recording;
+  }
+
   function bindDial(button, phone, username, leadKey) {
     button.disabled = !/^[6-9]\d{9}$/.test(phone);
     button.title = button.disabled ? 'A valid Indian mobile number is required' : 'Place one Ravan AI call';
@@ -134,7 +184,7 @@
       <button class="primary" type="button" data-refresh>Refresh recent calls</button>
       <p data-connection class="muted">Connection not checked.</p><p role="status" aria-live="polite">Call history loads when you open this tab.</p><div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"><label>From (IST) <input type="date" data-from></label><label>To (IST) <input type="date" data-to></label><button type="button" class="ghost" data-clear>All loaded dates</button></div><div data-analytics><h3>Call analytics</h3><p class="muted">Waiting for Ravan call history.</p></div><div data-calls style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;margin-top:16px"></div></div>
       <dialog><form method="dialog"><button>Close</button></form>
-      <div data-status-history></div><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></dialog>`;
+      <h3>Call details</h3><p data-call-summary></p><div data-detail-recording></div><div data-status-history></div><details><summary>Technical details</summary><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></details></dialog>`;
     main.append(section);
     const leadButtons = new MutationObserver(addLeadButtons);
     leadButtons.observe(main, { childList: true, subtree: true });
@@ -184,6 +234,7 @@
     const status = section.querySelector('[role=status]');
     const calls = section.querySelector('[data-calls]');
     const dialog = section.querySelector('dialog');
+    dialog.addEventListener('close', () => dialog.querySelector('[data-detail-recording]').replaceChildren());
     function onClick(button, operation) {
       button.onclick = async () => {
         button.disabled = true;
@@ -327,42 +378,7 @@
         const analysis = call.postCallAnalysisResult;
         const label = call.sentiment || analysis?.sentiment || analysis?.user_sentiment || analysis?.userSentiment;
         sentiment.textContent = 'Sentiment: ' + (typeof label === 'string' && label.trim() ? label : 'Unavailable');
-        const recording = document.createElement('p');
-        const play = document.createElement('button');
-        play.type = 'button';
-        play.className = 'ghost';
-        play.textContent = 'Play recording';
-        const feedback = document.createElement('span');
-        feedback.setAttribute('role', 'status');
-        play.disabled = !call.id && !call.recordingUrl;
-        if (play.disabled) feedback.textContent = 'Recording unavailable';
-        play.onclick = async () => {
-          play.disabled = true;
-          feedback.textContent = ' Loading recording…';
-          recording.querySelector('audio')?.remove();
-          try {
-            const detail = call.id ? await request('detail', { id: call.id }).catch(() => null) : null;
-            const url = new URL(detail?.recordingUrl || detail?.callSession?.recordingUrl || call.recordingUrl || '');
-            if (url.protocol !== 'https:') throw new Error('Invalid recording URL');
-            const audio = document.createElement('audio');
-            audio.controls = true;
-            audio.style.cssText = 'display:block;width:100%;margin-top:8px';
-            audio.setAttribute('aria-label', 'Call recording');
-            audio.onerror = () => {
-              audio.remove();
-              feedback.textContent = ' Recording could not be played. Select Play recording to retry.';
-            };
-            audio.src = url.href;
-            recording.append(audio);
-            feedback.textContent = '';
-            await audio.play().catch(() => {});
-          } catch {
-            feedback.textContent = ' Ravan did not provide a playable recording link.';
-          } finally {
-            play.disabled = false;
-          }
-        };
-        recording.append(play, feedback);
+        const recording = recordingControls(call);
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'ghost';
@@ -451,6 +467,14 @@
             }
           }
           const detail = await request('detail', { id: call.id }).catch(() => null);
+          const info = detail?.callSession || detail || call;
+          const duration = info.duration_sec ?? info.durationSec ?? call.durationSec;
+          dialog.querySelector('[data-call-summary]').textContent = [
+            number.textContent, time.textContent, statusLabel(info.status || call.status),
+            duration == null ? 'Duration unavailable' : duration + ' seconds',
+          ].join(' · ');
+          dialog.querySelector('[data-detail-recording]').replaceChildren(recordingControls(call, detail));
+          dialog.querySelector('details').open = false;
           dialog.querySelector('pre').textContent = detail ? JSON.stringify(detail, null, 2) : 'Ravan call details are temporarily unavailable.';
           if (!dialog.open) dialog.showModal();
           status.textContent = detail ? 'Call details loaded.' : 'Ravan call details are temporarily unavailable.';
