@@ -94,7 +94,21 @@ Deno.serve(async (request) => {
 
     let path;
     if (action === 'connection') path = 'agents/';
-    else if (action === 'history') path = 'calling/call-sessions';
+    else if (action === 'history') {
+      path = 'calling/call-sessions';
+      if (body.page !== undefined) {
+        const date = (value: unknown) => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+          ? Date.parse(value + 'T00:00:00+05:30') : NaN;
+        const start = date(body.from), end = date(body.to);
+        if (!Number.isSafeInteger(body.page) || body.page < 1 || !Number.isFinite(start) ||
+            !Number.isFinite(end) || start > end) return reply({ error: 'Invalid date range or page.' }, 400);
+        path += '?' + new URLSearchParams({
+          page: String(body.page), page_size: '20',
+          started_after: new Date(start - 1).toISOString(),
+          started_before: new Date(end + 86400000).toISOString(),
+        });
+      }
+    }
     else if (action === 'detail' && typeof body.id === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(body.id)) {
       path = 'calling/call-sessions-detail/' + body.id;
     } else return reply({ error: 'Invalid request.' }, 400);
@@ -111,7 +125,8 @@ Deno.serve(async (request) => {
     if (action === 'history' && !Array.isArray(result.data?.callSessions)) {
       return reply({ error: 'Ravan returned an unexpected call history format.' }, 502);
     }
-    return reply({ data: result.data });
+    return reply({ data: action === 'history' && body.page !== undefined
+      ? { ...result.data, page: body.page, pageSize: 20 } : result.data });
   } catch {
     return reply({ error: 'Could not complete the Ravan request.' }, 502);
   }
