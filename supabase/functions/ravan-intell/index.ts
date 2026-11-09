@@ -1,5 +1,49 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 
+async function sendCallFollowUpSms(recipient: string, dispatchId: string) {
+  if (Deno.env.get('RAVAN_FOLLOWUP_SMS_ENABLED')?.trim() !== 'true') return 'disabled';
+
+  const apiKey = Deno.env.get('TWOFACTOR_SMS_API_KEY')?.trim();
+  const sender = Deno.env.get('TWOFACTOR_SMS_SENDER_ID')?.trim();
+  const message = Deno.env.get('RAVAN_FOLLOWUP_SMS_TEXT');
+  const entityId = Deno.env.get('TWOFACTOR_SMS_DLT_ENTITY_ID')?.trim();
+  const templateId = Deno.env.get('TWOFACTOR_SMS_DLT_TEMPLATE_ID')?.trim();
+  if (!apiKey || !sender || !message?.trim() || Boolean(entityId) !== Boolean(templateId)) {
+    console.error(JSON.stringify({ event: 'ravan_followup_sms_misconfigured', dispatch_id: dispatchId }));
+    return 'not_configured';
+  }
+
+  const body = new URLSearchParams({
+    module: 'TRANS_SMS',
+    apikey: apiKey,
+    to: recipient.slice(1),
+    from: sender,
+    msg: message,
+  });
+  if (entityId && templateId) {
+    body.set('peid', entityId);
+    body.set('ctid', templateId);
+  }
+
+  // A transport failure can happen after 2Factor receives the SMS. Avoid automatic retries.
+  let status = 'unconfirmed';
+  try {
+    const response = await fetch('https://2factor.in/API/R1/', {
+      method: 'POST',
+      body,
+      redirect: 'error',
+      signal: AbortSignal.timeout(5000),
+    });
+    const result = await response.json();
+    if (response.ok && result?.Status === 'Success') status = 'submitted';
+    else if (result?.Status === 'Error' && response.status < 500) status = 'rejected';
+  } catch {
+    // Report the outcome without exposing the recipient, message, or credentials in logs.
+  }
+  console.info(JSON.stringify({ event: 'ravan_followup_sms', dispatch_id: dispatchId, status }));
+  return status;
+}
+
 Deno.serve(async (request) => {
   const origin = request.headers.get('Origin');
   if (origin !== 'https://winturbo.live') return new Response(null, { status: 403 });
@@ -84,12 +128,13 @@ Deno.serve(async (request) => {
         });
         const result = await response.json();
         if (!response.ok || result.success !== true) throw new Error('Unconfirmed call');
-        await db.from('ravan_call_dispatches').update({ status: 'submitted' }).eq('id', dispatch.id);
-        return reply({ data: { submitted: true } });
       } catch {
         await db.from('ravan_call_dispatches').update({ status: 'unconfirmed' }).eq('id', dispatch.id);
         return reply({ error: 'Ravan did not confirm the call. Check Ravan call history before attempting it again.' }, 502);
       }
+      await db.from('ravan_call_dispatches').update({ status: 'submitted' }).eq('id', dispatch.id);
+      const smsStatus = await sendCallFollowUpSms(recipient, dispatch.id);
+      return reply({ data: { submitted: true, sms_status: smsStatus } });
     }
 
     let path;
