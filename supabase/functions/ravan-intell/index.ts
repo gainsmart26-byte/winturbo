@@ -27,6 +27,34 @@ Deno.serve(async (request) => {
 
     const body = await request.json();
     const action = body?.action;
+    if (action === 'report-payments') {
+      const usernames = body.usernames;
+      if (!Array.isArray(usernames) || !usernames.length || usernames.length > 40 ||
+          usernames.some((name) => typeof name !== 'string' || !name.length || name.length > 128)) {
+        return reply({ error: 'Invalid account list.' }, 400);
+      }
+
+      const payments = new Map<string, { first: string; repeat: string | null }>();
+      const pageSize = 500;
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await db.from('admin_deposit_transactions')
+          .select('username,completed_at')
+          .in('username', usernames)
+          .eq('status', 'CREDITED')
+          .in('source', ['manual', 'gateway'])
+          .not('completed_at', 'is', null)
+          .order('completed_at').order('id')
+          .range(offset, offset + pageSize - 1);
+        if (error) return reply({ error: 'Could not load verified WinTurbo payments.' }, 503);
+        for (const row of data) {
+          const payment = payments.get(row.username);
+          if (payment) payment.repeat = row.completed_at;
+          else payments.set(row.username, { first: row.completed_at, repeat: null });
+        }
+        if (data.length < pageSize) break;
+      }
+      return reply({ data: [...payments] });
+    }
     const key = Deno.env.get('RAVAN_API_KEY')?.trim();
     if (!key) return reply({ error: 'RAVAN_API_KEY is missing in Supabase.' }, 503);
     if (action === 'dial') {
@@ -94,7 +122,33 @@ Deno.serve(async (request) => {
 
     let path;
     if (action === 'connection') path = 'agents/';
-    else if (action === 'history') path = 'calling/call-sessions';
+    else if (action === 'history') {
+      path = 'calling/call-sessions';
+      if (body.page !== undefined) {
+        const istMidnight = (value: unknown) => {
+          if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return NaN;
+          const utc = Date.parse(value + 'T00:00:00Z');
+          if (!Number.isFinite(utc) || new Date(utc).toISOString().slice(0, 10) !== value) return NaN;
+          return utc - 19800000;
+        };
+        const start = istMidnight(body.from);
+        const end = istMidnight(body.to) + 86400000;
+        const snapshot = Date.parse(body.asOf);
+        if (!Number.isSafeInteger(body.page) || body.page < 1 || !Number.isFinite(start) ||
+            !Number.isFinite(end) || start >= end || !Number.isFinite(snapshot)) {
+          return reply({ error: 'Invalid date range or page.' }, 400);
+        }
+        const before = Math.min(end, snapshot, Date.now() + 1);
+        if (before <= start) return reply({ data: { page: body.page, callSessions: [] } });
+        path += '?' + new URLSearchParams({
+          page: String(body.page),
+          page_size: '20',
+          sort_order: 'asc',
+          started_after: new Date(start - 1).toISOString(),
+          started_before: new Date(before).toISOString(),
+        });
+      }
+    }
     else if (action === 'detail' && typeof body.id === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(body.id)) {
       path = 'calling/call-sessions-detail/' + body.id;
     } else return reply({ error: 'Invalid request.' }, 400);
@@ -111,7 +165,8 @@ Deno.serve(async (request) => {
     if (action === 'history' && !Array.isArray(result.data?.callSessions)) {
       return reply({ error: 'Ravan returned an unexpected call history format.' }, 502);
     }
-    return reply({ data: result.data });
+    return reply({ data: action === 'history' && body.page !== undefined
+      ? { ...result.data, page: body.page } : result.data });
   } catch {
     return reply({ error: 'Could not complete the Ravan request.' }, 502);
   }
