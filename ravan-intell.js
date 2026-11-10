@@ -341,23 +341,52 @@
       const analytics = section.querySelector('[data-analytics]');
       const counts = new Map();
       let seconds = 0;
+      const firstCallByPhone = new Map();
       for (const call of callSessions) {
         const label = String(call.status || 'Unknown');
         counts.set(label, (counts.get(label) || 0) + 1);
         if (Number.isFinite(call.durationSec) && call.durationSec > 0) seconds += call.durationSec;
+        const phone = numberKey(call.calleeNumber);
+        const at = Date.parse(callDate(call));
+        if (players?.get(phone) && Number.isFinite(at)) {
+          firstCallByPhone.set(phone, Math.min(firstCallByPhone.get(phone) ?? at, at));
+        }
+      }
+      const outcomes = [
+        { label: 'Registered', color: '#bba4ff', available: players, total: 0, after: 0 },
+        { label: 'First payment made', color: '#57e6ab', available: payments, total: 0, after: 0 },
+        { label: 'Repeat payment made', color: '#ffd166', available: payments, total: 0, after: 0 },
+      ];
+      for (const [phone, firstCall] of firstCallByPhone) {
+        const player = players.get(phone);
+        const payment = payments?.get(player.username);
+        const times = [player.registered_at, payment?.first, payment?.repeat];
+        for (const [index, outcome] of outcomes.entries()) {
+          const time = Date.parse(times[index]);
+          if (!Number.isFinite(time)) continue;
+          outcome.total++;
+          if (time > firstCall) outcome.after++;
+        }
       }
       const heading = document.createElement('h3');
       heading.textContent = 'Analytics for loaded calls';
       const metrics = document.createElement('div');
       metrics.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,155px),1fr));gap:12px;margin:12px 0 22px';
+      const note = document.createElement('p');
+      note.className = 'muted';
+      note.textContent = 'Registration and payment cards count unique dialled numbers with verified WinTurbo records. After-call counts use the first call to each number in the selected dates.';
       const totals = [
         ['Total calls', callSessions.length, palettes[0]],
         ['Call minutes', (seconds / 60).toFixed(1), palettes[1]],
+        ...outcomes.map(({ label, color, available, total, after }) => [
+          label, available ? total : '—', color,
+          available ? after + ' after first call in range' : 'WinTurbo data unavailable',
+        ]),
         ...[...counts].map(([label, count], index) => [
           statusLabel(label), count, statusColor(label, palettes[index % palettes.length]),
         ]),
       ];
-      for (const [label, value, color] of totals) {
+      for (const [label, value, color, detail] of totals) {
         const card = document.createElement('article');
         card.className = 'card';
         accentCard(card, color);
@@ -368,9 +397,15 @@
         figure.textContent = value;
         figure.style.cssText = 'display:block;margin-top:5px;font-size:clamp(1.8rem,3vw,2.6rem);line-height:1.1;color:' + color;
         card.append(title, figure);
+        if (detail) {
+          const caption = document.createElement('p');
+          caption.className = 'muted small';
+          caption.textContent = detail;
+          card.append(caption);
+        }
         metrics.append(card);
       }
-      analytics.replaceChildren(heading, metrics);
+      analytics.replaceChildren(heading, note, metrics);
       renderReport();
       calls.replaceChildren();
       let previousDay = null;
