@@ -21,7 +21,7 @@
     timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit', day: '2-digit',
   });
   const dayOf = (value) => {
-    const date = new Date(value || '');
+    const date = new Date(value ?? '');
     return Number.isFinite(date.getTime()) ? dayFormat.format(date) : '';
   };
   const statusTime = (value) => new Date(value).toLocaleString('en-IN', {
@@ -110,7 +110,7 @@
       <a href="https://app.ravan.ai" target="_blank" rel="noopener noreferrer">Open Ravan ↗</a></div>
       <div class="card"><button class="ghost" type="button" data-check>Test connection</button>
       <button class="primary" type="button" data-refresh>Refresh recent calls</button>
-      <p data-connection class="muted">Connection not checked.</p><p role="status" aria-live="polite">Call history loads when you open this tab.</p><div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"><label>From (IST) <input type="date" data-from></label><label>To (IST) <input type="date" data-to></label><button type="button" class="ghost" data-clear>All loaded dates</button></div><div data-analytics><h3>Call analytics</h3><p class="muted">Waiting for Ravan call history.</p></div><div data-calls style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;margin-top:16px"></div></div>
+      <p data-connection class="muted">Connection not checked.</p><p role="status" aria-live="polite">Call history loads when you open this tab.</p><div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0"><label>From (IST) <input type="date" data-from></label><label>To (IST) <input type="date" data-to></label><button type="button" class="ghost" data-clear>Last 2 days (IST)</button></div><div data-analytics><h3>Call analytics</h3><p class="muted">Waiting for Ravan call history.</p></div><div data-calls style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px;margin-top:16px"></div></div>
       <dialog><form method="dialog"><button>Close</button></form>
       <div data-status-history></div><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></dialog>`;
     main.append(section);
@@ -210,13 +210,36 @@
     const to = section.querySelector('[data-to]');
     let loadedCalls = [];
     let players = null;
-    from.onchange = to.onchange = renderHistory;
+    function selectLastTwoDays() {
+      const now = Date.now();
+      from.value = dayOf(now - 86400000);
+      to.value = dayOf(now);
+    }
+    selectLastTwoDays();
+    from.onchange = to.onchange = () => refresh.click();
     section.querySelector('[data-clear]').onclick = () => {
-      from.value = to.value = '';
-      renderHistory();
+      selectLastTwoDays();
+      refresh.click();
     };
     onClick(refresh, async () => {
-      const { callSessions } = await request('history');
+      if (!from.value || !to.value || from.value > to.value) throw new Error('Choose a valid date range.');
+      const start = from.value, end = to.value;
+      const seen = new Map();
+      from.disabled = to.disabled = section.querySelector('[data-clear]').disabled = true;
+      try {
+        for (let page = 1; ; page++) {
+          const data = await request('history', { page, from: start, to: end });
+          if (data.page !== page) throw new Error('The call history service needs the pagination update.');
+          if (!data.callSessions.length) break;
+          const count = seen.size;
+          for (const call of data.callSessions) seen.set(call.id, call);
+          if (seen.size === count) throw new Error('Ravan repeated a page. Refresh to retry.');
+          if (data.callSessions.length < data.pageSize) break;
+        }
+      } finally {
+        from.disabled = to.disabled = section.querySelector('[data-clear]').disabled = false;
+      }
+      const callSessions = [...seen.values()];
       loadedCalls = callSessions;
       players = null;
       try {
