@@ -1,8 +1,8 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false}});
 const key=Deno.env.get('OPENAI_API_KEY')||'';
-const supportPhone='+918368887218';
-const retiredSupportNumbers=/(?<!\d)(https?:\/\/wa\.me\/|tel:)?(?:\+?91[ \t().-]*)?(?:99972[ \t.-]*92089|79717[ \t.-]*01093)(?!\d)/gi;
+const supportPhone='+12544289850';
+const retiredSupportNumbers=/(?<!\d)(https?:\/\/wa\.me\/|tel:)?(?:\+?91[ \t().-]*)?(?:83688[ \t.-]*87218|99972[ \t.-]*92089|79717[ \t.-]*01093)(?!\d)/gi;
 function currentSupportContact(text:string){
  return text.replace(retiredSupportNumbers,(_match,link)=>link?'https://wa.me/'+supportPhone.slice(1):supportPhone);
 }

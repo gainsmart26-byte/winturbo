@@ -38,13 +38,13 @@ Human handover sets `chatbot_sessions.handoff_requested` and status `handoff`, v
 
 Run `node tests/turboman-support.test.cjs` and `node --check turboman-embed.js`. Test native-script account questions, Hinglish followups, unconfirmed/expired identities, account switching, denial of another customer's identity, provider failure, microphone permission denial and interruption on actual customer devices. Production spoken QA and customer login/OTP tests remain required.
 
-## Human phone
+## Legacy dashboard human phone
 
-The user designated +91 79717 01093 for human calls. Handover replies include a tel link to +917971701093. Tapping opens the customer device dialer. This does not originate a server-side phone call or provide a live call transfer; a telephony provider is required for that. Existing WhatsApp destinations are unchanged. All submitted Turbo Man text and voice requests receive automatic support answers or a clear failure message; this does not add bots to external messaging channels.
+The user designated +91 79717 01093 for human calls. Handover replies include a tel link to +917971701093. Tapping opens the customer device dialer. This does not originate a server-side phone call or provide a live call transfer; a telephony provider is required for that. All submitted Turbo Man text and voice requests receive automatic support answers or a clear failure message; this does not add bots to external messaging channels.
 
 ## VIP landing page
 
-`turboman-vip.html` is the dedicated TURBO Support — VIP Members Only landing page. Root requests for winturbo.vip rewrite to it. The four cards open Turbo Man, WhatsApp +919997292089, Instagram @winturboplay and Telegram @winturbonow. The original WinTurbo logo is loaded from the customer website. Caption translations are selectable for 22 scheduled Indian languages plus English/Hinglish; regional wording still benefits from native-speaker QA.
+`turboman-vip.html` is the dedicated TURBO Support — VIP Members Only landing page. Root requests for winturbo.vip rewrite to it. The four cards open Turbo Man, WhatsApp +12544289850, Instagram @winturboplay and Telegram @winturbonow. The original WinTurbo logo is loaded from the customer website. Caption translations are selectable for 22 scheduled Indian languages plus English/Hinglish; regional wording still benefits from native-speaker QA.
 
 Member login uses a server-side username lookup and sends SMS only to the phone already stored on that member record. An unrecognized or ambiguous member receives no OTP. Attempts and delivery requests are rate limited; challenges expire after ten minutes with five attempts. Supabase phone authentication/SMS delivery is currently disabled, so the login route fails clearly until configured. This uses synced member records; newly registered members must be present in that sync. No user-entered destination phone is accepted by username login.
 
