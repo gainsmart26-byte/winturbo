@@ -1,8 +1,8 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false}});
 const key=Deno.env.get('OPENAI_API_KEY')||'';
-const supportPhone='+917827616252';
-const retiredSupportNumbers=/(?<!\d)(https?:\/\/wa\.me\/|tel:)?(?:(?:\+?91[ \t().-]*)?(?:83688[ \t.-]*87218|99972[ \t.-]*92089|79717[ \t.-]*01093)|(?:\+?1[ \t.-]*)?(?:\(254\)|254)[ \t.-]*428[ \t.-]*9850)(?!\d)/gi;
+const supportPhone='+639129604491';
+const retiredSupportNumbers=/(?<!\d)(https?:\/\/wa\.me\/|tel:)?(?:(?:\+?91[ \t().-]*)?(?:83688[ \t.-]*87218|78276[ \t.-]*16252|99972[ \t.-]*92089|79717[ \t.-]*01093)|(?:\+?1[ \t.-]*)?(?:\(254\)|254)[ \t.-]*428[ \t.-]*9850)(?!\d)/gi;
 function currentSupportContact(text:string){
  return text.replace(retiredSupportNumbers,(_match,link)=>link?'https://wa.me/'+supportPhone.slice(1):supportPhone);
 }
