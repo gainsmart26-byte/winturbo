@@ -16,11 +16,11 @@ writes.length=0;const recorded=await call({...body,action:'voice_transcript',cha
 const voice=await call({...body,action:'voice_token'});assert.equal(voice.status,200);assert.equal(voice.data.client_secret,'ephemeral-test');assert(!JSON.stringify(voice).includes('main-secret-key'));const voiceBody=provider.find(b=>b.session);assert.equal(voiceBody.session.tools[0].name,'support_question');assert(!JSON.stringify(voiceBody).includes('own-user'));
 const handoff=await call({...body,action:'handoff',language:'English'});
 assert.equal(handoff.data.handoff,true);
-assert.equal(handoff.data.handoff_phone,'+639129604491');
-assert.match(handoff.data.answer,/\+639129604491/);
-handoffTranslation='WhatsApp +1 (254) 428-9850 or https://wa.me/12544289850. Previous contacts: +91 83688 87218 and +91 78276 16252.';
+assert.equal(handoff.data.handoff_phone,'+447366674336');
+assert.match(handoff.data.answer,/\+447366674336/);
+handoffTranslation='WhatsApp +1 (254) 428-9850 or https://wa.me/12544289850. Previous contacts: +91 83688 87218 and +91 78276 16252. Most recent: https://wa.me/639129604491.';
 const translatedHandoff=await call({...body,action:'handoff'});
-assert.equal(translatedHandoff.data.answer,'WhatsApp +639129604491 or https://wa.me/639129604491. Previous contacts: +639129604491 and +639129604491.');
+assert.equal(translatedHandoff.data.answer,'WhatsApp +447366674336 or https://wa.me/447366674336. Previous contacts: +447366674336 and +447366674336. Most recent: https://wa.me/447366674336.');
 handoffTranslation='';
 assert(writes.some(w=>w.value?.handoff_requested===true));auth=null;oldSession=true;oldOwner=null;ambiguous=false;writes.length=0;provider.length=0;aiCalls=0;
 const contact=await call({...body,contact_phone:'+91 98765 43210'});
