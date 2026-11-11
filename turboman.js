@@ -2,7 +2,7 @@
 (()=>{
 const $t=id=>document.getElementById(id),escapeTm=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const endpoint=()=>`${SB_URL}/functions/v1/turboman-chat`,visitor=localStorage.turbomanVisitor||(localStorage.turbomanVisitor=crypto.randomUUID()),state={session:localStorage.turbomanSession||'',voice:false};
-const supportPhone='+447366674336',supportUrl='https://wa.me/'+supportPhone.slice(1);
+const supportPhone='+919205098663',supportUrl='https://wa.me/'+supportPhone.slice(1);
 const langCodes={English:'en-IN',Hindi:'hi-IN',Hinglish:'hi-IN',Punjabi:'pa-IN',Bengali:'bn-IN',Marathi:'mr-IN',Gujarati:'gu-IN',Tamil:'ta-IN',Telugu:'te-IN',Kannada:'kn-IN',Malayalam:'ml-IN',Auto:'en-IN'};
 function addMessage(text,type){const d=document.createElement('div');d.className=`tm-msg ${type}`;d.textContent=text;$t('tmMessages').appendChild(d);$t('tmMessages').scrollTop=$t('tmMessages').scrollHeight;if(type==='bot'&&state.voice)speak(text)}
 function speak(text){if(!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang=langCodes[$t('tmLanguage')?.value]||'en-IN';speechSynthesis.speak(u)}

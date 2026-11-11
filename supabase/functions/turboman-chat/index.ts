@@ -1,8 +1,8 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false}});
 const key=Deno.env.get('OPENAI_API_KEY')||'';
-const supportPhone='+447366674336';
-const retiredSupportNumbers=/(?<!\d)(https?:\/\/wa\.me\/|tel:)?(?:(?:\+?91[ \t().-]*)?(?:83688[ \t.-]*87218|78276[ \t.-]*16252|99972[ \t.-]*92089|79717[ \t.-]*01093)|(?:\+?1[ \t.-]*)?(?:\(254\)|254)[ \t.-]*428[ \t.-]*9850|(?:\+?63[ \t.-]*|0)?912[ \t.-]*960[ \t.-]*4491)(?!\d)/gi;
+const supportPhone='+919205098663';
+const retiredSupportNumbers=/(?<!\d)(https?:\/\/wa\.me\/|tel:)?(?:(?:\+?91[ \t().-]*)?(?:83688[ \t.-]*87218|78276[ \t.-]*16252|99972[ \t.-]*92089|79717[ \t.-]*01093)|(?:\+?1[ \t.-]*)?(?:\(254\)|254)[ \t.-]*428[ \t.-]*9850|(?:\+?63[ \t.-]*|0)?912[ \t.-]*960[ \t.-]*4491|(?:\+?44[ \t.-]*|0)?7366[ \t.-]*674[ \t.-]*336)(?!\d)/gi;
 function currentSupportContact(text:string){
  return text.replace(retiredSupportNumbers,(_match,link)=>link?'https://wa.me/'+supportPhone.slice(1):supportPhone);
 }
