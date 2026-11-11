@@ -25,7 +25,7 @@
     section.className="section";
     section.innerHTML=`
       <div class="adminHero">
-        <div><div class="adminEyebrow">PRIVATE OPERATIONS ANALYTICS</div><h2>Admin Intelligence</h2><p>Player, FTD, revenue, retention and agent performance from admin.winturbo.com.</p></div>
+        <div><div class="adminEyebrow">PRIVATE OPERATIONS ANALYTICS</div><h2>Admin Intelligence</h2><p>Player, FTD, revenue and retention from admin.winturbo.com.</p></div>
         <div class="adminHeroActions"><span id="adminSyncBadge" class="adminBadge">Not synced</span><button id="adminSync" class="primary">Sync now</button></div>
       </div>
       <div id="adminMessage" class="adminMessage"></div>
@@ -65,7 +65,7 @@
         <button data-segment="high">High value <b id="segHigh">—</b></button>
         <button data-segment="negative">Negative GGR <b id="segNegative">—</b></button>
       </div>
-      <div class="adminGrid">
+      <div class="adminGrid" style="grid-template-columns:1fr">
         <div class="card adminAcquisitionCard">
           <div class="sectionHead"><div><h3>Acquisition trend</h3><div class="muted small">Registrations, FTD conversion and detected deposits for the selected range</div></div><span id="adminTrendPeriod" class="pill">IST</span></div>
           <div id="adminTrendSummary" class="adminTrendSummary"></div>
@@ -73,7 +73,6 @@
           <div id="adminTrendChart" class="adminTrendChart" aria-label="Acquisition trend chart"></div>
           <details class="adminTrendDetails"><summary>View complete day-by-day details</summary><div class="tableWrap"><table class="adminTable"><thead><tr><th>Date</th><th>Registrations</th><th>FTD</th><th>Conversion</th><th>Depositors</th><th>Deposits received</th></tr></thead><tbody id="adminTrendRows"></tbody></table></div></details>
         </div>
-        <div class="card"><div class="sectionHead"><div><h3>Agent performance</h3><div class="muted small">Ranked by net gaming revenue</div></div></div><div id="adminAgents" class="adminAgentList"></div></div>
       </div>
       <div class="card adminTimeAnalysisCard">
         <div class="sectionHead"><div><h3>Time-slot performance analysis</h3><div class="muted small">High and low registration, FTD and deposit hours in IST for the selected date range.</div></div><span class="pill">24-HOUR ANALYSIS</span></div>
@@ -204,7 +203,7 @@
     $("admWithdrawals").textContent=money(t.withdrawals); $("admWithdrawalUsers").textContent=`${num(t.withdrawal_users)} users · approved / paid only`;
     $("segAll").textContent=num(t.registrations_today); $("segNew").textContent=num(t.registrations_today); $("segNonFtd").textContent=num(Math.max(0,Number(t.registrations_today||0)-Number(t.ftd_today||0))); $("segFtd").textContent=num(t.ftd_today);
     $("segInactive").textContent=num(t.inactive_30d); $("segHigh").textContent=num(t.high_value); $("segNegative").textContent=num(t.negative_ggr);
-    renderTrend(data?.trend||[]); renderAgents(data?.agents||[]); renderDailyDeposits(depositRows);
+    renderTrend(data?.trend||[]); renderDailyDeposits(depositRows);
   }
 
   function renderTrend(rows){
@@ -237,10 +236,6 @@
       </div>
     </div>`;
     body.innerHTML=rows.slice().reverse().map(r=>{const rate=Number(r.registrations)>0?(100*Number(r.ftd||0)/Number(r.registrations)).toFixed(1):"0.0";return`<tr><td><b>${esc(shortDate(r.date_value))}</b></td><td>${num(r.registrations)}</td><td>${num(r.ftd)}</td><td><b>${rate}%</b></td><td>${num(r.depositors)}</td><td class="adminDepositAmount"><b>${money(r.deposit_amount)}</b></td></tr>`}).join("");
-  }
-
-  function renderAgents(rows){
-    $("adminAgents").innerHTML=rows.length?rows.slice(0,12).map((x,i)=>`<div class="adminAgent"><b>#${i+1} ${esc(x.agent_name)}</b><span>${num(x.players)} players · ${x.ftd_rate||0}% FTD</span><strong>${money(x.ngr)}</strong></div>`).join(""):'<div class="muted">No agent data yet.</div>';
   }
 
   async function withDepositRegistrationDates(rows){
