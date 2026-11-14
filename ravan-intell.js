@@ -282,7 +282,9 @@
       }
     }, 60000);
 
-    function renderReport() {
+    let selectedMetric = null;
+
+    function renderReport(visibleCalls) {
       const report = section.querySelector('[data-report]');
       const heading = document.createElement('h3');
       heading.textContent = 'Call outcome report';
@@ -290,7 +292,7 @@
       description.className = 'muted';
       description.textContent = 'Matches the dialled number to WinTurbo admin records. Payment columns use credited manual and gateway payments in synced history. Timing is relative to the call start.';
       report.replaceChildren(heading, description);
-      if (!loadedCalls.length) return;
+      if (!visibleCalls.length) return;
 
       const wrapper = document.createElement('div');
       wrapper.style.cssText = 'overflow-x:auto;max-height:32rem;overflow-y:auto';
@@ -305,7 +307,7 @@
         header.append(cell);
       }
       const body = table.createTBody();
-      for (const call of loadedCalls) {
+      for (const call of visibleCalls) {
         const key = numberKey(call.calleeNumber);
         const player = players?.get(key);
         const at = Date.parse(callDate(call));
@@ -353,9 +355,9 @@
         }
       }
       const outcomes = [
-        { label: 'Registered', color: '#bba4ff', available: players, total: 0, after: 0 },
-        { label: 'First payment made', color: '#57e6ab', available: payments, total: 0, after: 0 },
-        { label: 'Repeat payment made', color: '#ffd166', available: payments, total: 0, after: 0 },
+        { label: 'Registered', color: '#bba4ff', available: players, phones: new Set(), total: 0, after: 0 },
+        { label: 'First payment made', color: '#57e6ab', available: payments, phones: new Set(), total: 0, after: 0 },
+        { label: 'Repeat payment made', color: '#ffd166', available: payments, phones: new Set(), total: 0, after: 0 },
       ];
       for (const [phone, firstCall] of firstCallByPhone) {
         const player = players.get(phone);
@@ -364,6 +366,7 @@
         for (const [index, outcome] of outcomes.entries()) {
           const time = Date.parse(times[index]);
           if (!Number.isFinite(time)) continue;
+          outcome.phones.add(phone);
           outcome.total++;
           if (time > firstCall) outcome.after++;
         }
@@ -375,21 +378,38 @@
       const note = document.createElement('p');
       note.className = 'muted';
       note.textContent = 'Registration and payment cards count unique dialled numbers with verified WinTurbo records. After-call counts use the first call to each number in the selected dates.';
+      const hasDuration = (call) => Number.isFinite(call.durationSec) && call.durationSec > 0;
       const totals = [
-        ['Total calls', callSessions.length, palettes[0]],
-        ['Call minutes', (seconds / 60).toFixed(1), palettes[1]],
-        ...outcomes.map(({ label, color, available, total, after }) => [
-          label, available ? total : '—', color,
+        ['all', 'Total calls', callSessions.length, palettes[0], '', () => true],
+        ['duration', 'Call minutes', (seconds / 60).toFixed(1), palettes[1], '', hasDuration],
+        ...outcomes.map(({ label, color, available, total, after, phones }) => [
+          label, label, available ? total : '—', color,
           available ? after + ' after first call in range' : 'WinTurbo data unavailable',
+          available ? (call) => phones.has(numberKey(call.calleeNumber)) : null,
         ]),
         ...[...counts].map(([label, count], index) => [
-          statusLabel(label), count, statusColor(label, palettes[index % palettes.length]),
+          'status:' + label, statusLabel(label), count, statusColor(label, palettes[index % palettes.length]), '',
+          (call) => String(call.status || 'Unknown') === label,
         ]),
       ];
-      for (const [label, value, color, detail] of totals) {
-        const card = document.createElement('article');
+      const activeMetric = totals.find(([id, , , , , matches]) => id === selectedMetric && matches);
+      const visibleCalls = activeMetric ? callSessions.filter(activeMetric[5]) : callSessions;
+      for (const [id, label, value, color, detail, matches] of totals) {
+        const card = document.createElement('button');
+        card.type = 'button';
         card.className = 'card';
         accentCard(card, color);
+        card.style.textAlign = 'left';
+        card.disabled = !matches;
+        card.style.cursor = matches ? 'pointer' : 'default';
+        const selected = id === (activeMetric?.[0] ?? 'all');
+        card.setAttribute('aria-pressed', String(selected));
+        if (selected) card.style.boxShadow = 'inset 0 0 0 2px ' + color;
+        card.addEventListener('click', () => {
+          selectedMetric = id === 'all' || selected ? null : id;
+          renderHistory();
+          analytics.querySelectorAll('button')[totals.findIndex(([key]) => key === id)]?.focus();
+        });
         const title = document.createElement('span');
         title.textContent = label;
         title.style.color = '#e6edf7';
@@ -398,18 +418,23 @@
         figure.style.cssText = 'display:block;margin-top:5px;font-size:clamp(1.8rem,3vw,2.6rem);line-height:1.1;color:' + color;
         card.append(title, figure);
         if (detail) {
-          const caption = document.createElement('p');
+          const caption = document.createElement('span');
+          caption.style.display = 'block';
           caption.className = 'muted small';
           caption.textContent = detail;
           card.append(caption);
         }
         metrics.append(card);
       }
-      analytics.replaceChildren(heading, note, metrics);
-      renderReport();
+      const selection = document.createElement('p');
+      selection.setAttribute('role', 'status');
+      selection.textContent = (activeMetric ? activeMetric[1] + ' · ' : '') +
+        'Showing ' + visibleCalls.length + ' of ' + callSessions.length + ' calls';
+      analytics.replaceChildren(heading, note, metrics, selection);
+      renderReport(visibleCalls);
       calls.replaceChildren();
       let previousDay = null;
-      for (const call of callSessions) {
+      for (const call of visibleCalls) {
         const day = dayOf(callDate(call));
         if (day !== previousDay) {
           const dateHeading = document.createElement('h3');
