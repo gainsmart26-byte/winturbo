@@ -31,3 +31,6 @@
 @media(max-width:1000px){#whatsappIntelligence #warStats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:580px){#whatsappIntelligence #warPanel{padding:14px}#whatsappIntelligence #warStats{gap:10px}#whatsappIntelligence #warStats .warMetric{padding:16px}#whatsappIntelligence .warMetricHead{align-items:flex-start;flex-direction:column;gap:8px}#whatsappIntelligence .warMetricLabel{font-size:12px}#whatsappIntelligence #warStats h3{font-size:30px}}
 @media(prefers-reduced-motion:reduce){#whatsappIntelligence #warStats .warMetric{transition:none}#whatsappIntelligence #warStats .warMetric:hover{transform:none}}
+
+#whatsappIntelligence #waStats a.waStat{display:block;text-decoration:none;color:inherit}
+#whatsappIntelligence #waStats .waStat:focus-visible,#whatsappIntelligence #waStats .waStat[aria-current="true"]{outline:2px solid var(--accent);outline-offset:2px}
