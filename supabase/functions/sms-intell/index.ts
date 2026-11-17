@@ -18,6 +18,7 @@ type Settings = { message: string; template_id: string; enabled_at: string | nul
 const requiredSecrets = [
   'RAVAN_API_KEY', 'SAMPARKHUB_API_KEY', 'SAMPARKHUB_SENDER_ID', 'SMS_INTELL_WORKER_KEY',
 ];
+const usesUnicode = (message: string) => /[^\x00-\x7F]/.test(message);
 const origin = 'https://winturbo.live';
 const indianMobile = (phone: string) => phone.replace(/[\s()+.-]/g, '')
   .replace(/^(?:0091|91)(?=\d{10}$)/, '');
@@ -56,7 +57,7 @@ async function poll(db: ReturnType<typeof createClient>, settings: Settings) {
   const ravanKey = Deno.env.get('RAVAN_API_KEY')?.trim();
   const smsKey = Deno.env.get('SAMPARKHUB_API_KEY')?.trim();
   const senderId = Deno.env.get('SAMPARKHUB_SENDER_ID')?.trim();
-  if (!settings.enabled_at || !ravanKey || !smsKey || !senderId) return;
+  if (!settings.enabled_at || !ravanKey || !smsKey || senderId?.length !== 6) return;
   const end = Date.now();
   const start = Math.max(Date.parse(settings.enabled_at), end - 60 * 60 * 1000);
   const pageSize = 20;
@@ -95,15 +96,24 @@ async function poll(db: ReturnType<typeof createClient>, settings: Settings) {
     seen.add(call.id!);
     const query = new URLSearchParams({
       apikey: smsKey, senderid: senderId, templateid: settings.template_id,
-      number: phone, message: settings.message,
+      number: phone, message: settings.message, format: 'JSON',
     });
-    const response = await fetch('https://sms.samparkhub.com/V2/?' + query, {
+    if (usesUnicode(settings.message)) query.set('unicode', '2');
+    const response = await fetch('https://sms.samparkhub.com/V2/apikey.php?' + query, {
       redirect: 'error', signal: AbortSignal.timeout(8000),
     }).catch(() => null);
     if (!response) continue;
-    await response.body?.cancel().catch(() => {});
+    const result = await response.json().catch(() => null);
+    const rawCode = result?.code;
+    const code = typeof rawCode === 'string' || typeof rawCode === 'number'
+      ? String(rawCode).padStart(3, '0') : '';
+    const providerCode = /^\d{3}$/.test(code) ? code : null;
+    const rejected = (providerCode !== null && providerCode !== '011') ||
+      result?.status === false || /^false$/i.test(String(result?.status ?? ''));
+    const status = !response.ok || rejected ? 'http_error'
+      : providerCode === '011' ? 'http_ok' : 'unconfirmed';
     const { error: updateError } = await db.from('sms_intell_dispatches').update({
-      status: response.ok ? 'http_ok' : 'http_error', http_status: response.status,
+      status, http_status: response.status, provider_code: providerCode,
     }).eq('call_id', call.id);
     if (updateError) throw updateError;
   }
@@ -135,7 +145,8 @@ Deno.serve(async (request) => {
       if (error || profile?.role !== 'admin' || !profile.is_active) return reply({ error: 'Admin access required.' }, 403);
     }
     const { action, message, templateId } = await request.json();
-    const configured = requiredSecrets.every((key) => Boolean(Deno.env.get(key)?.trim()));
+    const configured = requiredSecrets.every((key) => Boolean(Deno.env.get(key)?.trim())) &&
+      Deno.env.get('SAMPARKHUB_SENDER_ID')?.trim().length === 6;
     if (worker) {
       if (action !== 'poll') return reply({ error: 'Invalid worker action.' }, 400);
       const { data, error } = await db.from('sms_intell_settings').select('*').eq('id', true).maybeSingle();
@@ -144,9 +155,9 @@ Deno.serve(async (request) => {
       return reply({ ok: true });
     }
     if (action === 'save') {
-      if (typeof message !== 'string' || !message.trim() || message.length > 1000 ||
+      if (typeof message !== 'string' || !message.trim() || message.length > (usesUnicode(message) ? 500 : 1000) ||
           typeof templateId !== 'string' || !/^\d{1,40}$/.test(templateId)) {
-        return reply({ error: 'Enter a message and a numeric SamparkHub template ID.' }, 400);
+        return reply({ error: 'Enter a numeric template ID and a message up to 1,000 characters, or 500 for Unicode.' }, 400);
       }
       const { error } = await db.from('sms_intell_settings')
         .upsert({ id: true, message, template_id: templateId, enabled_at: null });
@@ -167,7 +178,7 @@ Deno.serve(async (request) => {
 
     const [settings, log] = await Promise.all([
       db.from('sms_intell_settings').select('*').eq('id', true).maybeSingle(),
-      db.from('sms_intell_dispatches').select('phone,status,http_status,created_at')
+      db.from('sms_intell_dispatches').select('phone,status,http_status,provider_code,created_at')
         .order('created_at', { ascending: false }).limit(50),
     ]);
     if (settings.error || log.error) throw new Error('Could not load SMS Intell.');

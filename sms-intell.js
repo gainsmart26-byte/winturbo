@@ -7,7 +7,7 @@
   });
   const states = {
     http_ok: 'Provider HTTP OK',
-    http_error: 'Provider HTTP error',
+    http_error: 'Provider rejected request',
     unconfirmed: 'Submission unconfirmed',
   };
 
@@ -41,9 +41,9 @@
       <div class="card">
         <h3>Recent send attempts</h3>
         <button class="ghost" type="button" data-refresh>Refresh</button>
-        <p>HTTP status shows the provider response. Delivery receipts are unavailable.</p>
+        <p>SamparkHub code 011 confirms submission. Delivery receipts are unavailable.</p>
         <div style="overflow-x:auto"><table>
-          <thead><tr><th>Time (IST)</th><th>Phone</th><th>Outcome</th><th>HTTP status</th></tr></thead>
+          <thead><tr><th>Time (IST)</th><th>Phone</th><th>Outcome</th><th>HTTP status</th><th>Provider code</th></tr></thead>
           <tbody></tbody>
         </table></div>
       </div>`;
@@ -99,13 +99,14 @@
         log.replaceChildren();
         if (!result.log.length) {
           const cell = log.insertRow().insertCell();
-          cell.colSpan = 4;
+          cell.colSpan = 5;
           cell.textContent = 'No send attempts yet.';
         }
         for (const row of result.log) {
           const tr = log.insertRow();
           for (const value of [dateTime.format(new Date(row.created_at)), row.phone,
-            states[row.status] ?? row.status, row.http_status ?? '—']) {
+            row.status === 'http_ok' && row.provider_code === '011' ? 'Submitted' : states[row.status] ?? row.status,
+            row.http_status ?? '—', row.provider_code ?? '—']) {
             tr.insertCell().textContent = value;
           }
         }
