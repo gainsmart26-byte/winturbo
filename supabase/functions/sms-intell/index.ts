@@ -18,7 +18,7 @@ type Settings = { message: string; template_id: string; enabled_at: string | nul
 const requiredSecrets = [
   'RAVAN_API_KEY', 'SAMPARKHUB_API_KEY', 'SAMPARKHUB_SENDER_ID', 'SMS_INTELL_WORKER_KEY',
 ];
-const activationTemplateId = '167710000000398673';
+const activationTemplateId = '1677100000000398673';
 const activationTemplate = 'Your {#var#} Has Been Activated On This Phone No {#var#} Registeration details{#var#} -ECOM';
 
 function renderMessage(settings: Settings, phone: string) {
