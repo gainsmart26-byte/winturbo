@@ -127,11 +127,64 @@ async function poll(db: ReturnType<typeof createClient>, settings: Settings) {
       result?.status === false || /^false$/i.test(String(result?.status ?? ''));
     const status = !response.ok || rejected ? 'http_error'
       : providerCode === '011' ? 'http_ok' : 'unconfirmed';
+    const rawMessageId = result?.data?.messageid ?? result?.messageid;
+    const messageId = typeof rawMessageId === 'string' || Number.isSafeInteger(rawMessageId)
+      ? String(rawMessageId).trim() : '';
     const { error: updateError } = await db.from('sms_intell_dispatches').update({
       status, http_status: response.status, provider_code: providerCode,
+      provider_message_id: status === 'http_ok' && messageId.length <= 200 ? messageId || null : null,
     }).eq('call_id', call.id);
     if (updateError) throw updateError;
   }
+}
+
+async function refreshDelivery(db: ReturnType<typeof createClient>) {
+  const key = Deno.env.get('SAMPARKHUB_API_KEY')?.trim();
+  if (!key) throw new Error('SMS API key is missing.');
+  const { data, error } = await db.from('sms_intell_dispatches')
+    .select('call_id,phone,provider_message_id')
+    .eq('provider_code', '011')
+    .not('provider_message_id', 'is', null)
+    .or('delivery_status.is.null,delivery_status.eq.submitted,delivery_status.eq.pending,delivery_status.eq.queued')
+    .order('delivery_checked_at', { ascending: true, nullsFirst: true })
+    .order('created_at', { ascending: false }).limit(15);
+  if (error) throw error;
+
+  let updated = 0;
+  let unavailable = 0;
+  for (let offset = 0; offset < data.length; offset += 5) {
+    await Promise.all(data.slice(offset, offset + 5).map(async (row) => {
+      const checkedAt = new Date().toISOString();
+      let fields: { delivery_checked_at: string; delivery_status?: string; delivery_time?: string | null } =
+        { delivery_checked_at: checkedAt };
+      try {
+        const params = new URLSearchParams({ apikey: key, msgid: row.provider_message_id, format: 'json' });
+        const response = await fetch('https://sms.samparkhub.com/V2/http-dlr.php?' + params, {
+          redirect: 'error', signal: AbortSignal.timeout(3000),
+        });
+        const result = await response.json();
+        if (!response.ok || String(result?.code).padStart(3, '0') !== '004' || !Array.isArray(result.data)) {
+          throw new Error('Invalid delivery report.');
+        }
+        const match = result.data.find((item: { mobile?: unknown }) =>
+          item && (typeof item.mobile === 'string' || typeof item.mobile === 'number') &&
+          indianMobile(String(item.mobile)) === indianMobile(row.phone));
+        const status = typeof match?.status === 'string' ? match.status.trim().toLowerCase() : '';
+        if (status && status.length <= 80) {
+          const time = typeof match.delvd_time === 'string' ? match.delvd_time.trim() : '';
+          fields = { ...fields, delivery_status: status, delivery_time: /\d/.test(time) ? time.slice(0, 80) : null };
+          updated++;
+        } else unavailable++;
+      } catch {
+        unavailable++;
+      }
+      const { error: writeError } = await db.from('sms_intell_dispatches').update(fields)
+        .eq('call_id', row.call_id)
+        .or('delivery_checked_at.is.null,delivery_checked_at.lt.' + checkedAt);
+      if (writeError) throw writeError;
+    }));
+  }
+  return { checked: data.length, updated, unavailable };
 }
 
 Deno.serve(async (request) => {
@@ -169,6 +222,7 @@ Deno.serve(async (request) => {
       if (data) await poll(db, data);
       return reply({ ok: true });
     }
+    const delivery = action === 'refresh-delivery' ? await refreshDelivery(db) : null;
     if (action === 'save') {
       if (typeof message !== 'string' || !message.trim() || message.length > (usesUnicode(message) ? 500 : 1000) ||
           typeof templateId !== 'string' || !/^\d{1,40}$/.test(templateId)) {
@@ -187,17 +241,17 @@ Deno.serve(async (request) => {
       const { data, error } = await update.select('id');
       if (error) throw error;
       if (!data.length) return reply({ error: 'Reload and review the saved draft first.' }, 409);
-    } else if (action !== 'status') {
+    } else if (action !== 'status' && action !== 'refresh-delivery') {
       return reply({ error: 'Invalid SMS action.' }, 400);
     }
 
     const [settings, log] = await Promise.all([
       db.from('sms_intell_settings').select('*').eq('id', true).maybeSingle(),
-      db.from('sms_intell_dispatches').select('phone,status,http_status,provider_code,created_at')
+      db.from('sms_intell_dispatches').select('phone,status,http_status,provider_code,created_at,provider_message_id,delivery_status,delivery_time')
         .order('created_at', { ascending: false }).limit(50),
     ]);
     if (settings.error || log.error) throw new Error('Could not load SMS Intell.');
-    return reply({ configured, settings: settings.data, log: log.data });
+    return reply({ configured, delivery, settings: settings.data, log: log.data });
   } catch {
     // SMS provider URLs can contain credentials and message text.
     return reply({ error: 'Could not complete the SMS Intell request.' }, 502);
