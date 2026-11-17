@@ -40,10 +40,10 @@
       </div>
       <div class="card">
         <h3>Recent send attempts</h3>
-        <button class="ghost" type="button" data-refresh>Refresh</button>
-        <p>SamparkHub code 011 confirms submission. Delivery receipts are unavailable.</p>
+        <button class="ghost" type="button" data-refresh>Refresh delivery reports</button>
+        <p>Code 011 confirms submission. Delivery status is fetched from SamparkHub for messages with a provider ID.</p>
         <div style="overflow-x:auto"><table>
-          <thead><tr><th>Time (IST)</th><th>Phone</th><th>Outcome</th><th>HTTP status</th><th>Provider code</th></tr></thead>
+          <thead><tr><th>Time (IST)</th><th>Phone</th><th>Outcome</th><th>HTTP status</th><th>Provider code</th><th>Delivery status</th><th>Delivery time (provider)</th></tr></thead>
           <tbody></tbody>
         </table></div>
       </div>`;
@@ -88,7 +88,7 @@
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || 'SMS Intell is unavailable.');
-        if (!loaded || action !== 'status') {
+        if (!loaded || action !== 'status' && action !== 'refresh-delivery') {
           message.value = result.settings?.message ?? draft;
           templateId.value = result.settings?.template_id ?? '';
         }
@@ -99,18 +99,20 @@
         log.replaceChildren();
         if (!result.log.length) {
           const cell = log.insertRow().insertCell();
-          cell.colSpan = 5;
+          cell.colSpan = 7;
           cell.textContent = 'No send attempts yet.';
         }
         for (const row of result.log) {
           const tr = log.insertRow();
           for (const value of [dateTime.format(new Date(row.created_at)), row.phone,
             row.status === 'http_ok' && row.provider_code === '011' ? 'Submitted' : states[row.status] ?? row.status,
-            row.http_status ?? '—', row.provider_code ?? '—']) {
+            row.http_status ?? '—', row.provider_code ?? '—', row.delivery_status ?? (row.provider_message_id ? 'Awaiting report' : '—'), row.delivery_time ?? '—']) {
             tr.insertCell().textContent = value;
           }
         }
-        status.textContent = action === 'save' ? 'Draft saved. Sending is paused.' : '';
+        status.textContent = result.delivery ? (result.delivery.checked ?
+          result.delivery.updated + ' reports updated · ' + result.delivery.unavailable + ' unavailable' :
+          'No pending submissions with a provider message ID.') : action === 'save' ? 'Draft saved. Sending is paused.' : '';
       } catch (error) {
         status.textContent = error.message;
       } finally {
@@ -127,7 +129,7 @@
     });
     enable.onclick = () => { void run('enable'); };
     pause.onclick = () => { void run('pause'); };
-    refresh.onclick = () => { void run('status'); };
+    refresh.onclick = () => { void run('refresh-delivery'); };
     navigation = new AbortController();
     window.addEventListener('click', (event) => {
       if (!tab.isConnected || !tab.contains(event.target)) return;
