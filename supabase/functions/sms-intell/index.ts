@@ -23,12 +23,12 @@ const requiredSecrets = [
 const activationTemplateId = '1677100000000398673';
 const activationTemplate = 'Your {#var#} Has Been Activated On This Phone No {#var#} Registeration details{#var#} -ECOM';
 
-function renderMessage(settings: Settings, phone: string) {
+function renderMessage(settings: Settings) {
   if (settings.template_id !== activationTemplateId) {
     return settings.message.includes('{#var#}') ? null : settings.message;
   }
   if (settings.message !== activationTemplate) return null;
-  const values = ['150% bonus activated', phone, '- www.winturbo.com'];
+  const values = ['account ', 'with 150% BONUS ', ': winturbo.com'];
   let slot = 0;
   return settings.message.replaceAll('{#var#}', () => values[slot++]);
 }
@@ -101,7 +101,7 @@ async function poll(db: ReturnType<typeof createClient>, settings: Settings) {
   for (const call of calls) {
     if (seen.has(call.id!)) continue;
     const phone = indianMobile(call.calleeNumber!);
-    const message = renderMessage(settings, phone);
+    const message = renderMessage(settings);
     if (!message) continue;
     if (await blocked(db, phone)) continue;
     const { data: current, error: configError } = await db.from('sms_intell_settings')
