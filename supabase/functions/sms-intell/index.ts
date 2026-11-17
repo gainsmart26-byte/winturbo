@@ -28,7 +28,7 @@ function renderMessage(settings: Settings) {
     return settings.message.includes('{#var#}') ? null : settings.message;
   }
   if (settings.message !== activationTemplate) return null;
-  const values = ['account ', 'with 150% BONUS ', ': winturbo.com'];
+  const values = ['account ', 'with 150% BONUS ', ': https://sl1nk.com/lyz2vo4'];
   let slot = 0;
   return settings.message.replaceAll('{#var#}', () => values[slot++]);
 }
