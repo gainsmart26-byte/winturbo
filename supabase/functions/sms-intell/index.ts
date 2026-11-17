@@ -6,6 +6,8 @@ type Call = {
   type?: string;
   callType?: string;
   direction?: string;
+  channel?: string;
+  disconnectReason?: string;
   status?: string;
   durationSec?: number;
   calleeNumber?: string;
@@ -37,11 +39,11 @@ const indianMobile = (phone: string) => phone.replace(/[\s()+.-]/g, '')
   .replace(/^(?:0091|91)(?=\d{10}$)/, '');
 
 function eligible(call: Call, start: number, end: number) {
-  const type = call.direction ?? call.callType ?? call.type;
+  const type = call.direction ?? call.callType ?? call.type ?? call.channel;
   const time = Date.parse(call.startedAt ?? '');
   return /^(outbound|outbound_call)$/i.test(type ?? '') &&
     /^completed$/i.test(call.status ?? '') && (call.durationSec ?? 0) > 0 &&
-    !/voicemail|machine|fax/i.test([call.answeredBy, call.endReason, call.endedReason].join(' ')) &&
+    !/voicemail|machine|fax/i.test([call.answeredBy, call.endReason, call.endedReason, call.disconnectReason].join(' ')) &&
     time >= start && time <= end && typeof call.id === 'string' &&
     /^[a-zA-Z0-9_-]{1,128}$/.test(call.id) &&
     /^[6-9]\d{9}$/.test(indianMobile(call.calleeNumber ?? ''));
