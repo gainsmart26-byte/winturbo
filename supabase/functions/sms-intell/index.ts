@@ -26,7 +26,7 @@ function renderMessage(settings: Settings, phone: string) {
     return settings.message.includes('{#var#}') ? null : settings.message;
   }
   if (settings.message !== activationTemplate) return null;
-  const values = ['150% bonus activated', phone, 'www.winturbo.com'];
+  const values = ['150% bonus activated', phone, '- www.winturbo.com'];
   let slot = 0;
   return settings.message.replaceAll('{#var#}', () => values[slot++]);
 }
