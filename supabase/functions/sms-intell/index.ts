@@ -18,6 +18,19 @@ type Settings = { message: string; template_id: string; enabled_at: string | nul
 const requiredSecrets = [
   'RAVAN_API_KEY', 'SAMPARKHUB_API_KEY', 'SAMPARKHUB_SENDER_ID', 'SMS_INTELL_WORKER_KEY',
 ];
+const activationTemplateId = '167710000000398673';
+const activationTemplate = 'Your {#var#} Has Been Activated On This Phone No {#var#} Registeration details{#var#} -ECOM';
+
+function renderMessage(settings: Settings, phone: string) {
+  if (settings.template_id !== activationTemplateId) {
+    return settings.message.includes('{#var#}') ? null : settings.message;
+  }
+  if (settings.message !== activationTemplate) return null;
+  const values = ['150% bonus activated', phone, 'www.winturbo.com'];
+  let slot = 0;
+  return settings.message.replaceAll('{#var#}', () => values[slot++]);
+}
+
 const usesUnicode = (message: string) => /[^\x00-\x7F]/.test(message);
 const origin = 'https://winturbo.live';
 const indianMobile = (phone: string) => phone.replace(/[\s()+.-]/g, '')
@@ -86,6 +99,8 @@ async function poll(db: ReturnType<typeof createClient>, settings: Settings) {
   for (const call of calls) {
     if (seen.has(call.id!)) continue;
     const phone = indianMobile(call.calleeNumber!);
+    const message = renderMessage(settings, phone);
+    if (!message) continue;
     if (await blocked(db, phone)) continue;
     const { data: current, error: configError } = await db.from('sms_intell_settings')
       .select('enabled_at').eq('id', true).single();
@@ -96,9 +111,9 @@ async function poll(db: ReturnType<typeof createClient>, settings: Settings) {
     seen.add(call.id!);
     const query = new URLSearchParams({
       apikey: smsKey, senderid: senderId, templateid: settings.template_id,
-      number: phone, message: settings.message, format: 'JSON',
+      number: phone, message, format: 'JSON',
     });
-    if (usesUnicode(settings.message)) query.set('unicode', '2');
+    if (usesUnicode(message)) query.set('unicode', '2');
     const response = await fetch('https://sms.samparkhub.com/V2/apikey.php?' + query, {
       redirect: 'error', signal: AbortSignal.timeout(8000),
     }).catch(() => null);
